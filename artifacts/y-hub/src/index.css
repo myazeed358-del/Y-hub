@@ -1,0 +1,14 @@
+@import "@workspace/y-hub-ds/styles.css";
+
+/* Product-specific base behavior; visual tokens live in the design system. */
+@layer base {
+  html {
+    min-width: 320px;
+  }
+
+  body {
+    min-height: 100dvh;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+}
