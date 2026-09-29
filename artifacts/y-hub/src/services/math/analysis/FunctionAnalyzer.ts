@@ -356,6 +356,7 @@ export class FunctionAnalyzer {
     
     // Helper to add CP
     const addCP = (pt: Endpoint, src: 'derivative_zero' | 'derivative_undefined_in_domain') => {
+      if (pt.type !== 'value') return;
       const s = ASTUtils.structuralKey(pt.ast);
       if (!cps.has(s)) {
         cps.set(s, {
@@ -514,7 +515,7 @@ export class FunctionAnalyzer {
     // Deduplicate
     const unique = new Map<string, ExtremaPoint>();
     for (const e of extrema) {
-      unique.set(ASTUtils.structuralKey(e.point.ast), e);
+      if (e.point.type === 'value') unique.set(ASTUtils.structuralKey(e.point.ast), e);
     }
     return Array.from(unique.values());
   }
@@ -587,7 +588,7 @@ export class FunctionAnalyzer {
     
     const unique = new Map<string, InflectionPoint>();
     for (const i of infs) {
-      unique.set(ASTUtils.structuralKey(i.point.ast), i);
+      if (i.point.type === 'value') unique.set(ASTUtils.structuralKey(i.point.ast), i);
     }
     return Array.from(unique.values());
   }
@@ -597,7 +598,7 @@ export class FunctionAnalyzer {
     
     // Vertical Asymptotes
     for (const d of discontinuities) {
-       if (d.status === 'infinite_discontinuity') {
+       if (d.status === 'infinite_discontinuity' && d.point.type === 'value') {
           asymptotes.push({ type: 'vertical', equation: { type: 'Equation', lhs: { type: 'Symbol', name: variable }, rhs: d.point.ast } });
        }
     }
@@ -668,7 +669,7 @@ export class FunctionAnalyzer {
     // Sort and deduplicate endpoints
     const uniquePoints = new Map<string, Endpoint>();
     for (const p of importantPoints) {
-      uniquePoints.set(ASTUtils.structuralKey(p.ast), p);
+      if (p.type === 'value') uniquePoints.set(ASTUtils.structuralKey(p.ast), p);
     }
     const sortedPoints = Array.from(uniquePoints.values()).sort((a, b) => SetEngine.exactCompare(a, b) || 0);
 
