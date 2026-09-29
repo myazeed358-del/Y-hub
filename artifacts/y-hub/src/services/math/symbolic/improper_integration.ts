@@ -1,6 +1,6 @@
 import { CanonicalAST } from '../types/ast';
 import { MathStep } from '../types/step';
-import { DefiniteIntegrationRequest, ImproperIntegrationResult, ImproperIntegrationClassification, ImproperIntegralPiece } from '../types/integration';
+import { DefiniteIntegrationRequest, ImproperIntegrationResult, ImproperIntegrationClassification, ImproperIntegralPiece, VerificationStatus } from '../types/integration';
 import { LimitEngine } from './limit';
 import { DefiniteIntegrationEngine } from './definite_integration';
 import { DomainAnalyzer } from '../domain';

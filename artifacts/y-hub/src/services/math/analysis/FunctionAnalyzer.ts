@@ -6,9 +6,15 @@ import {
   FunctionClassification,
   DiscontinuityPoint,
   ContinuityStatus,
-  VerificationFailure
+  VerificationFailure,
+  CriticalPoint,
+  ExtremaPoint,
+  InflectionPoint,
+  Asymptote,
+  InfiniteBehavior,
+  GraphData
 } from '../types/analysis';
-import { SolutionSet, Interval, Endpoint, AlgebraicEndpoint } from '../types/set';
+import { SolutionSet, Interval, Endpoint } from '../types/set';
 import { DomainAnalyzer } from '../domain';
 import { SetEngine } from '../symbolic/sets';
 import { InequalityEngine } from '../symbolic/inequality';
@@ -270,7 +276,7 @@ export class FunctionAnalyzer {
     const unique = new Map<string, Endpoint>();
     for (const c of candidates) {
       if (c.type === 'value') {
-        const s = ASTUtils.serialize(c.ast);
+        const s = ASTUtils.structuralKey(c.ast);
         if (!unique.has(s)) unique.set(s, c);
       }
     }
@@ -350,7 +356,7 @@ export class FunctionAnalyzer {
     
     // Helper to add CP
     const addCP = (pt: Endpoint, src: 'derivative_zero' | 'derivative_undefined_in_domain') => {
-      const s = ASTUtils.serialize(pt.ast);
+      const s = ASTUtils.structuralKey(pt.ast);
       if (!cps.has(s)) {
         cps.set(s, {
           point: pt,
@@ -508,7 +514,7 @@ export class FunctionAnalyzer {
     // Deduplicate
     const unique = new Map<string, ExtremaPoint>();
     for (const e of extrema) {
-       unique.set(ASTUtils.serialize(e.point.ast), e);
+      unique.set(ASTUtils.structuralKey(e.point.ast), e);
     }
     return Array.from(unique.values());
   }
@@ -581,7 +587,7 @@ export class FunctionAnalyzer {
     
     const unique = new Map<string, InflectionPoint>();
     for (const i of infs) {
-       unique.set(ASTUtils.serialize(i.point.ast), i);
+      unique.set(ASTUtils.structuralKey(i.point.ast), i);
     }
     return Array.from(unique.values());
   }
@@ -662,7 +668,7 @@ export class FunctionAnalyzer {
     // Sort and deduplicate endpoints
     const uniquePoints = new Map<string, Endpoint>();
     for (const p of importantPoints) {
-       uniquePoints.set(ASTUtils.serialize(p.ast), p);
+      uniquePoints.set(ASTUtils.structuralKey(p.ast), p);
     }
     const sortedPoints = Array.from(uniquePoints.values()).sort((a, b) => SetEngine.exactCompare(a, b) || 0);
 

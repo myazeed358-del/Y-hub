@@ -1,5 +1,5 @@
 import { CanonicalAST } from './ast';
-import { SolutionSet, Endpoint } from './set';
+import { SolutionSet, Endpoint, Interval } from './set';
 import { MathStep } from './step';
 
 export interface FunctionAnalysisRequest {
