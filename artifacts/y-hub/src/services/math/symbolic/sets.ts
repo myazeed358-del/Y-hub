@@ -77,6 +77,20 @@ export class SetEngine {
     return result;
   }
 
+  public static union(a: Interval[], b: Interval[]): Interval[] {
+    return this.normalizeUnion([...a, ...b].map(interval => ({ ...interval })));
+  }
+
+  public static containsEndpoint(intervals: Interval[], endpoint: Endpoint): boolean {
+    return intervals.some(interval => {
+      const leftComparison = this.exactCompare(interval.left, endpoint);
+      const rightComparison = this.exactCompare(endpoint, interval.right);
+      const isAfterLeft = leftComparison !== null && (leftComparison < 0 || (leftComparison === 0 && interval.leftClosed));
+      const isBeforeRight = rightComparison !== null && (rightComparison < 0 || (rightComparison === 0 && interval.rightClosed));
+      return isAfterLeft && isBeforeRight;
+    });
+  }
+
   public static intersection(a: Interval[], b: Interval[]): Interval[] {
     const result: Interval[] = [];
     

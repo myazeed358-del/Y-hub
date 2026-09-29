@@ -3,9 +3,15 @@ import { SolutionSet, ParameterizedSolutionSet, Interval, Endpoint } from '../ty
 import { Rat } from '../utils/rational';
 import { PolynomialExtractor } from './polynomial';
 import { SymbolicSimplifier } from './simplifier';
-import { MathStep } from '../types/step';
+import { InequalityTransformationData, MathStep } from '../types/step';
 import { SetEngine } from './sets';
-import { DomainAnalyzer } from './domain';
+import { DomainAnalyzer } from '../domain';
+
+interface InequalityStepOptions {
+  type?: MathStep['type'];
+  details?: Record<string, unknown>;
+  transformation?: InequalityTransformationData;
+}
 
 export type InequalitySolveResult = 
   | { kind: 'solution_set'; solution: SolutionSet; steps: MathStep[] }
@@ -225,7 +231,7 @@ export class InequalityEngine {
     
     for (const [deg, terms] of poly.entries()) {
       if (deg < 0) {
-        steps.push({ message: 'unsupported_polynomial_root_case', type: 'error' });
+        this.appendStep(steps, 'Error', 'unsupported_polynomial_root_case', { type: 'error', details: { message: 'unsupported_polynomial_root_case' } });
         throw new Error('root_isolation_incomplete');
       }
       const termNode = terms.length === 0 ? { type: 'Number', value: '0' } : (terms.length === 1 ? terms[0] : { type: 'Operator', operator: '+', args: terms });
@@ -238,7 +244,7 @@ export class InequalityEngine {
         const innerRat = Rat.fromString((simplified.args[1] as any).value);
         valRat = { num: -innerRat.num, den: innerRat.den };
       } else {
-        steps.push({ message: 'requires_parameter_sign_analysis', type: 'error' });
+        this.appendStep(steps, 'Error', 'requires_parameter_sign_analysis', { type: 'error', details: { message: 'requires_parameter_sign_analysis' } });
         throw new Error('requires_parameter_sign_analysis');
       }
       coeffsRat[deg] = valRat;
@@ -361,14 +367,13 @@ export class InequalityEngine {
     }
     
     if (rootCompleteness !== 'complete') {
-       steps.push({
-         message: 'root_isolation_incomplete',
-         type: 'error',
-         error: {
-           message: 'Cannot isolate exact polynomial roots. Sign chart is untrustworthy.',
-           code: 'root_isolation_incomplete'
-         } as any
-       });
+      this.appendStep(steps, 'Error: root isolation incomplete', 'Cannot isolate exact polynomial roots. Sign chart is untrustworthy. (root_isolation_incomplete)', {
+        type: 'error',
+        details: {
+          message: 'root_isolation_incomplete',
+          error: { message: 'Cannot isolate exact polynomial roots. Sign chart is untrustworthy.', code: 'root_isolation_incomplete' }
+        }
+      });
        throw new Error('root_isolation_incomplete');
     }
     
@@ -380,15 +385,14 @@ export class InequalityEngine {
     const moved = { type: 'Operator', operator: '-', args: [node.lhs, node.rhs] };
     const fract = this.fractionalize(moved as CanonicalAST);
     
-    steps.push({
-      message: 'Rational expression normalized via difference',
+    this.appendStep(steps, 'Rational expression normalization', 'rational_normalization (rational_difference); cross multiplication not used. Transformed LHS and RHS into a single rational difference (AD-BC)/(BD) to preserve domain restrictions safely.', {
       type: 'transformation',
       transformation: {
         method: 'rational_normalization',
         normalizationType: 'rational_difference',
         crossMultiplication: 'not_used',
         justification: 'Transformed LHS and RHS into a single rational difference (AD-BC)/(BD) to preserve domain restrictions safely.'
-      } as any
+      }
     });
 
     const simplifiedNum = this.simplifier.simplify(fract.num);
@@ -401,7 +405,10 @@ export class InequalityEngine {
     const denData = this.extractPolynomialRootsHelper(denPoly, steps);
     
     if (denData.isZero) {
-        steps.push({ message: 'Zero denominator detected, undefined domain.', type: 'info' });
+        this.appendStep(steps, 'Domain restriction', 'Zero denominator detected, undefined domain.', {
+          type: 'info',
+          details: { message: 'Zero denominator detected, undefined domain.' }
+        });
         return [];
     }
 
@@ -483,16 +490,15 @@ export class InequalityEngine {
         }
     }
     
-    steps.push({
-      message: `Rational sign chart`,
+    this.appendStep(steps, 'Rational sign chart', `rational_sign_chart for ${rel}. Constructed unified sign chart using exact roots, multiplicities, and domain exclusions.`, {
       type: 'transformation',
       transformation: {
-         method: 'rational_sign_chart',
-         relation: rel,
-         criticalPoints: criticalPoints,
-         rootCompleteness: 'complete',
-         justification: 'Constructed unified sign chart using exact roots, multiplicities, and domain exclusions.'
-      } as any
+        method: 'rational_sign_chart',
+        relation: rel,
+        criticalPoints,
+        rootCompleteness: 'complete',
+        justification: 'Constructed unified sign chart using exact roots, multiplicities, and domain exclusions.'
+      }
     });
     
     return SetEngine.normalizeUnion(validIntervals);
@@ -551,10 +557,7 @@ export class InequalityEngine {
     }
 
     if (aSign === 'unknown') {
-      steps.push({
-        message: 'requires_parameter_sign_analysis',
-        type: 'error'
-      });
+      this.appendStep(steps, 'Error', 'requires_parameter_sign_analysis', { type: 'error', details: { message: 'requires_parameter_sign_analysis' } });
       return [];
     }
 
@@ -597,8 +600,8 @@ export class InequalityEngine {
       }
     }
 
-    steps.push({
-      message: `Linear inequality normalization`,
+    this.appendStep(steps, 'Linear inequality normalization', `Divided by coefficient. Sign is ${aSign > 0 ? 'positive' : 'negative'}; normalized relation is ${rel}${aSign < 0 ? ' after reversing the relation' : ''}.`, {
+      type: 'transformation',
       transformation: {
         method: 'linear_inequality_normalization',
         before: node,
@@ -608,15 +611,14 @@ export class InequalityEngine {
         directionChanged: aSign < 0,
         restrictionsAdded: [],
         justification: `Divided by coefficient. Sign is ${aSign > 0 ? 'positive' : 'negative'}.`,
-        verified: 'exactly_verified' as any
-      } as any,
-      type: 'transformation'
+        verified: 'exactly_verified'
+      }
     });
 
     return this.buildInterval(rel, endpoint);
   }
 
-  private reverseRelation(rel: string): string {
+  private reverseRelation(rel: InequalityNode['operator']): InequalityNode['operator'] {
     switch (rel) {
       case '<': return '>';
       case '<=': return '>=';
@@ -667,13 +669,13 @@ export class InequalityEngine {
     }
   }
 
-  private solvePolynomialInequality(poly: Map<number, CanonicalAST[]>, rel: string, variable: string, steps: MathStep[]): Interval[] {
+  private solvePolynomialInequality(poly: Map<number, CanonicalAST[]>, rel: InequalityNode['operator'], variable: string, steps: MathStep[]): Interval[] {
     const maxDeg = Math.max(...Array.from(poly.keys()));
     const coeffsNum = new Array(maxDeg + 1).fill(0);
     
     for (const [deg, terms] of poly.entries()) {
       if (deg < 0) {
-        steps.push({ message: 'unsupported_polynomial_root_case', type: 'error' });
+        this.appendStep(steps, 'Error', 'unsupported_polynomial_root_case', { type: 'error', details: { message: 'unsupported_polynomial_root_case' } });
         return [];
       }
       const termNode = terms.length === 0 ? { type: 'Number', value: '0' } : (terms.length === 1 ? terms[0] : { type: 'Operator', operator: '+', args: terms });
@@ -685,7 +687,7 @@ export class InequalityEngine {
       } else if (simplified.type === 'Operator' && simplified.operator === '*' && simplified.args[0].type === 'Number' && simplified.args[0].value === '-1' && simplified.args[1].type === 'Number') {
         val = -parseFloat((simplified.args[1] as any).value);
       } else {
-        steps.push({ message: 'requires_parameter_sign_analysis', type: 'error' });
+        this.appendStep(steps, 'Error', 'requires_parameter_sign_analysis', { type: 'error', details: { message: 'requires_parameter_sign_analysis' } });
         return [];
       }
       coeffsNum[deg] = val;
@@ -725,13 +727,16 @@ export class InequalityEngine {
     }
     
     if (rootCompleteness !== 'complete') {
-       steps.push({
-         message: 'root_isolation_incomplete',
+       this.appendStep(steps, 'Error: root isolation incomplete', `Root completeness: ${rootCompleteness}. Supported scope: univariate polynomial inequalities for which all required real critical roots can be established by the currently implemented exact root-discovery mechanisms.`, {
          type: 'error',
+         details: {
+           message: 'root_isolation_incomplete'
+         },
          transformation: {
+           method: 'root_isolation_incomplete',
            rootCompleteness,
            justification: 'Supported scope: Univariate polynomial inequalities for which all required real critical roots can be established by the currently implemented exact root-discovery mechanisms.'
-         } as any
+         }
        });
        throw new Error('root_isolation_incomplete');
     }
@@ -774,17 +779,16 @@ export class InequalityEngine {
         }
     }
     
-    steps.push({
-      message: `Polynomial sign chart`,
+    this.appendStep(steps, 'Polynomial sign chart', `polynomial_sign_chart for ${rel}. Constructed sign chart using ${roots.length} exact roots and their multiplicities; the sign at positive infinity is ${leadingSign > 0 ? 'positive' : 'negative'}.`, {
       type: 'transformation',
       transformation: {
-         method: 'polynomial_sign_chart',
-         relation: rel,
-         rootCompleteness: 'complete',
-         roots: roots,
-         infinitySign: { plusInfinity: leadingSign > 0 ? 'positive' : 'negative' },
-         justification: 'Constructed sign chart using exact roots and multiplicities.'
-      } as any
+        method: 'polynomial_sign_chart',
+        relation: rel,
+        rootCompleteness: 'complete',
+        roots,
+        infinitySign: { plusInfinity: leadingSign > 0 ? 'positive' : 'negative' },
+        justification: 'Constructed sign chart using exact roots and multiplicities.'
+      }
     });
     
     return SetEngine.normalizeUnion(validIntervals);
@@ -977,15 +981,14 @@ export class InequalityEngine {
       }
     }
     
-    steps.push({
-      message: 'Absolute value transformation',
+    this.appendStep(steps, 'Absolute value transformation', `absolute_value_inequality; bound sign: ${boundSign}. Rule: ${rule}. Isolated absolute value and applied exact piecewise mathematical rules.`, {
       type: 'transformation',
       transformation: {
         method: 'absolute_value_inequality',
         boundSign,
         rule,
         justification: 'Isolated absolute value and applied exact piecewise mathematical rules.'
-      } as any
+      }
     });
     
     return SetEngine.normalizeUnion(result);
@@ -1113,16 +1116,29 @@ export class InequalityEngine {
       result = SetEngine.union(branch1, branch2);
     }
     
-    steps.push({
-      message: 'Radical inequality resolved via safe squaring',
+    this.appendStep(steps, 'Radical inequality resolved via safe squaring', `radical_squaring for ${rel}. Isolated radical and applied sign-checked squaring conditions, preserving A >= 0.`, {
       type: 'transformation',
       transformation: {
         method: 'radical_squaring',
         relation: rel,
         justification: 'Isolated radical and applied sign-checked squaring conditions, preserving A >= 0.'
-      } as any
+      }
     });
     
     return result;
+  }
+
+  private appendStep(
+    steps: MathStep[],
+    title: string,
+    explanation: string,
+    options: InequalityStepOptions = {}
+  ): void {
+    steps.push({
+      id: `inequality_${steps.length}`,
+      title,
+      explanation,
+      ...options
+    });
   }
 }

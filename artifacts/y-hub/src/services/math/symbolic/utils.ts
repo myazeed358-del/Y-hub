@@ -1,6 +1,61 @@
 import { CanonicalAST } from '../types/ast';
 
 export class ASTUtils {
+  public static structuralKey(node: CanonicalAST): string {
+    return JSON.stringify(node);
+  }
+
+  public static serialize(node: CanonicalAST): string {
+    switch (node.type) {
+      case 'Number':
+        return node.value;
+      case 'Symbol':
+      case 'Constant':
+        return node.name;
+      case 'Operator': {
+        const args = node.args.map(arg => ASTUtils.serialize(arg));
+        if (node.operator === '!') return `(${args[0]}!)`;
+        if (node.operator === '%' && args.length === 1) return `(${args[0]}%)`;
+        const operator = node.operator === 'implicit_multiply' ? '*' : node.operator;
+        return `(${args.join(` ${operator} `)})`;
+      }
+      case 'Function':
+        return `${node.name}(${node.args.map(arg => ASTUtils.serialize(arg)).join(', ')})`;
+      case 'Parenthesis':
+        return `(${ASTUtils.serialize(node.content)})`;
+      case 'Equation':
+        return `${ASTUtils.serialize(node.lhs)} = ${ASTUtils.serialize(node.rhs)}`;
+      case 'Inequality':
+        return `${ASTUtils.serialize(node.lhs)} ${node.operator} ${ASTUtils.serialize(node.rhs)}`;
+      case 'Matrix':
+        return `[${node.rows.map(row => `[${row.map(entry => ASTUtils.serialize(entry)).join(', ')}]`).join(', ')}]`;
+      case 'Vector':
+        return `[${node.elements.map(entry => ASTUtils.serialize(entry)).join(', ')}]`;
+    }
+  }
+
+  public static containsVariable(node: CanonicalAST, variable: string): boolean {
+    switch (node.type) {
+      case 'Symbol':
+        return node.name === variable;
+      case 'Operator':
+      case 'Function':
+        return node.args.some(arg => ASTUtils.containsVariable(arg, variable));
+      case 'Parenthesis':
+        return ASTUtils.containsVariable(node.content, variable);
+      case 'Equation':
+      case 'Inequality':
+        return ASTUtils.containsVariable(node.lhs, variable) || ASTUtils.containsVariable(node.rhs, variable);
+      case 'Matrix':
+        return node.rows.some(row => row.some(entry => ASTUtils.containsVariable(entry, variable)));
+      case 'Vector':
+        return node.elements.some(entry => ASTUtils.containsVariable(entry, variable));
+      case 'Number':
+      case 'Constant':
+        return false;
+    }
+  }
+
   public static clone(node: CanonicalAST): CanonicalAST {
     return JSON.parse(JSON.stringify(node));
   }

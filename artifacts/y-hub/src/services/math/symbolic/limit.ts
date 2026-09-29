@@ -257,7 +257,8 @@ export class LimitEngine {
     let indeterminateForm: any = 'none';
     let valueAST: CanonicalAST | undefined;
 
-    const res = this.evaluator.evaluateForm(expr, req.variable, req.approach, req.direction);
+    const evaluationDirection = req.direction === 'both' ? 'right' : req.direction;
+    const res = this.evaluator.evaluateForm(expr, req.variable, req.approach, evaluationDirection);
     if (res.type === 'finite') {
       classification = 'finite';
       
