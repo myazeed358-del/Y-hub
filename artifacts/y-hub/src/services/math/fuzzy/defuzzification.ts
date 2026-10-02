@@ -1,8 +1,8 @@
-import { DefuzzificationRequest, DefuzzificationResult, DiscreteFuzzyPoint, FuzzyDefuzzificationMethod } from './types';
+import { DiscreteFuzzyPoint, FuzzyDefuzzificationMethod } from './types';
 
 export class DefuzzificationEngine {
   
-  public executeDiscrete(points: DiscreteFuzzyPoint[], method: FuzzyDefuzzificationMethod, inputType?: 'singletons' | 'aggregated_set'): { value: number, status: string, trace: any[] } {
+  public executeDiscrete(points: DiscreteFuzzyPoint[], method: FuzzyDefuzzificationMethod | 'weighted_average' | 'weighted_sum', inputType?: 'singletons' | 'aggregated_set'): { value: number, status: string, trace: any[] } {
     if (!points || points.length === 0) return { value: 0, status: 'invalid_domain', trace: [{ step: 'Validation', desc: 'Empty point set' }] };
     
     if ((method === 'weighted_average' || method === 'weighted_sum') && inputType !== 'singletons') {

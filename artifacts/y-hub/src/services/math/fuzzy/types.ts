@@ -1,4 +1,6 @@
 export type MembershipFunctionType = 'triangle' | 'trapezoid' | 'gaussian' | 'bell' | 'sigmoid' | 'singleton';
+export type TNormType = 'min' | 'prod' | 'bounded' | 'drastic';
+export type TConormType = 'max' | 'probsum' | 'bounded' | 'drastic';
 
 export interface MembershipFunction {
   type: MembershipFunctionType;
@@ -11,9 +13,6 @@ export interface FuzzySet {
   universe: [number, number];
   membership: MembershipFunction;
 }
-
-export type TNormType = 'min' | 'prod' | 'bounded' | 'drastic';
-export type TConormType = 'max' | 'probsum' | 'bounded' | 'drastic';
 
 export interface FuzzyRuleAntecedent {
   variable: string;
@@ -30,6 +29,12 @@ export interface FuzzyRule {
 }
 
 export type DefuzzificationMethod = 'centroid' | 'bisector' | 'mom' | 'som' | 'lom';
+export type FuzzyDefuzzificationMethod = DefuzzificationMethod;
+
+export interface DiscreteFuzzyPoint {
+  x: number;
+  y: number;
+}
 
 export interface FuzzyInferenceRequest {
   systemType: 'mamdani' | 'sugeno' | 'tsukamoto';
@@ -102,7 +107,6 @@ export interface RelationResult extends FuzzyResult {
   closure?: RelationClosureResult;
   inclusion?: { isIncluded: boolean; isEqual: boolean; counterexample?: [number, number] };
 }
-export type MembershipFunctionType = 'triangle' | 'trapezoid' | 'gaussian' | 'bell' | 'sigmoid' | 'singleton';
 
 export interface MembershipFunction {
   type: MembershipFunctionType;
@@ -115,9 +119,6 @@ export interface FuzzySet {
   universe: [number, number];
   membership: MembershipFunction;
 }
-
-export type TNormType = 'min' | 'prod' | 'bounded' | 'drastic';
-export type TConormType = 'max' | 'probsum' | 'bounded' | 'drastic';
 
 export interface FuzzyRuleAntecedent {
   variable: string;

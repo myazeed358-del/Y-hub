@@ -124,7 +124,7 @@ export class FuzzyRelation {
   }
 
   public transitiveClosure(limit: number = 100): RelationClosureResult {
-    let current = this;
+    let current: FuzzyRelation = this;
     let converged = false;
     let iter = 0;
     
