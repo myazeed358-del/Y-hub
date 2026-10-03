@@ -328,7 +328,7 @@ export class ImproperIntegrationEngine {
      if (node.type === 'Symbol' && (node.name === 'infinity' || node.name === 'inf' || node.name === '\\infty')) return true;
      if (node.type === 'Operator' && node.operator === '*' && node.args.length === 2 && node.args[0].type === 'Number' && node.args[0].value === '-1' && this.isNumericOrInf(node.args[1])) return true;
      try {
-        const val = this.evaluator.evaluate(node, new Map());
+        const val = this.evaluator.evaluate(node, {});
         return typeof val === 'number';
      } catch {
         return false;
@@ -338,7 +338,7 @@ export class ImproperIntegrationEngine {
   private evaluateNumericOrInf(node: CanonicalAST): number {
      if (node.type === 'Symbol' && (node.name === 'infinity' || node.name === 'inf' || node.name === '\\infty')) return Infinity;
      if (node.type === 'Operator' && node.operator === '*' && node.args.length === 2 && node.args[0].type === 'Number' && node.args[0].value === '-1' && this.isNumericOrInf(node.args[1])) return -Infinity;
-     return this.evaluator.evaluate(node, new Map()) as number;
+     return this.evaluator.evaluate(node, {}) as number;
   }
 
   private buildResult(req: DefiniteIntegrationRequest, classification: ImproperIntegrationClassification, pieces: ImproperIntegralPiece[], originalDomain: any, detectedSingularities: CanonicalAST[], finalValue: CanonicalAST | null, verificationStatus: VerificationStatus, assumptions: string[], steps: MathStep[]): ImproperIntegrationResult {

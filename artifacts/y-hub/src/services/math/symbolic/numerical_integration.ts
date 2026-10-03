@@ -105,7 +105,7 @@ export class NumericalIntegrationEngine {
     const evaluate = (x: number) => {
         if (evalState.count >= evalState.max) throw new Error('RESOURCE_LIMIT');
         evalState.count++;
-        const res = this.evaluator.evaluate(req.integrand, new Map([[req.variable, x]]));
+        const res = this.evaluator.evaluate(req.integrand, { [req.variable]: x });
         if (typeof res !== 'number' || isNaN(res) || !isFinite(res)) throw new Error('NON_FINITE_EVALUATION');
         return res;
     };
@@ -231,7 +231,7 @@ export class NumericalIntegrationEngine {
      if (node.type === 'Operator' && node.operator === '*' && node.args.length === 2 && node.args[0].type === 'Number' && node.args[0].value === '-1' && node.args[1].type === 'Symbol' && (node.args[1].name === 'infinity' || node.args[1].name === 'inf')) return -Infinity;
      
      try {
-        const val = this.evaluator.evaluate(node, new Map());
+        const val = this.evaluator.evaluate(node, {});
         if (typeof val === 'number') return val;
         return NaN;
      } catch {

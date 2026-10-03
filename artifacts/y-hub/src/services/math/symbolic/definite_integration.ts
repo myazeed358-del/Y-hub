@@ -234,7 +234,7 @@ export class DefiniteIntegrationEngine {
   }
 
   private evaluateNumeric(node: CanonicalAST): number {
-     const res = this.evaluator.evaluate(node, new Map());
+     const res = this.evaluator.evaluate(node, {});
      if (typeof res === 'number') return res;
      throw new Error('Not numeric');
   }
