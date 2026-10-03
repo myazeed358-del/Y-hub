@@ -66,6 +66,12 @@ export class Rat {
     return Number(r.num) / Number(r.den);
   }
 
+  public static sign(r: Rational): -1 | 0 | 1 {
+    const simplified = Rat.simplify(r);
+    if (simplified.num === 0n) return 0;
+    return simplified.num < 0n ? -1 : 1;
+  }
+
   public static isZero(r: Rational): boolean {
     return r.num === 0n;
   }

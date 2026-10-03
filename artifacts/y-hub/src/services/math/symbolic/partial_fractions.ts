@@ -77,7 +77,7 @@ export class PartialFractionsEngine {
        // Arctan handles 1/(1+x^2) or 1/(a^2+x^2).
        // To keep it rigorous and within scope, let's only proceed if it's precisely x^2 + C where C > 0.
        if (!Rat.isZero(remQ[1])) return null; // B != 0 not supported yet
-       if (Rat.cmp(Rat.mul(remQ[0], remQ[2]), Rat.zero) <= 0) return null; // roots would be real, should have been found, or it's not x^2+C
+       if (Rat.sign(Rat.mul(remQ[0], remQ[2])) <= 0) return null; // roots would be real, should have been found, or it's not x^2+C
        hasQuadratic = true;
     } else if (remQ.length === 2) {
        // Linear factor but didn't have rational root? Shouldn't happen if rational coefficients.
@@ -188,7 +188,7 @@ export class PartialFractionsEngine {
        // Avoid roots
        let isRoot = false;
        for (const r of roots) {
-          if (Rat.cmp(r.value, Rat.fromNumber(testVal)) === 0) isRoot = true;
+          if (Rat.equals(r.value, Rat.fromNumber(testVal))) isRoot = true;
        }
        if (isRoot) continue;
        
