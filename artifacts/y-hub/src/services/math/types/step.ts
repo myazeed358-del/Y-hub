@@ -11,7 +11,9 @@ export type VerificationStatus =
 export interface VerificationResult {
   status: VerificationStatus;
   evidence?: string;
-  method: 'symbolic' | 'numeric' | 'hybrid';
+  method?: 'symbolic' | 'numeric' | 'hybrid';
+  methodUsed: 'independent_numerical_difference' | 'none' | 'differentiation' | 'substitution';
+  explanation: string;
 }
 
 export interface TransformationData {
