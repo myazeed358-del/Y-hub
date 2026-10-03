@@ -82,7 +82,6 @@ export class MathOrchestrator {
       // 5. Build Result
       return {
         type: 'symbolic',
-        domain: 'algebra', // This would come from a mapped domain
         expression: 'Stringified fallback or canonical', 
         latex: latex,
         exact: true,
@@ -104,7 +103,6 @@ export class MathOrchestrator {
       type: 'error',
       errorType: type,
       errorMessage: message,
-      domain: 'unknown' as any,
       steps: [],
       warnings: [],
       conditions: [],
