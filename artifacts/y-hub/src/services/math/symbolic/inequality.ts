@@ -89,20 +89,6 @@ export class InequalityEngine {
       return result;
     }
     
-    // Some parsers might use Operator for logic
-    if (ast.type === 'Operator' as any) {
-      const opAny = (ast as any).operator as string;
-      if (opAny === 'AND' || opAny === '&&' || opAny === 'OR' || opAny === '||' || opAny === ',') {
-         const branches = ast.args.map(arg => this.processNode(arg, variable, steps));
-         const isAnd = opAny === 'AND' || opAny === '&&' || opAny === ',';
-         let result = branches[0];
-         for (let i = 1; i < branches.length; i++) {
-           result = isAnd ? SetEngine.intersection(result, branches[i]) : SetEngine.union(result, branches[i]);
-         }
-         return result;
-      }
-    }
-
     if (ast.type === 'Inequality') {
       const absNodes = this.findAbsNodes(ast);
       if (absNodes.length > 0) {
@@ -485,7 +471,7 @@ export class InequalityEngine {
         
         if (satisfies(currentSign, rel)) {
             const leftEp = cp.endpoint;
-            const rightEp = i + 1 < criticalPoints.length ? criticalPoints[i+1].endpoint : { type: 'infinity', sign: 1 };
+            const rightEp: Endpoint = i + 1 < criticalPoints.length ? criticalPoints[i+1].endpoint : { type: 'infinity', sign: 1 };
             validIntervals.push({ left: leftEp, right: rightEp, leftClosed: false, rightClosed: false });
         }
     }
@@ -816,7 +802,7 @@ export class InequalityEngine {
   private findAbsNodes(ast: CanonicalAST): CanonicalAST[] {
     const nodes: CanonicalAST[] = [];
     const traverse = (node: CanonicalAST) => {
-      if ((node.type === 'Function' && node.name === 'abs') || (node.type === 'Operator' && node.operator === '|')) {
+      if (node.type === 'Function' && node.name === 'abs') {
         nodes.push(node);
       }
       if (node.type === 'Operator') node.args.forEach(traverse);
@@ -831,7 +817,7 @@ export class InequalityEngine {
   private hasNestedAbs(absNode: CanonicalAST): boolean {
     let nested = false;
     const traverse = (node: CanonicalAST) => {
-      if (node !== absNode && ((node.type === 'Function' && node.name === 'abs') || (node.type === 'Operator' && node.operator === '|'))) nested = true;
+      if (node !== absNode && node.type === 'Function' && node.name === 'abs') nested = true;
       if (node.type === 'Operator') node.args.forEach(traverse);
       if (node.type === 'Function') node.args.forEach(traverse);
       if (node.type === 'Parenthesis') traverse(node.content);
@@ -841,7 +827,7 @@ export class InequalityEngine {
   }
 
   private replaceAbsWithSymbol(ast: CanonicalAST, targetInnerStr: string): CanonicalAST {
-    if (((ast.type === 'Function' && ast.name === 'abs') || (ast.type === 'Operator' && ast.operator === '|')) && JSON.stringify(ast.type === 'Operator' ? ast.args[0] : (ast as any).args[0]) === targetInnerStr) {
+    if (ast.type === 'Function' && ast.name === 'abs' && JSON.stringify(ast.args[0]) === targetInnerStr) {
       return { type: 'Symbol', name: '___ABS___' };
     }
     if (ast.type === 'Operator') return { ...ast, args: ast.args.map(a => this.replaceAbsWithSymbol(a, targetInnerStr)) };
