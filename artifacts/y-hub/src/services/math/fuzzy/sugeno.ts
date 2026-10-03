@@ -6,7 +6,7 @@ export class SugenoEngine {
   private evaluatePolynomial(inputs: Record<string, number>, params: Record<string, number>): number {
     let result = params['intercept'] || 0;
     for (const [key, value] of Object.entries(inputs)) {
-      const coeffKey = \c_\\;
+      const coeffKey = `c_${key}`;
       if (params[coeffKey] !== undefined) {
         result += params[coeffKey] * value;
       }
@@ -40,7 +40,7 @@ export class SugenoEngine {
           if (consequent.variable !== varName) continue;
           
           const term = outVar.terms[consequent.term];
-          if (!term) throw new Error(\Undefined output term \ for variable \\);
+          if (!term) throw new Error(`Undefined output term ${consequent.term} for variable ${varName}`);
           
           let z = 0;
           if (term.membership.type === 'constant') {
@@ -48,7 +48,7 @@ export class SugenoEngine {
           } else if (term.membership.type === 'linear') {
             z = this.evaluatePolynomial(req.inputs, term.membership.params);
           } else {
-             throw new Error(\Sugeno engine requires 'constant' or 'linear' membership functions. Got \\);
+             throw new Error(`Sugeno engine requires 'constant' or 'linear' membership functions. Got ${term.membership.type}`);
           }
           
           const w = evalResult.firingStrength;
@@ -75,11 +75,11 @@ export class SugenoEngine {
         if (finalCrisp < outVar.domain[0] || finalCrisp > outVar.domain[1]) {
            outStatus = 'invalid_domain';
            globalStatus = 'invalid_domain';
-           warnings.push(\Output \ out of bounds: \\);
+           warnings.push(`Output ${varName} out of bounds: ${finalCrisp}`);
         }
       }
       
-      trace.push({ step: 'Defuzzification (Weighted Average)', desc: \Output \ = \ / \ = \\});
+      trace.push({ step: 'Defuzzification (Weighted Average)', desc: `Output ${varName} = ${numSum} / ${denSum} = ${finalCrisp}` });
       
       outputs[varName] = {
         variable: varName,

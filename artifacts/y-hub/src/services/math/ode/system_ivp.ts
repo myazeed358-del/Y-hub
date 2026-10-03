@@ -21,7 +21,7 @@ export class SystemIVPEngine {
 
         for (const sol of solutions) {
             if (sol.type === 'explicit') {
-                const cNames = Array.from({ length: n }, (_, i) => \C\\);
+                const cNames = Array.from({ length: n }, (_, i) => `C${i + 1}`);
                 const matrix: Rational[][] = [];
                 const rhsVec: Rational[] = [];
                 

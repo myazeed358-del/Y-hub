@@ -30,14 +30,14 @@ export class DefuzzificationEngine {
         let sumXY = 0;
         for (const p of points) sumXY += p.x * p.y;
         value = sumXY / sumY;
-        trace.push({ step: 'Compute', desc: \Sum(x*y) = \, Sum(y) = \, Value = \\ });
+        trace.push({ step: 'Compute', desc: `Sum(x*y) = ${sumXY}, Sum(y) = ${sumY}, Value = ${value}` });
         break;
       }
       case 'weighted_sum': {
         let sumXY = 0;
         for (const p of points) sumXY += p.x * p.y;
         value = sumXY;
-        trace.push({ step: 'Compute', desc: \Sum(x*y) = \. No normalization applied for weighted_sum.\ });
+        trace.push({ step: 'Compute', desc: `Sum(x*y) = ${sumXY}. No normalization applied for weighted_sum.` });
         break;
       }
       case 'bisector': {
@@ -53,7 +53,7 @@ export class DefuzzificationEngine {
           }
         }
         value = bisectorX;
-        trace.push({ step: 'Compute', desc: \Discrete cumulative area crossed target \ at x = \\ });
+        trace.push({ step: 'Compute', desc: `Discrete cumulative area crossed target ${targetArea} at x = ${bisectorX}` });
         break;
       }
       case 'mom':

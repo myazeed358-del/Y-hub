@@ -35,7 +35,7 @@ export class RuleEngine {
       
       if (crispVal < variable.domain[0] || crispVal > variable.domain[1]) {
         if (policy === 'reject') {
-          throw new Error(\outside_domain: Variable '\' value \ is outside universe [\, \]\);
+          throw new Error(`outside_domain: Variable '${varName}' value ${crispVal} is outside universe [${variable.domain[0]}, ${variable.domain[1]}]`);
         }
         boundedVal = Math.max(variable.domain[0], Math.min(variable.domain[1], crispVal));
       }
@@ -64,18 +64,18 @@ export class RuleEngine {
     private evaluateNode(node: RuleNode, fuzzified: Record<string, FuzzifiedVariable>, trace: any[]): number {
     if (node.type === 'predicate') {
       const v = fuzzified[node.variable];
-      if (!v) throw new Error(\Undefined variable in input: \\);
+      if (!v) throw new Error(`Undefined variable in input: ${node.variable}`);
       const t = v.terms[node.term];
-      if (!t) throw new Error(\Undefined term: \ for variable \\);
+      if (!t) throw new Error(`Undefined term: ${node.term} for variable ${node.variable}`);
       
       const originalMem = t.membership;
       const mem = this.applyHedge(originalMem, node.hedge);
       
-      let traceDesc = \\ IS \\\;
+      let traceDesc = `${node.variable} IS ${node.term}`;
       if (node.hedge === 'very') {
-          traceDesc += \ -> very(\) = \^2 = \\;
+        traceDesc += ` -> very(${originalMem}) = ${originalMem}^2 = ${mem}`;
       } else if (node.hedge === 'somewhat' || node.hedge === 'more-or-less') {
-          traceDesc += \ -> \(\) = sqrt(\) = \\;
+        traceDesc += ` -> ${node.hedge}(${originalMem}) = sqrt(${originalMem}) = ${mem}`;
       }
       
       trace.push({ step: 'Predicate', desc: traceDesc, value: mem });
@@ -87,7 +87,7 @@ export class RuleEngine {
       const res = this.config.tNorm === 'product' 
         ? vals.reduce((a, b) => a * b, 1.0)
         : Math.min(...vals);
-      trace.push({ step: 'AND', desc: \\(\)\, value: res });
+        trace.push({ step: 'AND', desc: `AND(${vals.join(', ')})`, value: res });
       return res;
     }
     
@@ -99,14 +99,14 @@ export class RuleEngine {
       } else {
         res = Math.max(...vals);
       }
-      trace.push({ step: 'OR', desc: \\(\)\, value: res });
+        trace.push({ step: 'OR', desc: `OR(${vals.join(', ')})`, value: res });
       return res;
     }
     
     if (node.type === 'NOT') {
       const val = this.evaluateNode(node.children[0], fuzzified, trace);
       const res = 1.0 - val;
-      trace.push({ step: 'NOT', desc: \1 - \\, value: res });
+        trace.push({ step: 'NOT', desc: `1 - ${val}`, value: res });
       return res;
     }
     
@@ -116,7 +116,7 @@ public evaluateRules(fuzzified: Record<string, FuzzifiedVariable>): RuleEvaluati
     const evals: RuleEvaluation[] = [];
     for (const rule of this.ruleBase.rules) {
       if (rule.weight < 0 || rule.weight > 1) {
-         throw new Error(\Rule weight must be in [0,1], got \\);
+         throw new Error(`Rule weight must be in [0,1], got ${rule.weight}`);
       }
       const trace: any[] = [];
       const strength = this.evaluateNode(rule.antecedent, fuzzified, trace);

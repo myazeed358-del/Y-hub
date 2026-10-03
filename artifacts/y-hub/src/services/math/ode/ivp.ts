@@ -40,7 +40,7 @@ export class IVPEngine {
                     }
                 } else {
                     // N-th order system
-                    const cNames = Array.from({ length: n }, (_, i) => \C\\);
+                    const cNames = Array.from({ length: n }, (_, i) => `C${i + 1}`);
                     
                     const f_x = sol.equation.rhs;
                     const eqns: CanonicalAST[] = [];

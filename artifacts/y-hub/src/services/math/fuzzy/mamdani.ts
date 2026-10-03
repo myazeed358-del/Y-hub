@@ -68,7 +68,7 @@ export class MamdaniEngine {
           if (consequent.variable !== varName) continue; // Consequent applies to another output variable
           
           const term = outVar.terms[consequent.term];
-          if (!term) throw new Error(\Undefined output term \ for variable \\);
+          if (!term) throw new Error(`Undefined output term ${consequent.term} for variable ${varName}`);
           
           const impPoints: {x: number, y: number}[] = [];
           
@@ -123,10 +123,10 @@ export class MamdaniEngine {
       if (finalCrisp < minX || finalCrisp > maxX) {
          outStatus = 'invalid_domain';
          globalStatus = 'invalid_domain';
-         warnings.push(\Output \ out of bounds: \\);
+         warnings.push(`Output ${varName} out of bounds: ${finalCrisp}`);
       }
       
-      trace.push({ step: 'Defuzzification', desc: \Output \ \ = \\});
+      trace.push({ step: 'Defuzzification', desc: `Output ${varName} = ${finalCrisp}` });
       
       outputs[varName] = {
         variable: varName,

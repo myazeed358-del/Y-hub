@@ -105,7 +105,7 @@ export class UndeterminedCoefficientsEngine {
             steps: [{
                 strategy: 'Undetermined Coefficients',
                 inputExpression: g,
-                transformation: \Generated trial solution and solved constants using exact linear system. Resonance multiplier x^\ applied.\,
+                transformation: 'Generated trial solution and solved constants using exact linear system. Resonance multiplier x^n applied.',
                 resultingExpression: this.simplifier.simplify(yp)
             }]
         };
@@ -175,7 +175,7 @@ export class UndeterminedCoefficientsEngine {
         let cIdx = 1;
         
         const getConst = () => {
-            const name = \A\\;
+            const name = `A${cIdx++}`;
             constants.push(name);
             return { type: 'Symbol', name } as CanonicalAST;
         };

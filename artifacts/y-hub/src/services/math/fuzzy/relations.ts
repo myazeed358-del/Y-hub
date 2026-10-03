@@ -141,7 +141,7 @@ export class FuzzyRelation {
       matrix: current.matrix,
       iterations: iter + 1,
       converged,
-      trace: [{ step: 'Closure', description: Ran \{iter+1} iterations }]
+      trace: [{ step: 'Closure', description: `Ran ${iter + 1} iterations` }]
     };
   }
 }

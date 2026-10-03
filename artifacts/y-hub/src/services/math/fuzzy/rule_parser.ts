@@ -89,7 +89,7 @@ export class RuleParser {
     
     // Predicate: Variable IS [Hedge] Term
     const variable = this.tokens[this.pos++];
-    if (!this.match('IS')) throw new Error(\Expected 'IS' after variable '\'\);
+    if (!this.match('IS')) throw new Error(`Expected 'IS' after variable '${variable}'`);
     
     let hedge: HedgeType = 'none';
     const next = this.peek();
@@ -106,7 +106,7 @@ export class RuleParser {
     do {
       if (this.pos >= this.tokens.length) throw new Error("Missing consequent after THEN/AND");
       const variable = this.tokens[this.pos++];
-      if (!this.match('IS')) throw new Error(\Expected 'IS' in consequent after '\'\);
+      if (!this.match('IS')) throw new Error(`Expected 'IS' in consequent after '${variable}'`);
       
       let hedge: HedgeType = 'none';
       const next = this.peek();

@@ -1,5 +1,5 @@
 import { CanonicalAST } from '../types/ast';
-import { ODERequest, ODEResult, ODEStep, ODEOrchestrationContext } from '../types/ode';
+import { ODERequest, ODEResult, ODEStep, ODEOrchestrationContext, ODEClassification } from '../types/ode';
 import { ODEUtils } from './utils';
 import { DomainAnalyzer } from '../domain';
 import { ExactODEEngine } from './exact';
@@ -189,7 +189,7 @@ export class ODEOrchestrator {
                 if (e.message === 'resource_limit') {
                     return this.buildResult(req, strategy.name as any, 'resource_limit', trace, warnings);
                 }
-                warnings.push(Strategy \ failed: \);
+                warnings.push(`Strategy ${strategy.name} failed: ${e.message}`);
             }
 
             context.activeStrategies.delete(strategy.name);
@@ -207,7 +207,7 @@ export class ODEOrchestrator {
 
         const { explicit: explicitDeriv, assumptions } = norm;
         if (assumptions.length > 0) {
-            warnings.push(Normalization assumed denominators != 0.);
+            warnings.push('Normalization assumed denominators != 0.');
         }
 
         for (const strategy of this.firstOrderStrategies) {
@@ -279,7 +279,7 @@ export class ODEOrchestrator {
                 if (e.message === 'resource_limit') {
                     return this.buildResult(req, strategy.name as any, 'resource_limit', trace, warnings);
                 }
-                warnings.push(Strategy \ failed: \);
+                warnings.push(`Strategy ${strategy.name} failed: ${e.message}`);
             }
 
             context.activeStrategies.delete(strategy.name);
@@ -296,7 +296,7 @@ export class ODEOrchestrator {
             trace.push({
                 strategy: 'Numerical Integration',
                 inputExpression: req.equation,
-                transformation: \Executed numerical method \\,
+                transformation: 'Executed numerical method',
                 resultingExpression: req.equation
             });
             

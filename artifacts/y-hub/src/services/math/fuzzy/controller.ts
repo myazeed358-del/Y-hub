@@ -21,28 +21,28 @@ export class ControllerEngine {
     // Check Domains
     for (const [vName, v] of Object.entries(controller.inputVariables)) {
       if (!v.domain || v.domain.length !== 2 || v.domain[0] >= v.domain[1]) {
-        diag.invalidDomains.push(\Input \ has invalid domain: \\);
+        diag.invalidDomains.push(`Input ${vName} has invalid domain: ${JSON.stringify(v.domain)}`);
       }
     }
     for (const [vName, v] of Object.entries(controller.outputVariables)) {
       if (!v.domain || v.domain.length !== 2 || v.domain[0] >= v.domain[1]) {
-        diag.invalidDomains.push(\Output \ has invalid domain: \\);
+        diag.invalidDomains.push(`Output ${vName} has invalid domain: ${JSON.stringify(v.domain)}`);
       }
     }
 
     // Check Rules
     for (const rule of controller.ruleBase.rules) {
       if (rule.weight !== undefined && (rule.weight < 0 || rule.weight > 1)) {
-        diag.invalidWeights.push(\Rule \ weight \ out of [0,1]\);
+        diag.invalidWeights.push(`Rule ${rule.id} weight ${rule.weight} out of [0,1]`);
       }
       
       // Simple consequent conflict detection (same rule ID implies simple iteration, but for full contradictory: rule1 and rule2 same antecedent different consequents)
       // Here we just do a basic check
       for (const cons of rule.consequents) {
         if (!controller.outputVariables[cons.variable]) {
-          diag.undefinedVariables.push(\Consequent variable \ in Rule \\);
+          diag.undefinedVariables.push(`Consequent variable ${cons.variable} in Rule ${rule.id}`);
         } else if (!controller.outputVariables[cons.variable].terms[cons.term]) {
-          diag.undefinedTerms.push(\Consequent term \ in Rule \\);
+          diag.undefinedTerms.push(`Consequent term ${cons.term} in Rule ${rule.id}`);
         }
       }
     }
@@ -60,12 +60,12 @@ export class ControllerEngine {
     for (const [vName, out] of Object.entries(result.outputs || {})) {
        const crisp = (out as any).defuzzifiedValue;
        if (crisp === undefined || isNaN(crisp) || !isFinite(crisp)) {
-         ver.failures.push(\Output \ is NaN or Infinity.\);
+         ver.failures.push(`Output ${vName} is NaN or Infinity.`);
          continue;
        }
        const vDomain = controller.outputVariables[vName].domain;
        if (crisp < vDomain[0] || crisp > vDomain[1]) {
-         ver.failures.push(\Output \ value \ exceeds declared domain [\, \].\);
+         ver.failures.push(`Output ${vName} value ${crisp} exceeds declared domain [${vDomain[0]}, ${vDomain[1]}].`);
        }
     }
     
@@ -94,7 +94,7 @@ export class ControllerEngine {
     }
     
     let engineRes: any;
-    let tracePrefix = [{ step: 'Controller', desc: \Executing \ controller \\ }];
+    let tracePrefix = [{ step: 'Controller', desc: `Executing ${req.controller.configuration.inferenceMethod} controller` }];
     
     try {
       if (req.controller.configuration.inferenceMethod === 'mamdani') {
@@ -125,7 +125,7 @@ export class ControllerEngine {
         const engine = new TsukamotoEngine();
         engineRes = engine.execute(f9Req);
       } else {
-        throw new Error(\Unknown inference method \\);
+        throw new Error(`Unknown inference method ${req.controller.configuration.inferenceMethod}`);
       }
     } catch (e: any) {
       if (e.message && e.message.startsWith('outside_domain')) {

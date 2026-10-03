@@ -26,8 +26,6 @@ export class SubstitutionEngine {
     candidates.sort((a, b) => ASTUtils.serialize(b).length - ASTUtils.serialize(a).length);
 
     for (const uCandidate of candidates) {
-       const uStr = ASTUtils.serialize(uCandidate);
-       
        let du: CanonicalAST;
        try {
          du = this.simplifier.simplify(this.derivativeEngine.differentiate(uCandidate, variable));
@@ -44,7 +42,7 @@ export class SubstitutionEngine {
        const simplifiedQuotient = this.simplifier.simplify(quotient);
        
        // Replace uCandidate with 'u'
-       const transformed = this.replaceAST(simplifiedQuotient, uStr, { type: 'Symbol', name: 'u' });
+      const transformed = this.replaceAST(simplifiedQuotient, uCandidate, { type: 'Symbol', name: 'u' });
        const finalTransformed = this.simplifier.simplify(transformed);
 
        if (!ASTUtils.containsVariable(finalTransformed, variable)) {
@@ -52,7 +50,7 @@ export class SubstitutionEngine {
           
           try {
              const uIntegrated = integrateFn(finalTransformed, 'u', [], depth);
-             const backSubstituted = this.replaceAST(uIntegrated, 'u', uCandidate);
+             const backSubstituted = this.replaceAST(uIntegrated, { type: 'Symbol', name: 'u' }, uCandidate);
              const finalBackSubstituted = this.simplifier.simplify(backSubstituted);
              
              const subStep: SubstitutionStep = {
@@ -166,14 +164,14 @@ export class SubstitutionEngine {
     // Avoid making u = x
     if (node.type === 'Symbol' && node.name === variable) return [];
 
-    const str = ASTUtils.serialize(node);
-    if (!candidates.has(str)) {
+   const key = ASTUtils.structuralKey(node);
+   if (!candidates.has(key)) {
        // Avoid some trivial ones
        if (node.type === 'Operator' && node.operator === '*' && node.args.length === 2 && node.args[0].type === 'Number') {
           // let u = 2x is fine, but maybe let's collect it
-          candidates.set(str, node);
+          candidates.set(key, node);
        } else {
-          candidates.set(str, node);
+          candidates.set(key, node);
        }
     }
 
@@ -186,18 +184,18 @@ export class SubstitutionEngine {
     return Array.from(candidates.values());
   }
 
-  private replaceAST(node: CanonicalAST, targetStr: string, replacement: CanonicalAST): CanonicalAST {
-    if (ASTUtils.serialize(node) === targetStr) {
+  private replaceAST(node: CanonicalAST, target: CanonicalAST, replacement: CanonicalAST): CanonicalAST {
+    if (ASTUtils.structuralEquals(node, target)) {
        return replacement;
     }
     if (node.type === 'Operator') {
-       return { ...node, args: node.args.map(a => this.replaceAST(a, targetStr, replacement)) };
+       return { ...node, args: node.args.map(a => this.replaceAST(a, target, replacement)) };
     }
     if (node.type === 'Function') {
-       return { ...node, args: node.args.map(a => this.replaceAST(a, targetStr, replacement)) };
+       return { ...node, args: node.args.map(a => this.replaceAST(a, target, replacement)) };
     }
     if (node.type === 'Equation' || node.type === 'Inequality') {
-       return { ...node, lhs: this.replaceAST(node.lhs, targetStr, replacement), rhs: this.replaceAST(node.rhs, targetStr, replacement) };
+       return { ...node, lhs: this.replaceAST(node.lhs, target, replacement), rhs: this.replaceAST(node.rhs, target, replacement) };
     }
     return node;
   }

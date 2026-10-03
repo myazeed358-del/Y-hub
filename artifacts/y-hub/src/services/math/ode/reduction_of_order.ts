@@ -76,12 +76,12 @@ export class ReductionOfOrderEngine {
                     type: 'explicit',
                     equation: { type: 'Equation', lhs: { type: 'Symbol', name: y }, rhs: y2 },
                     domain,
-                    assumptions: [\\ not in roots(a2 * y1)\]
+                    assumptions: [`a2 * y1 != 0`]
                 }],
                 steps: [{
                     strategy: 'Reduction of Order',
                     inputExpression: req.equation,
-                    transformation: \Substituted y = v * \\,
+                    transformation: `Substituted y = v * ${this.formatAST(y1)}`,
                     resultingExpression: { type: 'Equation', lhs: { type: 'Symbol', name: y }, rhs: y2 }
                 }]
             };

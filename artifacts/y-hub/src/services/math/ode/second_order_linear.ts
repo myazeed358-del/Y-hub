@@ -221,6 +221,8 @@ export class SecondOrderLinearODEEngine {
 
         return { solutions: [solP, solN], steps };
     }
+
+    private solveConstantCoeffs(req: ODERequest, a0: CanonicalAST, a1: CanonicalAST, a2: CanonicalAST, g: CanonicalAST, x: string, y: string): { solutions: ODESolution[], steps: ODEStep[] } | null {
         // Parse exact rationals
         const parseRat = (ast: CanonicalAST): {num: bigint, den: bigint} | null => {
             if (ast.type === 'Number') {

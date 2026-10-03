@@ -13,10 +13,5 @@
     "paths": {
       "@/*": ["./src/*"]
     }
-  },
-  "references": [
-    {
-      "path": "../../artifacts/y-hub-ds"
-    }
-  ]
+  }
 }
