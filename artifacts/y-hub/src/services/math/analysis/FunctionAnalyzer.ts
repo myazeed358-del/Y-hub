@@ -325,21 +325,21 @@ export class FunctionAnalyzer {
         const approach = Number(rat.num) / Number(rat.den);
         if (isNaN(approach)) continue;
         
-        let limLeft = leftDomainAccessible ? this.limitEngine.evaluate(ast, variable, approach, 'left') : null;
-        let limRight = rightDomainAccessible ? this.limitEngine.evaluate(ast, variable, approach, 'right') : null;
+        let limLeft = leftDomainAccessible ? this.limitEngine.evaluateLimit({ expression: ast, variable, approach, direction: 'left' }) : null;
+        let limRight = rightDomainAccessible ? this.limitEngine.evaluateLimit({ expression: ast, variable, approach, direction: 'right' }) : null;
         
         if (leftDomainAccessible && rightDomainAccessible) {
            if (limLeft?.type === 'limit' && limRight?.type === 'limit') {
               const lClass = limLeft.classification;
               const rClass = limRight.classification;
               
-              if (lClass === 'finite' && rClass === 'finite' && ASTUtils.structuralEquals(limLeft.value, limRight.value)) {
+              if (lClass === 'finite' && rClass === 'finite' && limLeft.value && limRight.value && ASTUtils.structuralEquals(limLeft.value, limRight.value)) {
                  if (!inDomain) {
                     discontinuities.push({ point: c, status: 'removable_discontinuity', limitValue: limLeft.value });
                  } else {
                     // It is continuous
                  }
-              } else if (lClass === 'infinite' || rClass === 'infinite') {
+              } else if (['+infinity', '-infinity'].includes(lClass) || ['+infinity', '-infinity'].includes(rClass)) {
                  discontinuities.push({ point: c, status: 'infinite_discontinuity' });
               } else {
                  discontinuities.push({ point: c, status: 'jump_discontinuity' });
@@ -619,20 +619,20 @@ export class FunctionAnalyzer {
     let limitAtMinusInfinity: any = 'does_not_exist';
     
     try {
-       const lPlus = this.limitEngine.evaluate(ast, variable, '+infinity', 'both');
+       const lPlus = this.limitEngine.evaluateLimit({ expression: ast, variable, approach: '+infinity', direction: 'both' });
        if (lPlus.type === 'limit') {
           limitAtPlusInfinity = lPlus.value;
-          if (lPlus.classification === 'finite') {
+          if (lPlus.classification === 'finite' && lPlus.value) {
              asymptotes.push({ type: 'horizontal', equation: { type: 'Equation', lhs: { type: 'Symbol', name: 'y' }, rhs: lPlus.value }, direction: '+infinity' });
           }
        }
     } catch { limitAtPlusInfinity = 'unresolved'; }
     
     try {
-       const lMinus = this.limitEngine.evaluate(ast, variable, '-infinity', 'both');
+       const lMinus = this.limitEngine.evaluateLimit({ expression: ast, variable, approach: '-infinity', direction: 'both' });
        if (lMinus.type === 'limit') {
           limitAtMinusInfinity = lMinus.value;
-          if (lMinus.classification === 'finite') {
+          if (lMinus.classification === 'finite' && lMinus.value) {
              asymptotes.push({ type: 'horizontal', equation: { type: 'Equation', lhs: { type: 'Symbol', name: 'y' }, rhs: lMinus.value }, direction: '-infinity' });
           }
        }
@@ -651,13 +651,13 @@ export class FunctionAnalyzer {
          if (maxNum === maxDen + 1) {
             // we could do long division. Since I don't have direct access here, I will just limit (f(x)/x)
             const fx_div_x: CanonicalAST = { type: 'Operator', operator: '/', args: [ast, { type: 'Symbol', name: variable }] };
-            const mLimit = this.limitEngine.evaluate(fx_div_x, variable, '+infinity', 'both');
-            if (mLimit.type === 'limit' && mLimit.classification === 'finite') {
+            const mLimit = this.limitEngine.evaluateLimit({ expression: fx_div_x, variable, approach: '+infinity', direction: 'both' });
+            if (mLimit.type === 'limit' && mLimit.classification === 'finite' && mLimit.value) {
                const m = mLimit.value;
                const mx: CanonicalAST = { type: 'Operator', operator: '*', args: [m, { type: 'Symbol', name: variable }] };
                const f_minus_mx: CanonicalAST = { type: 'Operator', operator: '-', args: [ast, mx] };
-               const bLimit = this.limitEngine.evaluate(f_minus_mx, variable, '+infinity', 'both');
-               if (bLimit.type === 'limit' && bLimit.classification === 'finite') {
+               const bLimit = this.limitEngine.evaluateLimit({ expression: f_minus_mx, variable, approach: '+infinity', direction: 'both' });
+               if (bLimit.type === 'limit' && bLimit.classification === 'finite' && bLimit.value) {
                   const b = bLimit.value;
                   const slantRhs = this.simplifier.simplify({ type: 'Operator', operator: '+', args: [mx, b] });
                   asymptotes.push({ type: 'slant', equation: { type: 'Equation', lhs: { type: 'Symbol', name: 'y' }, rhs: slantRhs } });
