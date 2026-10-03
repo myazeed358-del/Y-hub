@@ -128,7 +128,7 @@ export class TrigIntegrationEngine {
         const cosBase = this.createTrigNode('cos', 1, variable);
         const cosSq = { type: 'Operator', operator: '^', args: [cosBase, { type: 'Number', value: '2' }] } as CanonicalAST;
         const oneMinusCosSq = { type: 'Operator', operator: '-', args: [{ type: 'Number', value: '1' }, cosSq] } as CanonicalAST;
-        const sub = k === 0 ? { type: 'Number', value: '1' } : (k === 1 ? oneMinusCosSq : { type: 'Operator', operator: '^', args: [oneMinusCosSq, { type: 'Number', value: k.toString() }] } as CanonicalAST);
+      const sub: CanonicalAST = k === 0 ? { type: 'Number', value: '1' } : (k === 1 ? oneMinusCosSq : { type: 'Operator', operator: '^', args: [oneMinusCosSq, { type: 'Number', value: k.toString() }] } as CanonicalAST);
         
         transformedAST = this.multiplyASTs([
            this.createTrigNode('sin', 1, variable),
@@ -142,7 +142,7 @@ export class TrigIntegrationEngine {
         const sinBase = this.createTrigNode('sin', 1, variable);
         const sinSq = { type: 'Operator', operator: '^', args: [sinBase, { type: 'Number', value: '2' }] } as CanonicalAST;
         const oneMinusSinSq = { type: 'Operator', operator: '-', args: [{ type: 'Number', value: '1' }, sinSq] } as CanonicalAST;
-        const sub = k === 0 ? { type: 'Number', value: '1' } : (k === 1 ? oneMinusSinSq : { type: 'Operator', operator: '^', args: [oneMinusSinSq, { type: 'Number', value: k.toString() }] } as CanonicalAST);
+      const sub: CanonicalAST = k === 0 ? { type: 'Number', value: '1' } : (k === 1 ? oneMinusSinSq : { type: 'Operator', operator: '^', args: [oneMinusSinSq, { type: 'Number', value: k.toString() }] } as CanonicalAST);
 
         transformedAST = this.multiplyASTs([
            m > 0 ? this.createTrigNode('sin', m, variable) : { type: 'Number', value: '1' },
@@ -208,7 +208,7 @@ export class TrigIntegrationEngine {
         const tanBase = this.createTrigNode('tan', 1, variable);
         const tanSq = { type: 'Operator', operator: '^', args: [tanBase, { type: 'Number', value: '2' }] } as CanonicalAST;
         const onePlusTanSq = { type: 'Operator', operator: '+', args: [{ type: 'Number', value: '1' }, tanSq] } as CanonicalAST;
-        const sub = k === 0 ? { type: 'Number', value: '1' } : (k === 1 ? onePlusTanSq : { type: 'Operator', operator: '^', args: [onePlusTanSq, { type: 'Number', value: k.toString() }] } as CanonicalAST);
+      const sub: CanonicalAST = k === 0 ? { type: 'Number', value: '1' } : (k === 1 ? onePlusTanSq : { type: 'Operator', operator: '^', args: [onePlusTanSq, { type: 'Number', value: k.toString() }] } as CanonicalAST);
 
         transformedAST = this.multiplyASTs([
            m > 0 ? this.createTrigNode('tan', m, variable) : { type: 'Number', value: '1' },
@@ -233,7 +233,7 @@ export class TrigIntegrationEngine {
         const secBase = this.createTrigNode('sec', 1, variable);
         const secSq = { type: 'Operator', operator: '^', args: [secBase, { type: 'Number', value: '2' }] } as CanonicalAST;
         const secSqMinusOne = { type: 'Operator', operator: '-', args: [secSq, { type: 'Number', value: '1' }] } as CanonicalAST;
-        const sub = k === 0 ? { type: 'Number', value: '1' } : (k === 1 ? secSqMinusOne : { type: 'Operator', operator: '^', args: [secSqMinusOne, { type: 'Number', value: k.toString() }] } as CanonicalAST);
+      const sub: CanonicalAST = k === 0 ? { type: 'Number', value: '1' } : (k === 1 ? secSqMinusOne : { type: 'Operator', operator: '^', args: [secSqMinusOne, { type: 'Number', value: k.toString() }] } as CanonicalAST);
 
         transformedAST = this.multiplyASTs([
            sub,
@@ -268,7 +268,7 @@ export class TrigIntegrationEngine {
         const cotBase = this.createTrigNode('cot', 1, variable);
         const cotSq = { type: 'Operator', operator: '^', args: [cotBase, { type: 'Number', value: '2' }] } as CanonicalAST;
         const onePlusCotSq = { type: 'Operator', operator: '+', args: [{ type: 'Number', value: '1' }, cotSq] } as CanonicalAST;
-        const sub = k === 0 ? { type: 'Number', value: '1' } : (k === 1 ? onePlusCotSq : { type: 'Operator', operator: '^', args: [onePlusCotSq, { type: 'Number', value: k.toString() }] } as CanonicalAST);
+      const sub: CanonicalAST = k === 0 ? { type: 'Number', value: '1' } : (k === 1 ? onePlusCotSq : { type: 'Operator', operator: '^', args: [onePlusCotSq, { type: 'Number', value: k.toString() }] } as CanonicalAST);
 
         transformedAST = this.multiplyASTs([
            m > 0 ? this.createTrigNode('cot', m, variable) : { type: 'Number', value: '1' },
@@ -290,7 +290,7 @@ export class TrigIntegrationEngine {
         const cscBase = this.createTrigNode('csc', 1, variable);
         const cscSq = { type: 'Operator', operator: '^', args: [cscBase, { type: 'Number', value: '2' }] } as CanonicalAST;
         const cscSqMinusOne = { type: 'Operator', operator: '-', args: [cscSq, { type: 'Number', value: '1' }] } as CanonicalAST;
-        const sub = k === 0 ? { type: 'Number', value: '1' } : (k === 1 ? cscSqMinusOne : { type: 'Operator', operator: '^', args: [cscSqMinusOne, { type: 'Number', value: k.toString() }] } as CanonicalAST);
+      const sub: CanonicalAST = k === 0 ? { type: 'Number', value: '1' } : (k === 1 ? cscSqMinusOne : { type: 'Operator', operator: '^', args: [cscSqMinusOne, { type: 'Number', value: k.toString() }] } as CanonicalAST);
 
         transformedAST = this.multiplyASTs([
            sub,
