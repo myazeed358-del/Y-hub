@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import type { ChangeEvent } from 'react';
 import { useRoute, Link } from 'wouter';
 import { supabase } from '@/utils/supabaseClient';
 import { useAuth } from '@/contexts/AuthContext';
@@ -67,6 +68,7 @@ export default function ExamRunner() {
     } else if (timeLeft === 0 && !isSubmitted && exam) {
       handleSubmit(); // Auto submit
     }
+    return undefined;
   }, [timeLeft, isSubmitted, exam]);
 
   const handleSubmit = async () => {
@@ -141,7 +143,7 @@ export default function ExamRunner() {
                 <RadioGroup 
                   disabled={isSubmitted} 
                   value={answers[q.id] || ''} 
-                  onValueChange={(val) => setAnswers(prev => ({...prev, [q.id]: val}))}
+                  onValueChange={(val: string) => setAnswers(prev => ({...prev, [q.id]: val}))}
                   className="space-y-3"
                 >
                   {q.options?.map((opt: string, optIdx: number) => (
@@ -157,7 +159,7 @@ export default function ExamRunner() {
                 <RadioGroup 
                   disabled={isSubmitted} 
                   value={answers[q.id] || ''} 
-                  onValueChange={(val) => setAnswers(prev => ({...prev, [q.id]: val}))}
+                  onValueChange={(val: string) => setAnswers(prev => ({...prev, [q.id]: val}))}
                   className="flex gap-6"
                 >
                   <div className="flex items-center space-x-2 space-x-reverse">
@@ -175,7 +177,7 @@ export default function ExamRunner() {
                 <Input 
                   disabled={isSubmitted} 
                   value={answers[q.id] || ''} 
-                  onChange={e => setAnswers(prev => ({...prev, [q.id]: e.target.value}))} 
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => setAnswers(prev => ({...prev, [q.id]: e.target.value}))}
                   placeholder="أدخل الإجابة الرياضية هنا" 
                   dir="ltr"
                   className="max-w-md font-mono"

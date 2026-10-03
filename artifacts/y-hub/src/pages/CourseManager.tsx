@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import type { ChangeEvent, MouseEvent } from 'react';
 import { useRoute, Link } from 'wouter';
 import { supabase } from '@/utils/supabaseClient';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@workspace/y-hub-ds/components/ui/card';
@@ -119,7 +120,10 @@ export default function CourseManager() {
   };
 
   const handleCreateExam = async () => {
-    if (!examTitle) return toast.error('يرجى كتابة عنوان الاختبار');
+    if (!examTitle) {
+      toast.error('يرجى كتابة عنوان الاختبار');
+      return;
+    }
     const { error } = await supabase.from('exams').insert({
       course_id: courseId, title: examTitle, time_limit_minutes: examTimeLimit
     });
@@ -144,19 +148,31 @@ export default function CourseManager() {
   };
 
   const handleAddQuestion = async () => {
-    if (!qContent || !qCorrect || !selectedExam) return toast.error('أكمل البيانات');
+    if (!qContent || !qCorrect || !selectedExam) {
+      toast.error('أكمل البيانات');
+      return;
+    }
     
     let optionsToSave = null;
     if (qType === 'mcq') {
       const validOptions = qOptions.filter(o => o.trim() !== '');
-      if (validOptions.length < 2) return toast.error('أضف خيارين على الأقل');
+      if (validOptions.length < 2) {
+        toast.error('أضف خيارين على الأقل');
+        return;
+      }
       optionsToSave = validOptions;
-      if (!validOptions.includes(qCorrect)) return toast.error('الإجابة الصحيحة غير موجودة في الخيارات');
+      if (!validOptions.includes(qCorrect)) {
+        toast.error('الإجابة الصحيحة غير موجودة في الخيارات');
+        return;
+      }
     }
     
     if (qType === 'tf') {
       optionsToSave = ['صح', 'خطأ'];
-      if (qCorrect !== 'صح' && qCorrect !== 'خطأ') return toast.error('يجب أن تكون الإجابة صح أو خطأ');
+      if (qCorrect !== 'صح' && qCorrect !== 'خطأ') {
+        toast.error('يجب أن تكون الإجابة صح أو خطأ');
+        return;
+      }
     }
 
     const { error } = await supabase.from('questions').insert({
@@ -212,7 +228,7 @@ export default function CourseManager() {
               <DialogContent dir="rtl">
                 <DialogHeader><DialogTitle>إضافة مادة</DialogTitle></DialogHeader>
                 <div className="space-y-4 pt-4">
-                  <div><label className="text-sm font-semibold mb-1 block">عنوان المادة</label><Input value={newTitle} onChange={e => setNewTitle(e.target.value)} /></div>
+                  <div><label className="text-sm font-semibold mb-1 block">عنوان المادة</label><Input value={newTitle} onChange={(e: ChangeEvent<HTMLInputElement>) => setNewTitle(e.target.value)} /></div>
                   <div>
                     <label className="text-sm font-semibold mb-1 block">النوع</label>
                     <Select value={newType} onValueChange={(v: any) => setNewType(v)}>
@@ -225,9 +241,9 @@ export default function CourseManager() {
                     </Select>
                   </div>
                   {newType === 'pdf' ? (
-                    <div><label className="text-sm font-semibold mb-1 block">اختر ملف</label><Input type="file" accept=".pdf" onChange={e => setUploadFile(e.target.files?.[0] || null)} /></div>
+                    <div><label className="text-sm font-semibold mb-1 block">اختر ملف</label><Input type="file" accept=".pdf" onChange={(e: ChangeEvent<HTMLInputElement>) => setUploadFile(e.target.files?.[0] || null)} /></div>
                   ) : (
-                    <div><label className="text-sm font-semibold mb-1 block">الرابط</label><Input dir="ltr" value={newUrl} onChange={e => setNewUrl(e.target.value)} /></div>
+                    <div><label className="text-sm font-semibold mb-1 block">الرابط</label><Input dir="ltr" value={newUrl} onChange={(e: ChangeEvent<HTMLInputElement>) => setNewUrl(e.target.value)} /></div>
                   )}
                   <Button className="w-full" onClick={handleAddMaterial} disabled={isUploading}>{isUploading ? <Loader2 className="animate-spin" size={16}/> : 'حفظ'}</Button>
                 </div>
@@ -262,8 +278,8 @@ export default function CourseManager() {
               <DialogContent dir="rtl">
                 <DialogHeader><DialogTitle>إعداد اختبار جديد</DialogTitle></DialogHeader>
                 <div className="space-y-4 pt-4">
-                  <div><label htmlFor="examTitle" className="text-sm font-bold mb-1 block">اسم الاختبار</label><Input id="examTitle" value={examTitle} onChange={e=>setExamTitle(e.target.value)} /></div>
-                  <div><label htmlFor="examTimeLimit" className="text-sm font-bold mb-1 block">المدة (بالدقائق)</label><Input id="examTimeLimit" type="number" value={examTimeLimit} onChange={e=>setExamTimeLimit(parseInt(e.target.value))} /></div>
+                  <div><label htmlFor="examTitle" className="text-sm font-bold mb-1 block">اسم الاختبار</label><Input id="examTitle" value={examTitle} onChange={(e: ChangeEvent<HTMLInputElement>) =>setExamTitle(e.target.value)} /></div>
+                  <div><label htmlFor="examTimeLimit" className="text-sm font-bold mb-1 block">المدة (بالدقائق)</label><Input id="examTimeLimit" type="number" value={examTimeLimit} onChange={(e: ChangeEvent<HTMLInputElement>) =>setExamTimeLimit(parseInt(e.target.value))} /></div>
                   <Button className="w-full" onClick={handleCreateExam}>إنشاء</Button>
                 </div>
               </DialogContent>
@@ -289,8 +305,8 @@ export default function CourseManager() {
                     <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2"><Clock size={12}/> {ex.time_limit_minutes} دقيقة</div>
                   </CardHeader>
                   <CardFooter className="p-2 bg-muted/20 flex justify-between border-t">
-                    <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleDeleteExam(ex.id); }} className="text-destructive h-8 w-8" aria-label="Delete Exam"><Trash2 size={14}/></Button>
-                    <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleToggleExamPublish(ex); }} className="h-8 w-8" aria-label={ex.is_published ? "Unpublish Exam" : "Publish Exam"}>{ex.is_published ? <EyeOff size={14}/> : <Eye size={14}/>}</Button>
+                    <Button variant="ghost" size="icon" onClick={(e: MouseEvent<HTMLButtonElement>) => { e.stopPropagation(); handleDeleteExam(ex.id); }} className="text-destructive h-8 w-8" aria-label="Delete Exam"><Trash2 size={14}/></Button>
+                    <Button variant="ghost" size="icon" onClick={(e: MouseEvent<HTMLButtonElement>) => { e.stopPropagation(); handleToggleExamPublish(ex); }} className="h-8 w-8" aria-label={ex.is_published ? "Unpublish Exam" : "Publish Exam"}>{ex.is_published ? <EyeOff size={14}/> : <Eye size={14}/>}</Button>
                   </CardFooter>
                 </Card>
               ))}
@@ -320,13 +336,13 @@ export default function CourseManager() {
                               </SelectContent>
                             </Select>
                           </div>
-                          <div><label className="text-sm font-bold mb-1 block">نص السؤال</label><Input value={qContent} onChange={e=>setQContent(e.target.value)} /></div>
+                          <div><label className="text-sm font-bold mb-1 block">نص السؤال</label><Input value={qContent} onChange={(e: ChangeEvent<HTMLInputElement>) =>setQContent(e.target.value)} /></div>
                           
                           {qType === 'mcq' && (
                             <div className="space-y-2">
                               <label className="text-sm font-bold mb-1 block">الخيارات (امسح الفراغ للإلغاء)</label>
                               {qOptions.map((opt, i) => (
-                                <Input key={i} value={opt} onChange={e => { const newOpts = [...qOptions]; newOpts[i] = e.target.value; setQOptions(newOpts); }} placeholder={`خيار ${i+1}`} />
+                                <Input key={i} value={opt} onChange={(e: ChangeEvent<HTMLInputElement>) => { const newOpts = [...qOptions]; newOpts[i] = e.target.value; setQOptions(newOpts); }} placeholder={`خيار ${i+1}`} />
                               ))}
                             </div>
                           )}
@@ -339,7 +355,7 @@ export default function CourseManager() {
                                 <SelectContent><SelectItem value="صح">صح</SelectItem><SelectItem value="خطأ">خطأ</SelectItem></SelectContent>
                               </Select>
                             ) : (
-                              <Input value={qCorrect} onChange={e=>setQCorrect(e.target.value)} dir="auto" />
+                              <Input value={qCorrect} onChange={(e: ChangeEvent<HTMLInputElement>) =>setQCorrect(e.target.value)} dir="auto" />
                             )}
                           </div>
                           

@@ -95,7 +95,7 @@ export default function Login() {
                 </div>
                 <div className="space-y-2 text-right">
                   <label className="text-sm font-medium">التخصص الأكاديمي</label>
-                  <Select value={formData.major} onValueChange={(val) => handleSelectChange('major', val)}>
+                  <Select value={formData.major} onValueChange={(val: string) => handleSelectChange('major', val)}>
                     <SelectTrigger className="bg-background">
                       <SelectValue placeholder="اختر التخصص" />
                     </SelectTrigger>
@@ -111,7 +111,7 @@ export default function Login() {
                 </div>
                 <div className="space-y-2 text-right">
                   <label className="text-sm font-medium">السنة الدراسية</label>
-                  <Select value={formData.study_year} onValueChange={(val) => handleSelectChange('study_year', val)}>
+                  <Select value={formData.study_year} onValueChange={(val: string) => handleSelectChange('study_year', val)}>
                     <SelectTrigger className="bg-background">
                       <SelectValue placeholder="اختر السنة الدراسية" />
                     </SelectTrigger>

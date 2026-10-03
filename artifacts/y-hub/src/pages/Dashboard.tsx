@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import type { ChangeEvent } from 'react';
 import { Link } from 'wouter';
 import { supabase } from '@/utils/supabaseClient';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@workspace/y-hub-ds/components/ui/card';
@@ -140,15 +141,15 @@ export default function Dashboard() {
                 <div className="space-y-4 pt-4">
                   <div className="space-y-2">
                     <label className="text-sm font-semibold text-[hsl(var(--foreground))]">عنوان المساق</label>
-                    <Input value={newTitle} onChange={e => setNewTitle(e.target.value)} placeholder="مثال: الجبر الخطي المتقدم" className="bg-[hsl(var(--background))]" />
+                    <Input value={newTitle} onChange={(e: ChangeEvent<HTMLInputElement>) => setNewTitle(e.target.value)} placeholder="مثال: الجبر الخطي المتقدم" className="bg-[hsl(var(--background))]" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-semibold text-[hsl(var(--foreground))]">رمز المساق (Code)</label>
-                    <Input value={newCode} onChange={e => setNewCode(e.target.value)} placeholder="مثال: MATH301" className="bg-[hsl(var(--background))]" />
+                    <Input value={newCode} onChange={(e: ChangeEvent<HTMLInputElement>) => setNewCode(e.target.value)} placeholder="مثال: MATH301" className="bg-[hsl(var(--background))]" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-semibold text-[hsl(var(--foreground))]">وصف المساق</label>
-                    <Input value={newDesc} onChange={e => setNewDesc(e.target.value)} placeholder="وصف قصير لأهداف المساق..." className="bg-[hsl(var(--background))]" />
+                    <Input value={newDesc} onChange={(e: ChangeEvent<HTMLInputElement>) => setNewDesc(e.target.value)} placeholder="وصف قصير لأهداف المساق..." className="bg-[hsl(var(--background))]" />
                   </div>
                   <Button className="w-full mt-2" onClick={handleCreateCourse}>حفظ المساق</Button>
                 </div>
