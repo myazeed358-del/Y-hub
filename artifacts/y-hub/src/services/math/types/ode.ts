@@ -1,6 +1,6 @@
 import { CanonicalAST } from './ast';
 import { SolutionSet } from './set';
-import { VerificationStatus } from './integration';
+import type { IntegrationExecutionContext, VerificationStatus } from './integration';
 
 export type ODEClassification = 'separable' | 'linear' | 'exact' | 'bernoulli' | 'homogeneous' | 'autonomous' | 'numerical' | 'unsupported' | 'FIRST_ORDER' | 'SECOND_ORDER' | 'HIGHER_ORDER' | 'SECOND_ORDER_IVP' | 'HIGHER_ORDER_IVP' | 'BVP' | 'NUMERICAL_ODE' | 'SYSTEM_FIRST_ORDER' | 'LINEAR_SYSTEM' | 'CONSTANT_COEFFICIENT_SYSTEM' | 'NONHOMOGENEOUS_SYSTEM' | 'SYSTEM_IVP' | 'PHASE_PLANE_SYSTEM' | 'NUMERICAL_SYSTEM';
 export type ODESolutionType = 'explicit' | 'implicit' | 'equilibrium' | 'numerical' | 'particular';
@@ -87,15 +87,7 @@ export interface ODEResult {
     status: 'exact_symbolic' | 'numerical_approximation' | 'unresolved' | 'resource_limit' | 'unsupported' | 'no_solution';
 }
 
-export interface ODEOrchestrationContext {
-    activeStrategies: Set<string>;
-    attemptedStrategies: Set<string>;
-    depth: number;
-    transformationCount: number;
-    maxDepth: number;
-    maxAttempts: number;
-    maxTransformations: number;
-}
+export interface ODEOrchestrationContext extends IntegrationExecutionContext {}
 
 
 export interface SystemODEInitialCondition {

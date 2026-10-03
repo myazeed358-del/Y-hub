@@ -8,6 +8,7 @@ import { InequalityEngine } from './inequality';
 import { SetEngine } from './sets';
 import { Rat } from '../utils/rational';
 import { IntegrationRequest, IntegrationResult, IntegrationStatus, VerificationStatus, SubstitutionStep, IntegrationByPartsStep, TrigIdentityStep, TrigSubstitutionStep } from '../types/integration';
+import type { IntegrationExecutionContext } from '../types/integration';
 import { SubstitutionEngine } from './substitution';
 import { TrigIntegrationEngine } from './trig';
 import { TrigSubEngine } from './trig_sub';
@@ -113,7 +114,7 @@ export class IntegrationEngine {
     }
   }
 
-  public integrate(node: CanonicalAST, variable: string, steps: MathStep[], depth: number = 0, context?: OrchestrationContext): CanonicalAST {
+  public integrate(node: CanonicalAST, variable: string, steps: MathStep[], depth: number = 0, context?: IntegrationExecutionContext): CanonicalAST {
     const simplified = this.simplifier.simplify(node);
     
     // Check max depth & transformations
@@ -213,7 +214,7 @@ export class IntegrationEngine {
     // Try Partial Fractions (Phase 6D)
     if (!context || !context.activeStrategies.has('6D')) {
        if (context) { context.activeStrategies.add('6D'); context.attemptedStrategies.add('6D'); context.transformationCount++; }
-       const pfResult = this.pfEngine.matchPartialFractions(simplified, variable, (n, v, s, d) => this.integrate(n, v, s, d, context), steps, depth + 1);
+       const pfResult = this.pfEngine.matchPartialFractions(simplified, variable, (n: CanonicalAST, v: string, s: MathStep[], d: number) => this.integrate(n, v, s, d, context), steps, depth + 1);
        if (context) context.activeStrategies.delete('6D');
        if (pfResult) {
           if (context) context.depth--;
@@ -224,7 +225,7 @@ export class IntegrationEngine {
     // Try Integration by Parts (Phase 6C)
     if (!context || !context.activeStrategies.has('6C')) {
        if (context) { context.activeStrategies.add('6C'); context.attemptedStrategies.add('6C'); context.transformationCount++; }
-       const partsResult = this.partsEngine.matchParts(simplified, variable, (n, v, s, d) => this.integrate(n, v, s, d, context), steps, depth + 1);
+       const partsResult = this.partsEngine.matchParts(simplified, variable, (n: CanonicalAST, v: string, s: MathStep[], d: number) => this.integrate(n, v, s, d, context), steps, depth + 1);
        if (context) context.activeStrategies.delete('6C');
        if (partsResult) {
           this.partsSteps.push(partsResult.partsStep);

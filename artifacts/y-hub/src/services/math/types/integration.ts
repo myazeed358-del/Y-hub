@@ -8,15 +8,18 @@ export type VerificationStatus = 'exactly_equivalent' | 'numerically_consistent'
 
 export type IntegrationMode = 'symbolic_indefinite' | 'symbolic_definite' | 'symbolic_improper' | 'numerical' | 'auto';
 
-export interface OrchestrationContext {
+export interface IntegrationExecutionContext {
   activeStrategies: Set<string>;
   attemptedStrategies: Set<string>;
   depth: number;
   transformationCount: number;
-  parentStrategy: string | null;
   maxDepth: number;
   maxAttempts: number;
   maxTransformations: number;
+}
+
+export interface OrchestrationContext extends IntegrationExecutionContext {
+  parentStrategy: string | null;
 }
 
 export interface IntegrationRequest {
