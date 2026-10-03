@@ -109,7 +109,7 @@ export class LimitEngine {
     });
 
     const restrictions = this.domainAnalyzer.analyze(req.expression);
-    let conditions = restrictions.map(r => r.description);
+    let conditions = restrictions.map(r => r.message);
     let warnings: string[] = [];
 
     let currentExpr = req.expression;
