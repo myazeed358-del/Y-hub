@@ -322,7 +322,7 @@ export class InequalityEngine {
                  let left1Float = midFloat - 1;
                  let left1Rat = Rat.fromNumber(left1Float);
                  while (true) {
-                    const val = this.polyExtractor.evalPolyExact(rem, left1Rat);
+                    const val = this.extractor.evalPolyExact(rem, left1Rat);
                     if ((val.num > 0n && aSign > 0) || (val.num < 0n && aSign < 0)) break;
                     left1Float -= 1;
                     left1Rat = Rat.fromNumber(left1Float);
@@ -331,7 +331,7 @@ export class InequalityEngine {
                  let right2Float = midFloat + 1;
                  let right2Rat = Rat.fromNumber(right2Float);
                  while (true) {
-                    const val = this.polyExtractor.evalPolyExact(rem, right2Rat);
+                    const val = this.extractor.evalPolyExact(rem, right2Rat);
                     if ((val.num > 0n && aSign > 0) || (val.num < 0n && aSign < 0)) break;
                     right2Float += 1;
                     right2Rat = Rat.fromNumber(right2Float);
