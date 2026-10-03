@@ -162,11 +162,17 @@ export class FunctionAnalyzer {
   private computeDomain(restrictions: any[], variable: string, steps: MathStep[]): SolutionSet {
     if (restrictions.length === 0) {
       return {
+        type: 'SolutionSet',
+        variable,
+        domainRestrictions: [],
         intervals: [{ left: { type: 'infinity', sign: -1 }, right: { type: 'infinity', sign: 1 }, leftClosed: false, rightClosed: false }]
       };
     }
 
     let combinedDomain: SolutionSet = {
+      type: 'SolutionSet',
+      variable,
+      domainRestrictions: [],
       intervals: [{ left: { type: 'infinity', sign: -1 }, right: { type: 'infinity', sign: 1 }, leftClosed: false, rightClosed: false }]
     };
 
@@ -192,7 +198,12 @@ export class FunctionAnalyzer {
 
       const res = this.inequalityEngine.solve(ineqAST, variable);
       if (res.kind === 'solution_set') {
-        combinedDomain = { intervals: SetEngine.intersection(combinedDomain.intervals, res.solution.intervals) };
+        combinedDomain = {
+          type: 'SolutionSet',
+          variable,
+          domainRestrictions: [],
+          intervals: SetEngine.intersection(combinedDomain.intervals, res.solution.intervals)
+        };
       }
     }
     return combinedDomain;
@@ -253,7 +264,7 @@ export class FunctionAnalyzer {
       if (simplified.type === 'Number' || (simplified.type === 'Operator' && simplified.operator === '/')) {
          return { type: 'value', ast: simplified };
       }
-      const numVal = this.evaluator.evaluate(substituted);
+      const numVal = this.evaluator.evaluate(substituted, {});
       return { type: 'value', ast: { type: 'Number', value: numVal.toString() } };
     } catch {
       return undefined;
@@ -631,8 +642,8 @@ export class FunctionAnalyzer {
     if (ast.type === 'Operator' && ast.operator === '/') {
        try {
          const polyExt = new (require('../symbolic/polynomial').PolynomialExtractor)();
-         const numMap = polyExt.extract(ast.args[0], variable);
-         const denMap = polyExt.extract(ast.args[1], variable);
+         const numMap = polyExt.extract(ast.args[0], variable) as Map<number, CanonicalAST[]>;
+         const denMap = polyExt.extract(ast.args[1], variable) as Map<number, CanonicalAST[]>;
          
          const maxNum = Math.max(...Array.from(numMap.keys()));
          const maxDen = Math.max(...Array.from(denMap.keys()));
