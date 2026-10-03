@@ -276,7 +276,7 @@ export class ImproperIntegrationEngine {
        return {
           lowerBound: uAST, upperBound: vAST, improperLeft: improperU, improperRight: improperV,
           limitVariable: limitVar, limitDirection, subintegralResult: subRes, limitResult: null,
-          converges: false, divergenceType: 'unsupported', value: null
+          converges: false, divergenceType: 'unresolved', value: null
        };
     }
 

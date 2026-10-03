@@ -148,7 +148,7 @@ export class DefiniteIntegrationEngine {
     }
 
     // 4. Obtain Antiderivative
-    const intRes = this.integrationEngine.integrateRequest({ expression: req.integrand, variable: req.variable, originalExpression: req.integrand, identity: '', transformedExpression: req.integrand, verificationStatus: 'not_proven' });
+    const intRes = this.integrationEngine.integrateRequest({ expression: req.integrand, integrand: req.integrand, variable: req.variable });
     
     if (intRes.status !== 'exact_symbolic' && intRes.status !== 'conditionally_valid') {
        return this.buildResult(req, 'unsupported', orientation, originalDomain, [], null, null, null, null, 'not_proven', assumptions, steps);
