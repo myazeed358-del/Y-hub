@@ -271,26 +271,66 @@ export class FunctionAnalyzer {
     }
   }
 
-  private findDiscontinuityCandidates(restrictions: any[], ast: CanonicalAST, variable: string): Endpoint[] {
+  private findDiscontinuityCandidates(
+    restrictions: any[],
+    ast: CanonicalAST,
+    variable: string
+  ): Endpoint[] {
     const candidates: Endpoint[] = [];
-    // From restrictions (like denominator = 0)
-    for (const r of restrictions) {
-      if (r.type === 'denominator') {
-        const eq: CanonicalAST = { type: 'Equation', lhs: r.conditionAST, rhs: { type: 'Number', value: '0' } };
-        const solRes = this.equationSolver.solve(eq, variable, { domain: 'real', mode: 'EXACT' });
-        for (const sol of solRes.finalSolutions) {
-          if (sol.exact) candidates.push({ type: 'value', ast: sol.value });
+
+    const boundaryRestrictionTypes = new Set([
+      'denominator',
+      'even_root',
+      'logarithm'
+    ]);
+
+    for (const restriction of restrictions) {
+      if (!boundaryRestrictionTypes.has(restriction.type)) {
+        continue;
+      }
+
+      const boundaryEquation: CanonicalAST = {
+        type: 'Equation',
+        lhs: restriction.conditionAST,
+        rhs: { type: 'Number', value: '0' }
+      };
+
+      try {
+        const result = this.equationSolver.solve(
+          boundaryEquation,
+          variable,
+          { domain: 'real', mode: 'EXACT' }
+        );
+
+        for (const solution of result.finalSolutions) {
+          if (!solution.exact) continue;
+
+          const rational = this.astToRational(solution.value);
+
+          candidates.push({
+            type: 'value',
+            ast: solution.value,
+            ...(rational ? { rational } : {})
+          });
         }
+      } catch {
+        // Failure to isolate a boundary exactly must not abort
+        // the complete function analysis.
       }
     }
-    // Deduplicate
+
     const unique = new Map<string, Endpoint>();
-    for (const c of candidates) {
-      if (c.type === 'value') {
-        const s = ASTUtils.structuralKey(c.ast);
-        if (!unique.has(s)) unique.set(s, c);
+
+    for (const candidate of candidates) {
+      if (candidate.type !== 'value') continue;
+
+      const key = ASTUtils.structuralKey(candidate.ast);
+
+      if (!unique.has(key)) {
+        unique.set(key, candidate);
       }
     }
+
     return Array.from(unique.values());
   }
 
@@ -427,58 +467,61 @@ export class FunctionAnalyzer {
     return Array.from(cps.values());
   }
 
-  private analyzeMonotonicity(fPrime: CanonicalAST, fDomain: SolutionSet, variable: string, discontinuities: DiscontinuityPoint[]): { increasingIntervals: Interval[], decreasingIntervals: Interval[] } {
-    const incEq: CanonicalAST = { type: 'Inequality', operator: '>', lhs: fPrime, rhs: { type: 'Number', value: '0' } };
-    const decEq: CanonicalAST = { type: 'Inequality', operator: '<', lhs: fPrime, rhs: { type: 'Number', value: '0' } };
-    
+  private analyzeMonotonicity(
+    fPrime: CanonicalAST,
+    fDomain: SolutionSet,
+    variable: string,
+    discontinuities: DiscontinuityPoint[]
+  ): {
+    increasingIntervals: Interval[],
+    decreasingIntervals: Interval[]
+  } {
+    const incEq: CanonicalAST = {
+      type: 'Inequality',
+      operator: '>',
+      lhs: fPrime,
+      rhs: { type: 'Number', value: '0' }
+    };
+
+    const decEq: CanonicalAST = {
+      type: 'Inequality',
+      operator: '<',
+      lhs: fPrime,
+      rhs: { type: 'Number', value: '0' }
+    };
+
     let increasingIntervals: Interval[] = [];
     let decreasingIntervals: Interval[] = [];
-    
-    const incRes = this.inequalityEngine.solve(incEq, variable);
-    if (incRes.kind === 'solution_set') {
-      increasingIntervals = SetEngine.intersection(incRes.solution.intervals, fDomain.intervals);
-    }
-    
-    const decRes = this.inequalityEngine.solve(decEq, variable);
-    if (decRes.kind === 'solution_set') {
-      decreasingIntervals = SetEngine.intersection(decRes.solution.intervals, fDomain.intervals);
-    }
-    
-    const merge = (intervals: Interval[]): Interval[] => {
-      const merged: Interval[] = [];
-      for (const iv of intervals) {
-        if (merged.length === 0) {
-          merged.push(iv);
-          continue;
-        }
-        const last = merged[merged.length - 1];
-        if (SetEngine.exactCompare(last.right, iv.left) === 0) {
-           const pt = last.right;
-           const isDiscontinuous = discontinuities.some(d => SetEngine.exactCompare(d.point, pt) === 0 && d.status !== 'removable_discontinuity'); 
-           // Wait, even removable discontinuities break monotonicity intervals technically, because the function is undefined or not continuous.
-           // The prompt says "no discontinuity exists at c". So any discontinuity should block the merge.
-           const hasDiscontinuity = discontinuities.some(d => SetEngine.exactCompare(d.point, pt) === 0);
-           
-           if (!last.rightClosed && !iv.leftClosed && SetEngine.containsEndpoint(fDomain.intervals, pt) && !hasDiscontinuity) {
-             last.right = iv.right;
-             last.rightClosed = iv.rightClosed;
-           } else if (last.rightClosed || iv.leftClosed) {
-             // If they overlap/touch and one is closed, merge them.
-             last.right = iv.right;
-             last.rightClosed = iv.rightClosed;
-           } else {
-             merged.push(iv);
-           }
-        } else {
-          merged.push(iv);
-        }
+
+    try {
+      const incRes = this.inequalityEngine.solve(incEq, variable);
+
+      if (incRes.kind === 'solution_set') {
+        increasingIntervals = SetEngine.intersection(
+          incRes.solution.intervals,
+          fDomain.intervals
+        );
       }
-      return merged;
-    };
-    
+    } catch {
+      increasingIntervals = [];
+    }
+
+    try {
+      const decRes = this.inequalityEngine.solve(decEq, variable);
+
+      if (decRes.kind === 'solution_set') {
+        decreasingIntervals = SetEngine.intersection(
+          decRes.solution.intervals,
+          fDomain.intervals
+        );
+      }
+    } catch {
+      decreasingIntervals = [];
+    }
+
     return {
-      increasingIntervals: merge(increasingIntervals),
-      decreasingIntervals: merge(decreasingIntervals)
+      increasingIntervals,
+      decreasingIntervals
     };
   }
 
@@ -531,77 +574,225 @@ export class FunctionAnalyzer {
     return Array.from(unique.values());
   }
 
-  private analyzeConcavity(fDoublePrime: CanonicalAST, fDomain: SolutionSet, variable: string): { concaveUpIntervals: Interval[], concaveDownIntervals: Interval[] } {
-    const upEq: CanonicalAST = { type: 'Inequality', operator: '>', lhs: fDoublePrime, rhs: { type: 'Number', value: '0' } };
-    const downEq: CanonicalAST = { type: 'Inequality', operator: '<', lhs: fDoublePrime, rhs: { type: 'Number', value: '0' } };
-    
+  private analyzeConcavity(
+    fDoublePrime: CanonicalAST,
+    fDomain: SolutionSet,
+    variable: string
+  ): {
+    concaveUpIntervals: Interval[],
+    concaveDownIntervals: Interval[]
+  } {
+    const upEq: CanonicalAST = {
+      type: 'Inequality',
+      operator: '>',
+      lhs: fDoublePrime,
+      rhs: { type: 'Number', value: '0' }
+    };
+
+    const downEq: CanonicalAST = {
+      type: 'Inequality',
+      operator: '<',
+      lhs: fDoublePrime,
+      rhs: { type: 'Number', value: '0' }
+    };
+
     let concaveUpIntervals: Interval[] = [];
     let concaveDownIntervals: Interval[] = [];
-    
-    const upRes = this.inequalityEngine.solve(upEq, variable);
-    if (upRes.kind === 'solution_set') concaveUpIntervals = SetEngine.intersection(upRes.solution.intervals, fDomain.intervals);
-    
-    const downRes = this.inequalityEngine.solve(downEq, variable);
-    if (downRes.kind === 'solution_set') concaveDownIntervals = SetEngine.intersection(downRes.solution.intervals, fDomain.intervals);
-    
-    return { concaveUpIntervals, concaveDownIntervals };
+
+    try {
+      const upRes = this.inequalityEngine.solve(upEq, variable);
+
+      if (upRes.kind === 'solution_set') {
+        concaveUpIntervals = SetEngine.intersection(
+          upRes.solution.intervals,
+          fDomain.intervals
+        );
+      }
+    } catch {
+      concaveUpIntervals = [];
+    }
+
+    try {
+      const downRes = this.inequalityEngine.solve(downEq, variable);
+
+      if (downRes.kind === 'solution_set') {
+        concaveDownIntervals = SetEngine.intersection(
+          downRes.solution.intervals,
+          fDomain.intervals
+        );
+      }
+    } catch {
+      concaveDownIntervals = [];
+    }
+
+    return {
+      concaveUpIntervals,
+      concaveDownIntervals
+    };
   }
 
-  private findInflectionPoints(fDoublePrime: CanonicalAST, fd2Domain: SolutionSet, up: Interval[], down: Interval[], domain: SolutionSet, variable: string): InflectionPoint[] {
-    const infs: InflectionPoint[] = [];
-    
-    const eq: CanonicalAST = { type: 'Equation', lhs: fDoublePrime, rhs: { type: 'Number', value: '0' } };
-    const res = this.equationSolver.solve(eq, variable, { domain: 'real', mode: 'EXACT' });
-    
+  private findInflectionPoints(
+    fDoublePrime: CanonicalAST,
+    fd2Domain: SolutionSet,
+    up: Interval[],
+    down: Interval[],
+    domain: SolutionSet,
+    variable: string
+  ): InflectionPoint[] {
+    const inflectionPoints: InflectionPoint[] = [];
     const candidates: Endpoint[] = [];
-    if (res.completeness === 'all_roots_found') {
-       for (const s of res.finalSolutions) {
-         if (s.exact) {
-           const rat = this.astToRational(s.value);
-           if (rat) candidates.push({ type: 'value', ast: s.value, rational: rat });
-         }
-       }
-    }
-    
-    const restrictions = this.domainAnalyzer.analyze(fDoublePrime);
-    for (const r of restrictions) {
-      if (r.type === 'denominator') {
-        const rEq: CanonicalAST = { type: 'Equation', lhs: r.conditionAST, rhs: { type: 'Number', value: '0' } };
-        const rRes = this.equationSolver.solve(rEq, variable, { domain: 'real', mode: 'EXACT' });
-        if (rRes.completeness === 'all_roots_found') {
-          for (const s of rRes.finalSolutions) {
-             if (s.exact) {
-               const rat = this.astToRational(s.value);
-               if (rat) candidates.push({ type: 'value', ast: s.value, rational: rat });
-             }
+
+    const simplifiedSecondDerivative =
+      this.simplifier.simplify(fDoublePrime);
+
+    const identicallyZero =
+      simplifiedSecondDerivative.type === 'Number' &&
+      Number(simplifiedSecondDerivative.value) === 0;
+
+    /*
+     * f'' ≡ 0 has an infinite zero set, not isolated candidates.
+     * Inflection points require an actual concavity change, so there is
+     * nothing useful to isolate from the equation f'' = 0 in this case.
+     */
+    if (!identicallyZero) {
+      const equation: CanonicalAST = {
+        type: 'Equation',
+        lhs: simplifiedSecondDerivative,
+        rhs: { type: 'Number', value: '0' }
+      };
+
+      try {
+        const result = this.equationSolver.solve(
+          equation,
+          variable,
+          { domain: 'real', mode: 'EXACT' }
+        );
+
+        if (result.completeness === 'all_roots_found') {
+          for (const solution of result.finalSolutions) {
+            if (!solution.exact) continue;
+
+            const rational = this.astToRational(solution.value);
+
+            if (rational) {
+              candidates.push({
+                type: 'value',
+                ast: solution.value,
+                rational
+              });
+            }
           }
         }
+      } catch {
+        // Unsupported or non-isolated zero sets do not create
+        // trustworthy isolated inflection candidates.
       }
     }
-    
-    for (const c of candidates) {
-       if (!SetEngine.containsEndpoint(domain.intervals, c)) continue;
-       
-       let leftUp = false, leftDown = false, rightUp = false, rightDown = false;
-       for (const iv of up) {
-         if (SetEngine.exactCompare(iv.right, c) === 0) leftUp = true;
-         if (SetEngine.exactCompare(iv.left, c) === 0) rightUp = true;
-       }
-       for (const iv of down) {
-         if (SetEngine.exactCompare(iv.right, c) === 0) leftDown = true;
-         if (SetEngine.exactCompare(iv.left, c) === 0) rightDown = true;
-       }
-       
-       if ((leftUp && rightDown) || (leftDown && rightUp)) {
-          infs.push({ point: c, status: 'inflection_point' });
-       }
+
+    /*
+     * Points where f'' is undefined may still be inflection candidates
+     * when the original function itself is defined there.
+     */
+    const restrictions =
+      this.domainAnalyzer.analyze(simplifiedSecondDerivative);
+
+    for (const restriction of restrictions) {
+      if (
+        restriction.type !== 'denominator' &&
+        restriction.type !== 'even_root' &&
+        restriction.type !== 'logarithm'
+      ) {
+        continue;
+      }
+
+      const boundaryEquation: CanonicalAST = {
+        type: 'Equation',
+        lhs: restriction.conditionAST,
+        rhs: { type: 'Number', value: '0' }
+      };
+
+      try {
+        const result = this.equationSolver.solve(
+          boundaryEquation,
+          variable,
+          { domain: 'real', mode: 'EXACT' }
+        );
+
+        if (result.completeness !== 'all_roots_found') {
+          continue;
+        }
+
+        for (const solution of result.finalSolutions) {
+          if (!solution.exact) continue;
+
+          const rational = this.astToRational(solution.value);
+
+          if (rational) {
+            candidates.push({
+              type: 'value',
+              ast: solution.value,
+              rational
+            });
+          }
+        }
+      } catch {
+        // Not every symbolic boundary can be isolated exactly.
+      }
     }
-    
-    const unique = new Map<string, InflectionPoint>();
-    for (const i of infs) {
-      if (i.point.type === 'value') unique.set(ASTUtils.structuralKey(i.point.ast), i);
+
+    const uniqueCandidates = new Map<string, Endpoint>();
+
+    for (const candidate of candidates) {
+      if (candidate.type !== 'value') continue;
+
+      uniqueCandidates.set(
+        ASTUtils.structuralKey(candidate.ast),
+        candidate
+      );
     }
-    return Array.from(unique.values());
+
+    for (const candidate of uniqueCandidates.values()) {
+      if (!SetEngine.containsEndpoint(domain.intervals, candidate)) {
+        continue;
+      }
+
+      let leftUp = false;
+      let leftDown = false;
+      let rightUp = false;
+      let rightDown = false;
+
+      for (const interval of up) {
+        if (SetEngine.exactCompare(interval.right, candidate) === 0) {
+          leftUp = true;
+        }
+
+        if (SetEngine.exactCompare(interval.left, candidate) === 0) {
+          rightUp = true;
+        }
+      }
+
+      for (const interval of down) {
+        if (SetEngine.exactCompare(interval.right, candidate) === 0) {
+          leftDown = true;
+        }
+
+        if (SetEngine.exactCompare(interval.left, candidate) === 0) {
+          rightDown = true;
+        }
+      }
+
+      if (
+        (leftUp && rightDown) ||
+        (leftDown && rightUp)
+      ) {
+        inflectionPoints.push({
+          point: candidate,
+          status: 'inflection_point'
+        });
+      }
+    }
+
+    return inflectionPoints;
   }
 
   private analyzeAsymptotes(ast: CanonicalAST, variable: string, discontinuities: DiscontinuityPoint[]): { asymptotes: Asymptote[], infiniteBehavior: InfiniteBehavior } {
