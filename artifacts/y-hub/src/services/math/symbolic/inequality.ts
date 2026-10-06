@@ -780,12 +780,6 @@ export class InequalityEngine {
     return SetEngine.normalizeUnion(validIntervals);
   }
 
-  private addRealRoot(roots: any[], val: number, mult: number = 1) {
-    const existing = roots.find(r => Math.abs(r.value - val) < 1e-9);
-    if (existing) existing.multiplicity += mult;
-    else roots.push({ value: val, multiplicity: mult });
-  }
-
   private makeEndpoint(val: number): Endpoint {
     try {
       const rat = Rat.fromNumber(val);
