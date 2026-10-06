@@ -4,6 +4,7 @@ import { SymbolicSimplifier } from '../symbolic/simplifier';
 import { Rat, Rational } from '../utils/rational';
 import { ExactMatrix } from './matrix';
 import { SystemNumericalODEEngine } from './numerical';
+import { ASTEvaluator } from '../symbolic/evaluator';
 
 export class PhasePlaneEngine {
     private simplifier = new SymbolicSimplifier();
@@ -67,21 +68,30 @@ export class PhasePlaneEngine {
         }
 
         // 3. Vector Field / Direction Field (numerical sampling evidence)
-        const ASTEvaluator = require('../symbolic/evaluator').ASTEvaluator;
         const evaluator = new ASTEvaluator();
         data.vectorField = [];
         
         // simple 5x5 grid from -2 to 2
         for (let x = -2; x <= 2; x++) {
             for (let y = -2; y <= 2; y++) {
-                const map = new Map<string, number>();
-                map.set(req.dependentVariables[0], x);
-                map.set(req.dependentVariables[1], y);
-                map.set(req.independentVariable, 0); // Autonomous assumes no t dependence for vector field
-                
+                const points: Record<string, number> = {
+                    [req.dependentVariables[0]]: x,
+                    [req.dependentVariables[1]]: y,
+                    // Autonomous systems assume no explicit time
+                    // dependence for phase-plane sampling.
+                    [req.independentVariable]: 0
+                };
+
                 try {
-                    const dx = evaluator.evaluate(f_xy, map);
-                    const dy = evaluator.evaluate(g_xy, map);
+                    const dx = evaluator.evaluate(
+                        f_xy,
+                        points
+                    );
+
+                    const dy = evaluator.evaluate(
+                        g_xy,
+                        points
+                    );
                     if (isFinite(dx) && isFinite(dy)) {
                         const mag = Math.sqrt(dx*dx + dy*dy);
                         data.vectorField.push({ x, y, dx, dy, magnitude: mag });

@@ -248,81 +248,286 @@ export class LinearSystemODEEngine {
         let finalX = Xh;
         const isHomogeneous = (G[0].type === 'Number' && G[0].value === '0') && (G[1].type === 'Number' && G[1].value === '0');
         
+        let usedVariationOfParameters = false;
+
         if (!isHomogeneous) {
-            // Variation of Parameters: Xp = Phi(t) \int Phi(t)^-1 G(t) dt
-            // Phi(t) is matrixExp.
-            if (!matrixExp) throw new Error('unsupported');
-            
-            // det(Phi)
-            const p11 = matrixExp[0][0]; const p12 = matrixExp[0][1];
-            const p21 = matrixExp[1][0]; const p22 = matrixExp[1][1];
-            
-            const pdet = this.simplifier.simplify({
-                type: 'Operator', operator: '-', args: [
-                    { type: 'Operator', operator: '*', args: [p11, p22] },
-                    { type: 'Operator', operator: '*', args: [p12, p21] }
-                ]
-            });
-            
-            if (pdet.type === 'Number' && pdet.value === '0') throw new Error('unsupported');
-            
-            // Phi^-1 = 1/det * [p22, -p12; -p21, p11]
-            const inv = [
-                [
-                    this.simplifier.simplify({ type: 'Operator', operator: '/', args: [p22, pdet] }),
-                    this.simplifier.simplify({ type: 'Operator', operator: '/', args: [{ type: 'Operator', operator: '*', args: [{ type: 'Number', value: '-1' }, p12] }, pdet] })
-                ],
-                [
-                    this.simplifier.simplify({ type: 'Operator', operator: '/', args: [{ type: 'Operator', operator: '*', args: [{ type: 'Number', value: '-1' }, p21] }, pdet] }),
-                    this.simplifier.simplify({ type: 'Operator', operator: '/', args: [p11, pdet] })
-                ]
-            ];
-            
-            // Phi^-1 G
-            const int1Arg = this.simplifier.simplify({
-                type: 'Operator', operator: '+', args: [
-                    { type: 'Operator', operator: '*', args: [inv[0][0], G[0]] },
-                    { type: 'Operator', operator: '*', args: [inv[0][1], G[1]] }
-                ]
-            });
-            const int2Arg = this.simplifier.simplify({
-                type: 'Operator', operator: '+', args: [
-                    { type: 'Operator', operator: '*', args: [inv[1][0], G[0]] },
-                    { type: 'Operator', operator: '*', args: [inv[1][1], G[1]] }
-                ]
-            });
-            
-            try {
-                const u1 = this.iEngine.integrate(int1Arg, tVar, []);
-                const u2 = this.iEngine.integrate(int2Arg, tVar, []);
-                
-                const xp = this.simplifier.simplify({
-                    type: 'Operator', operator: '+', args: [
-                        { type: 'Operator', operator: '*', args: [p11, u1] },
-                        { type: 'Operator', operator: '*', args: [p12, u2] }
+            let particularFound = false;
+
+            // Constant forcing G:
+            // A*Xp + G = 0  =>  A*Xp = -G.
+            //
+            // Prefer the exact algebraic particular solution
+            // whenever A is invertible and G is rational.
+            const g0 = this.parseRat(G[0]);
+            const g1 = this.parseRat(G[1]);
+
+            if (
+                g0 &&
+                g1 &&
+                !Rat.isZero(det)
+            ) {
+                const minusOne: Rational = {
+                    num: -1n,
+                    den: 1n
+                };
+
+                const particularVector =
+                    ExactMatrix.solveLinearSystem(
+                        A,
+                        [
+                            Rat.mul(minusOne, g0),
+                            Rat.mul(minusOne, g1)
+                        ]
+                    );
+
+                if (particularVector) {
+                    const xp =
+                        this.ratToAST(
+                            particularVector[0]
+                        );
+
+                    const yp =
+                        this.ratToAST(
+                            particularVector[1]
+                        );
+
+                    finalX = [
+                        this.simplifier.simplify({
+                            type: 'Operator',
+                            operator: '+',
+                            args: [Xh[0], xp]
+                        }),
+                        this.simplifier.simplify({
+                            type: 'Operator',
+                            operator: '+',
+                            args: [Xh[1], yp]
+                        })
+                    ];
+
+                    expData.particular_solution = [
+                        xp,
+                        yp
+                    ];
+
+                    particularFound = true;
+                }
+            }
+
+            // General time-dependent forcing fallback:
+            // Xp = Phi(t) ∫ Phi(t)^(-1) G(t) dt
+            if (!particularFound) {
+                usedVariationOfParameters = true;
+
+                if (!matrixExp) {
+                    throw new Error('unsupported');
+                }
+
+                const p11 = matrixExp[0][0];
+                const p12 = matrixExp[0][1];
+                const p21 = matrixExp[1][0];
+                const p22 = matrixExp[1][1];
+
+                const pdet =
+                    this.simplifier.simplify({
+                        type: 'Operator',
+                        operator: '-',
+                        args: [
+                            {
+                                type: 'Operator',
+                                operator: '*',
+                                args: [p11, p22]
+                            },
+                            {
+                                type: 'Operator',
+                                operator: '*',
+                                args: [p12, p21]
+                            }
+                        ]
+                    });
+
+                if (
+                    pdet.type === 'Number' &&
+                    pdet.value === '0'
+                ) {
+                    throw new Error('unsupported');
+                }
+
+                const inv = [
+                    [
+                        this.simplifier.simplify({
+                            type: 'Operator',
+                            operator: '/',
+                            args: [p22, pdet]
+                        }),
+                        this.simplifier.simplify({
+                            type: 'Operator',
+                            operator: '/',
+                            args: [
+                                {
+                                    type: 'Operator',
+                                    operator: '*',
+                                    args: [
+                                        {
+                                            type: 'Number',
+                                            value: '-1'
+                                        },
+                                        p12
+                                    ]
+                                },
+                                pdet
+                            ]
+                        })
+                    ],
+                    [
+                        this.simplifier.simplify({
+                            type: 'Operator',
+                            operator: '/',
+                            args: [
+                                {
+                                    type: 'Operator',
+                                    operator: '*',
+                                    args: [
+                                        {
+                                            type: 'Number',
+                                            value: '-1'
+                                        },
+                                        p21
+                                    ]
+                                },
+                                pdet
+                            ]
+                        }),
+                        this.simplifier.simplify({
+                            type: 'Operator',
+                            operator: '/',
+                            args: [p11, pdet]
+                        })
                     ]
-                });
-                
-                const yp = this.simplifier.simplify({
-                    type: 'Operator', operator: '+', args: [
-                        { type: 'Operator', operator: '*', args: [p21, u1] },
-                        { type: 'Operator', operator: '*', args: [p22, u2] }
-                    ]
-                });
-                
-                finalX = [
-                    this.simplifier.simplify({ type: 'Operator', operator: '+', args: [Xh[0], xp] }),
-                    this.simplifier.simplify({ type: 'Operator', operator: '+', args: [Xh[1], yp] })
                 ];
-                
-                expData.particular_solution = [xp, yp];
-                
-            } catch (e) {
-                throw new Error('unsupported');
+
+                const int1Arg =
+                    this.simplifier.simplify({
+                        type: 'Operator',
+                        operator: '+',
+                        args: [
+                            {
+                                type: 'Operator',
+                                operator: '*',
+                                args: [
+                                    inv[0][0],
+                                    G[0]
+                                ]
+                            },
+                            {
+                                type: 'Operator',
+                                operator: '*',
+                                args: [
+                                    inv[0][1],
+                                    G[1]
+                                ]
+                            }
+                        ]
+                    });
+
+                const int2Arg =
+                    this.simplifier.simplify({
+                        type: 'Operator',
+                        operator: '+',
+                        args: [
+                            {
+                                type: 'Operator',
+                                operator: '*',
+                                args: [
+                                    inv[1][0],
+                                    G[0]
+                                ]
+                            },
+                            {
+                                type: 'Operator',
+                                operator: '*',
+                                args: [
+                                    inv[1][1],
+                                    G[1]
+                                ]
+                            }
+                        ]
+                    });
+
+                try {
+                    const u1 =
+                        this.iEngine.integrate(
+                            int1Arg,
+                            tVar,
+                            []
+                        );
+
+                    const u2 =
+                        this.iEngine.integrate(
+                            int2Arg,
+                            tVar,
+                            []
+                        );
+
+                    const xp =
+                        this.simplifier.simplify({
+                            type: 'Operator',
+                            operator: '+',
+                            args: [
+                                {
+                                    type: 'Operator',
+                                    operator: '*',
+                                    args: [p11, u1]
+                                },
+                                {
+                                    type: 'Operator',
+                                    operator: '*',
+                                    args: [p12, u2]
+                                }
+                            ]
+                        });
+
+                    const yp =
+                        this.simplifier.simplify({
+                            type: 'Operator',
+                            operator: '+',
+                            args: [
+                                {
+                                    type: 'Operator',
+                                    operator: '*',
+                                    args: [p21, u1]
+                                },
+                                {
+                                    type: 'Operator',
+                                    operator: '*',
+                                    args: [p22, u2]
+                                }
+                            ]
+                        });
+
+                    finalX = [
+                        this.simplifier.simplify({
+                            type: 'Operator',
+                            operator: '+',
+                            args: [Xh[0], xp]
+                        }),
+                        this.simplifier.simplify({
+                            type: 'Operator',
+                            operator: '+',
+                            args: [Xh[1], yp]
+                        })
+                    ];
+
+                    expData.particular_solution = [
+                        xp,
+                        yp
+                    ];
+                } catch (e) {
+                    throw new Error('unsupported');
+                }
             }
         }
-        
-        
+
+
         // --- Explicit Verification Step ---
         let vStatus: any = 'not_proven';
         try {
@@ -367,7 +572,10 @@ export class LinearSystemODEEngine {
                 { type: 'Equation', lhs: { type: 'Symbol', name: xVar }, rhs: finalX[0] },
                 { type: 'Equation', lhs: { type: 'Symbol', name: yVar }, rhs: finalX[1] }
             ],
-            transformation_domain: isHomogeneous ? undefined : [{ condition: 'det(Phi) != 0' }]
+            transformation_domain:
+                usedVariationOfParameters
+                    ? [{ condition: 'det(Phi) != 0' }]
+                    : undefined
         };
         
         return { solutions: [sol], steps, explanationData: expData };

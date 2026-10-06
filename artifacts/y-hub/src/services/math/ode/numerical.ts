@@ -186,6 +186,24 @@ export class SystemNumericalODEEngine {
             };
         }
 
+        if (
+            stepSize === 0 ||
+            isNaN(stepSize) ||
+            !isFinite(stepSize) ||
+            steps <= 0 ||
+            steps > 10000
+        ) {
+            return {
+                method,
+                initialCondition: { t0, X0 },
+                stepSize,
+                points: [],
+                finalValue: null,
+                evaluationCount: 0,
+                convergenceStatus: 'invalid_step'
+            };
+        }
+
         const n = req.dependentVariables.length;
         
         // Extract rhs for each equation
