@@ -44,7 +44,7 @@ export class AutonomousODEEngine {
         const stability: { equilibrium: CanonicalAST; status: 'stable' | 'unstable' | 'semi_stable' | 'unresolved' }[] = [];
         
         const isExactMatch = (ast: CanonicalAST, endpoint: any): boolean => {
-            if (endpoint.type === 'infinity') return false;
+            if (!endpoint || endpoint.type === 'infinity') return false;
             
             // Structural match
             if (ASTUtils.isEqual(ast, endpoint.ast)) return true;

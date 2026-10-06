@@ -3,6 +3,22 @@ import { ASTUtils } from './utils';
 import { Rat } from './series';
 
 export class SetEngine {
+
+  public static createRealLine(variable: string = 'x'): SolutionSet {
+    return {
+      type: 'SolutionSet',
+      variable,
+      domainRestrictions: [],
+      intervals: [
+        {
+          left: { type: 'infinity', sign: -1 },
+          right: { type: 'infinity', sign: 1 },
+          leftClosed: false,
+          rightClosed: false
+        }
+      ]
+    };
+  }
   
   public static exactCompare(a: Endpoint, b: Endpoint): -1 | 0 | 1 | null {
     if (a.type === 'infinity' && b.type === 'infinity') {

@@ -60,10 +60,20 @@ export class LinearODEEngine {
         const num = { type: 'Operator', operator: '+', args: [intMuQ, C] } as CanonicalAST;
         const yExplicit = this.simplifier.simplify({ type: 'Operator', operator: '/', args: [num, mu] });
 
+        let solutionDomain = null;
+
+        try {
+            solutionDomain = this.analyzeDomain(yExplicit, x);
+        } catch {
+            // A valid symbolic ODE solution must not be discarded merely
+            // because the domain analyzer cannot solve a symbolic restriction.
+            solutionDomain = null;
+        }
+
         const solutions: ODESolution[] = [{
             type: 'explicit',
             equation: { type: 'Equation', lhs: { type: 'Symbol', name: req.dependentVariable }, rhs: yExplicit },
-            domain: this.analyzeDomain(yExplicit, x),
+            domain: solutionDomain,
             assumptions: []
         }];
 

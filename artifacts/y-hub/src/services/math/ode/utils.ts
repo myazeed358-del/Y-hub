@@ -1,16 +1,14 @@
 import { CanonicalAST } from '../types/ast';
 import { ASTUtils } from '../symbolic/utils';
 import { SymbolicSimplifier } from '../symbolic/simplifier';
-import { EquationEngine } from '../symbolic/equation';
+import { DerivativeEngine } from '../symbolic/derivative';
 
 export class ODEUtils {
     private simplifier = new SymbolicSimplifier();
-    private eqEngine = new EquationEngine();
 
     public isLinearNthOrder(eq: CanonicalAST, y: string, yDerivatives: string[]): { coeffs: CanonicalAST[], rhs: CanonicalAST } | null {
         if (eq.type !== 'Equation') return null;
         
-        const { DerivativeEngine } = require('../symbolic/derivative');
         const dEngine = new DerivativeEngine();
         
         const F = this.simplifier.simplify({ type: 'Operator', operator: '-', args: [eq.lhs, eq.rhs] });
@@ -41,23 +39,105 @@ export class ODEUtils {
     }
 
     public normalizeToExplicitDerivative(eq: CanonicalAST, yPrime: string): { explicit: CanonicalAST, assumptions: CanonicalAST[] } | null {
-        // Try to solve for yPrime
         if (eq.type !== 'Equation') return null;
 
-        const solutions = this.eqEngine.solveEquation(eq, yPrime);
-        
-        // Find a unique finite solution for y'
-        const validSol = solutions.find(s => s.status === 'exact' && s.value && !ASTUtils.isInfinity(s.value));
-        if (validSol && validSol.value) {
-            // Check if there are assumptions (e.g. division by expression)
-            // Currently EquationEngine might not explicitly return assumptions in the solution array,
-            // but we extract denominators from the resulting expression.
-            const assumptions: CanonicalAST[] = [];
-            this.extractDenominators(validSol.value, assumptions);
-            return { explicit: validSol.value, assumptions };
+        const yPrimeNode: CanonicalAST = { type: 'Symbol', name: yPrime };
+        const zero: CanonicalAST = { type: 'Number', value: '0' };
+        const assumptions: CanonicalAST[] = [];
+
+        const finalize = (candidate: CanonicalAST): { explicit: CanonicalAST, assumptions: CanonicalAST[] } | null => {
+            const explicit = this.simplifier.simplify(candidate);
+
+            if (ASTUtils.containsVariable(explicit, yPrime)) {
+                return null;
+            }
+
+            this.extractDenominators(explicit, assumptions);
+
+            const uniqueAssumptions = assumptions.filter(
+                (assumption, index, all) =>
+                    all.findIndex(other => ASTUtils.structuralEquals(other, assumption)) === index
+            );
+
+            return {
+                explicit,
+                assumptions: uniqueAssumptions
+            };
+        };
+
+        // Fast path: the equation is already explicit.
+        if (
+            eq.lhs.type === 'Symbol' &&
+            eq.lhs.name === yPrime &&
+            !ASTUtils.containsVariable(eq.rhs, yPrime)
+        ) {
+            return finalize(eq.rhs);
         }
-        
-        return null;
+
+        if (
+            eq.rhs.type === 'Symbol' &&
+            eq.rhs.name === yPrime &&
+            !ASTUtils.containsVariable(eq.lhs, yPrime)
+        ) {
+            return finalize(eq.lhs);
+        }
+
+        // Structural isolation:
+        // F(x,y,y') = lhs - rhs = A(x,y)y' + B(x,y).
+        // Then y' = -B/A = (rhs|y'=0 - lhs|y'=0) / A.
+        try {
+            const derivativeEngine = new DerivativeEngine();
+
+            const residual = this.simplifier.simplify({
+                type: 'Operator',
+                operator: '-',
+                args: [eq.lhs, eq.rhs]
+            });
+
+            const coefficient = this.simplifier.simplify(
+                derivativeEngine.differentiate(residual, yPrime)
+            );
+
+            // Nonlinear dependence on y' cannot be isolated by this rule.
+            if (
+                ASTUtils.containsVariable(coefficient, yPrime) ||
+                (coefficient.type === 'Number' && coefficient.value === '0')
+            ) {
+                return null;
+            }
+
+            const lhsAtZero = this.simplifier.simplify(
+                ASTUtils.replaceNode(eq.lhs, yPrimeNode, zero)
+            );
+
+            const rhsAtZero = this.simplifier.simplify(
+                ASTUtils.replaceNode(eq.rhs, yPrimeNode, zero)
+            );
+
+            const numerator = this.simplifier.simplify({
+                type: 'Operator',
+                operator: '-',
+                args: [rhsAtZero, lhsAtZero]
+            });
+
+            let explicit: CanonicalAST;
+
+            if (coefficient.type === 'Number' && coefficient.value === '1') {
+                explicit = numerator;
+            } else {
+                explicit = this.simplifier.simplify({
+                    type: 'Operator',
+                    operator: '/',
+                    args: [numerator, coefficient]
+                });
+
+                assumptions.push(coefficient);
+            }
+
+            return finalize(explicit);
+        } catch {
+            return null;
+        }
     }
 
     private extractDenominators(node: CanonicalAST, assumptions: CanonicalAST[]) {
@@ -123,7 +203,6 @@ export class ODEUtils {
     public isLinear(explicitDeriv: CanonicalAST, x: string, y: string): { P: CanonicalAST, Q: CanonicalAST } | null {
         // G(x, y) = Q(x) - P(x) y
         // If we differentiate G w.r.t y, we should get -P(x), which must be independent of y.
-        const { DerivativeEngine } = require('../symbolic/derivative');
         const dEngine = new DerivativeEngine();
         
         try {
@@ -200,16 +279,108 @@ export class ODEUtils {
     // Homogeneous: y' = F(y/x).
     // Test: F(tx, ty) = F(x, y).
     public isHomogeneous(explicitDeriv: CanonicalAST, x: string, y: string): boolean {
-        // Substitute x->tx, y->ty
-        const tx = { type: 'Operator', operator: '*', args: [{ type: 'Symbol', name: 't_hom' }, { type: 'Symbol', name: x }] } as CanonicalAST;
-        const ty = { type: 'Operator', operator: '*', args: [{ type: 'Symbol', name: 't_hom' }, { type: 'Symbol', name: y }] } as CanonicalAST;
-        
-        let substituted = ASTUtils.replaceNode(explicitDeriv, { type: 'Symbol', name: x }, tx);
-        substituted = ASTUtils.replaceNode(substituted, { type: 'Symbol', name: y }, ty);
-        
-        // simplify F(tx, ty) - F(x,y)
-        const diff = this.simplifier.simplify({ type: 'Operator', operator: '-', args: [substituted, explicitDeriv] });
-        return diff.type === 'Number' && diff.value === '0';
+        const degree = (node: CanonicalAST): number | null => {
+            if (node.type === 'Number' || node.type === 'Constant') {
+                return 0;
+            }
+
+            if (node.type === 'Symbol') {
+                if (node.name === x || node.name === y) return 1;
+                return 0;
+            }
+
+            if (node.type === 'Parenthesis') {
+                return degree(node.content);
+            }
+
+            if (node.type === 'Operator') {
+                if (node.operator === '+' || node.operator === '-') {
+                    const degrees = node.args.map(degree);
+
+                    if (degrees.some(d => d === null)) return null;
+
+                    const first = degrees[0] as number;
+
+                    if (
+                        degrees.every(
+                            d => Math.abs((d as number) - first) < 1e-12
+                        )
+                    ) {
+                        return first;
+                    }
+
+                    return null;
+                }
+
+                if (
+                    node.operator === '*' ||
+                    node.operator === 'implicit_multiply'
+                ) {
+                    let total = 0;
+
+                    for (const arg of node.args) {
+                        const d = degree(arg);
+                        if (d === null) return null;
+                        total += d;
+                    }
+
+                    return total;
+                }
+
+                if (node.operator === '/') {
+                    const numeratorDegree = degree(node.args[0]);
+                    const denominatorDegree = degree(node.args[1]);
+
+                    if (
+                        numeratorDegree === null ||
+                        denominatorDegree === null
+                    ) {
+                        return null;
+                    }
+
+                    return numeratorDegree - denominatorDegree;
+                }
+
+                if (
+                    node.operator === '^' &&
+                    node.args[1].type === 'Number'
+                ) {
+                    const baseDegree = degree(node.args[0]);
+                    const exponent = Number(node.args[1].value);
+
+                    if (
+                        baseDegree === null ||
+                        !Number.isFinite(exponent)
+                    ) {
+                        return null;
+                    }
+
+                    return baseDegree * exponent;
+                }
+
+                return null;
+            }
+
+            if (node.type === 'Function') {
+                const innerDegrees = node.args.map(degree);
+
+                if (
+                    innerDegrees.every(
+                        d => d !== null && Math.abs(d as number) < 1e-12
+                    )
+                ) {
+                    return 0;
+                }
+
+                return null;
+            }
+
+            return null;
+        };
+
+        const result = degree(explicitDeriv);
+
+        return result !== null && Math.abs(result) < 1e-12;
     }
 
     private getTerms(node: CanonicalAST): CanonicalAST[] {

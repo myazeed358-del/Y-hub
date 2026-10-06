@@ -23,12 +23,47 @@ export class PolynomialExtractor {
     return coeffs;
   }
 
-  private traverseSum(node: CanonicalAST, variable: string, coeffs: Map<number, CanonicalAST[]>) {
+  private traverseSum(
+    node: CanonicalAST,
+    variable: string,
+    coeffs: Map<number, CanonicalAST[]>,
+    sign: 1 | -1 = 1
+  ) {
     if (node.type === 'Operator' && node.operator === '+') {
-      node.args.forEach(arg => this.addTerm(arg, variable, coeffs));
-    } else {
-      this.addTerm(node, variable, coeffs);
+      node.args.forEach(arg =>
+        this.traverseSum(arg, variable, coeffs, sign)
+      );
+      return;
     }
+
+    if (
+      node.type === 'Operator' &&
+      node.operator === '-' &&
+      node.args.length === 2
+    ) {
+      this.traverseSum(node.args[0], variable, coeffs, sign);
+      this.traverseSum(
+        node.args[1],
+        variable,
+        coeffs,
+        sign === 1 ? -1 : 1
+      );
+      return;
+    }
+
+    const signedNode: CanonicalAST =
+      sign === 1
+        ? node
+        : {
+            type: 'Operator',
+            operator: '*',
+            args: [
+              { type: 'Number', value: '-1' },
+              node
+            ]
+          };
+
+    this.addTerm(signedNode, variable, coeffs);
   }
 
   private addTerm(node: CanonicalAST, variable: string, coeffs: Map<number, CanonicalAST[]>) {

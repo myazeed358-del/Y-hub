@@ -1,6 +1,7 @@
 import { CanonicalAST } from '../types/ast';
 import { ODERequest, NumericalODEResult } from '../types/ode';
 import { DomainAnalyzer } from '../domain';
+import { ASTEvaluator } from '../symbolic/evaluator';
 
 export class NumericalODEEngine {
     private domainAnalyzer = new DomainAnalyzer();
@@ -45,24 +46,24 @@ export class NumericalODEEngine {
         let evalCount = 0;
         let status: NumericalODEResult['convergenceStatus'] = 'completed';
 
-        const ASTEvaluator = require('../symbolic/evaluator').ASTEvaluator;
         const evaluator = new ASTEvaluator();
 
         const f = (xVal: number, YVal: number[]): number[] => {
-            const map = new Map<string, number>();
-            map.set(req.independentVariable, xVal);
-            map.set(req.dependentVariable, YVal[0]);
+            const points: Record<string, number> = {
+                [req.independentVariable]: xVal,
+                [req.dependentVariable]: YVal[0]
+            };
             
             if (order > 1) {
-                map.set(req.derivativeVariable, YVal[1]);
+                points[req.derivativeVariable] = YVal[1];
                 if (req.higherDerivatives) {
                     for (let i = 0; i < req.higherDerivatives.length - 1; i++) {
-                        map.set(req.higherDerivatives[i], YVal[i+2]);
+                        points[req.higherDerivatives[i]] = YVal[i+2];
                     }
                 }
             }
             
-            const highestDeriv = evaluator.evaluate(explicitDeriv, map);
+            const highestDeriv = evaluator.evaluate(explicitDeriv, points);
             evalCount++;
             
             const dY = [];
@@ -146,7 +147,11 @@ export class NumericalODEEngine {
             initialCondition: { x0, y0: Y0[0] },
             stepSize,
             points,
-            finalValue: (status === 'tolerance_met' || status === 'tolerance_not_met' || status === 'completed') ? finalY : null,
+            finalValue:
+                (status === 'tolerance_met' ||
+                 status === 'tolerance_not_met')
+                    ? finalY
+                    : null,
             evaluationCount: evalCount,
             convergenceStatus: status
         };
@@ -170,7 +175,6 @@ export class SystemNumericalODEEngine {
 
         const { method, stepSize, steps } = req.numericalConfig;
         
-        const ASTEvaluator = require('../symbolic/evaluator').ASTEvaluator;
         const evaluator = new ASTEvaluator();
         
         const t0 = this.evalAST(req.initialCondition.t0);
@@ -190,15 +194,16 @@ export class SystemNumericalODEEngine {
         let evalCount = 0;
         
         const f = (tVal: number, XVal: number[]): number[] => {
-            const map = new Map<string, number>();
-            map.set(req.independentVariable, tVal);
+            const points: Record<string, number> = {
+                [req.independentVariable]: tVal
+            };
             for (let i = 0; i < n; i++) {
-                map.set(req.dependentVariables[i], XVal[i]);
+                points[req.dependentVariables[i]] = XVal[i];
             }
             
             const dX = [];
             for (let i = 0; i < n; i++) {
-                dX.push(evaluator.evaluate(rhsASTs[i], map));
+                dX.push(evaluator.evaluate(rhsASTs[i], points));
             }
             evalCount++;
             return dX;

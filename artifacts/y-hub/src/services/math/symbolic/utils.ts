@@ -65,6 +65,30 @@ export class ASTUtils {
     return JSON.stringify(node1) === JSON.stringify(node2);
   }
 
+  // Backward-compatible alias used by older symbolic/ODE services.
+  public static isEqual(node1: CanonicalAST, node2: CanonicalAST): boolean {
+    return ASTUtils.structuralEquals(node1, node2);
+  }
+
+  public static isInfinity(node: CanonicalAST): boolean {
+    if (node.type === 'Symbol' || node.type === 'Constant') {
+      const name = node.name.toLowerCase();
+      return name === 'infinity' || name === 'inf' || name === '∞';
+    }
+
+    if (
+      node.type === 'Operator' &&
+      node.operator === '-' &&
+      node.args.length === 2 &&
+      node.args[0].type === 'Number' &&
+      node.args[0].value === '0'
+    ) {
+      return ASTUtils.isInfinity(node.args[1]);
+    }
+
+    return false;
+  }
+
   public static extractSymbols(node: CanonicalAST, symbols = new Set<string>()): Set<string> {
     if (node.type === 'Symbol') {
       symbols.add(node.name);

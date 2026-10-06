@@ -35,7 +35,7 @@ export class SeparableODEEngine {
         const lostSolutions = this.findEquilibriumSolutions(hy, req.dependentVariable);
 
         // Integrate LHS: ∫ 1/h(y) dy
-        const invHy = this.simplifier.simplify({ type: 'Operator', operator: '/', args: [{ type: 'Number', value: '1' }, hy] });
+        const invHy = this.buildReciprocal(hy);
         
         // Use integration engine, we need an orchestrator context for it
         const intContext = { ...context, activeStrategies: new Set<string>(), attemptedStrategies: new Set<string>() };
@@ -95,6 +95,96 @@ export class SeparableODEEngine {
         }
 
         return { solutions, steps };
+    }
+
+    private buildReciprocal(node: CanonicalAST): CanonicalAST {
+        // 1 / (A/B) = B/A
+        if (
+            node.type === 'Operator' &&
+            node.operator === '/' &&
+            node.args.length === 2
+        ) {
+            return this.simplifier.simplify({
+                type: 'Operator',
+                operator: '/',
+                args: [node.args[1], node.args[0]]
+            });
+        }
+
+        // 1 / (A^-1) = A
+        if (
+            node.type === 'Operator' &&
+            node.operator === '^' &&
+            node.args[1].type === 'Number' &&
+            node.args[1].value === '-1'
+        ) {
+            return this.simplifier.simplify(node.args[0]);
+        }
+
+        // Example:
+        //
+        // 1 / [A * B^-1]
+        // -> B / A
+        if (
+            node.type === 'Operator' &&
+            (
+                node.operator === '*' ||
+                node.operator === 'implicit_multiply'
+            )
+        ) {
+            const numeratorFactors: CanonicalAST[] = [];
+            const denominatorFactors: CanonicalAST[] = [];
+
+            for (const factor of node.args) {
+                if (
+                    factor.type === 'Operator' &&
+                    factor.operator === '^' &&
+                    factor.args[1].type === 'Number' &&
+                    factor.args[1].value === '-1'
+                ) {
+                    numeratorFactors.push(factor.args[0]);
+                } else {
+                    denominatorFactors.push(factor);
+                }
+            }
+
+            if (numeratorFactors.length > 0) {
+                const numerator: CanonicalAST =
+                    numeratorFactors.length === 1
+                        ? numeratorFactors[0]
+                        : {
+                            type: 'Operator',
+                            operator: '*',
+                            args: numeratorFactors
+                        };
+
+                const denominator: CanonicalAST =
+                    denominatorFactors.length === 0
+                        ? { type: 'Number', value: '1' }
+                        : denominatorFactors.length === 1
+                            ? denominatorFactors[0]
+                            : {
+                                type: 'Operator',
+                                operator: '*',
+                                args: denominatorFactors
+                            };
+
+                return this.simplifier.simplify({
+                    type: 'Operator',
+                    operator: '/',
+                    args: [numerator, denominator]
+                });
+            }
+        }
+
+        return this.simplifier.simplify({
+            type: 'Operator',
+            operator: '/',
+            args: [
+                { type: 'Number', value: '1' },
+                node
+            ]
+        });
     }
 
     private findEquilibriumSolutions(hy: CanonicalAST, y: string): CanonicalAST[] {

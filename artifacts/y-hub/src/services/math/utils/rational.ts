@@ -62,6 +62,16 @@ export class Rat {
     return Rat.fromString(n.toString());
   }
 
+  public static toString(r: Rational): string {
+    const simplified = Rat.simplify(r);
+
+    if (simplified.den === 1n) {
+      return simplified.num.toString();
+    }
+
+    return `${simplified.num.toString()}/${simplified.den.toString()}`;
+  }
+
   public static toNumber(r: Rational): number {
     return Number(r.num) / Number(r.den);
   }

@@ -12,6 +12,8 @@ import type { IntegrationExecutionContext } from '../types/integration';
 import { SubstitutionEngine } from './substitution';
 import { TrigIntegrationEngine } from './trig';
 import { TrigSubEngine } from './trig_sub';
+import { PartsEngine } from './parts';
+import { PartialFractionsEngine } from './partial_fractions';
 
 export class IntegrationEngine {
   private simplifier = new SymbolicSimplifier();
@@ -19,8 +21,8 @@ export class IntegrationEngine {
   private domainAnalyzer = new DomainAnalyzer();
   private inequalityEngine = new InequalityEngine();
   private substitutionEngine = new SubstitutionEngine();
-  private partsEngine: any; // will initialize in constructor
-  private pfEngine: any;
+  private partsEngine = new PartsEngine();
+  private pfEngine = new PartialFractionsEngine();
   private trigEngine = new TrigIntegrationEngine();
   private trigSubEngine = new TrigSubEngine();
 
@@ -29,14 +31,6 @@ export class IntegrationEngine {
   private partsSteps: IntegrationByPartsStep[] = [];
   private trigStepsGlobal: TrigIdentityStep[] = [];
   private trigSubStepsGlobal: TrigSubstitutionStep[] = [];
-
-  constructor() {
-    // defer require or import to avoid circular dependencies if necessary
-    const { PartsEngine } = require('./parts');
-    const { PartialFractionsEngine } = require('./partial_fractions');
-    this.partsEngine = new PartsEngine();
-    this.pfEngine = new PartialFractionsEngine();
-  }
 
   public integrateRequest(req: IntegrationRequest): IntegrationResult {
     const steps: MathStep[] = [];
@@ -54,7 +48,13 @@ export class IntegrationEngine {
           const s2 = this.inequalityEngine.solve(lteq, req.variable);
           if (s1.kind === 'solution_set' && s2.kind === 'solution_set') {
              const intersect = SetEngine.intersection(s1.solution.intervals, s2.solution.intervals);
-             domainSet = { intervals: SetEngine.intersection(domainSet.intervals, intersect) };
+             domainSet = {
+                 ...domainSet,
+                 intervals: SetEngine.intersection(
+                   domainSet.intervals,
+                   intersect
+                 )
+              };
           }
        } else if (r.type === 'inverse_sec_csc') {
           // u <= -1 OR u >= 1
@@ -64,13 +64,25 @@ export class IntegrationEngine {
           const s2 = this.inequalityEngine.solve(gteq, req.variable);
           if (s1.kind === 'solution_set' && s2.kind === 'solution_set') {
              const union = SetEngine.union(s1.solution.intervals, s2.solution.intervals);
-             domainSet = { intervals: SetEngine.intersection(domainSet.intervals, union) };
+             domainSet = {
+                 ...domainSet,
+                 intervals: SetEngine.intersection(
+                   domainSet.intervals,
+                   union
+                 )
+              };
           }
        } else {
           const ineq: CanonicalAST = { type: 'Inequality', operator: r.type === 'denominator' ? '!=' : (r.type === 'even_root' ? '>=' : '>'), lhs: r.conditionAST, rhs: { type: 'Number', value: '0' } };
           const solved = this.inequalityEngine.solve(ineq, req.variable);
           if (solved.kind === 'solution_set') {
-             domainSet = { intervals: SetEngine.intersection(domainSet.intervals, solved.solution.intervals) };
+             domainSet = {
+                 ...domainSet,
+                 intervals: SetEngine.intersection(
+                   domainSet.intervals,
+                   solved.solution.intervals
+                 )
+              };
           }
        }
     }
@@ -137,6 +149,45 @@ export class IntegrationEngine {
        } as CanonicalAST;
        if (context) context.depth--;
        return res;
+    }
+
+    // Rational numerator linearity:
+    // (A ± B) / D = A/D ± B/D.
+    //
+    // This allows the existing integration strategies to handle
+    // rational expressions component-by-component.
+    if (
+       simplified.type === 'Operator' &&
+       simplified.operator === '/' &&
+       simplified.args[0].type === 'Operator' &&
+       (
+         simplified.args[0].operator === '+' ||
+         simplified.args[0].operator === '-'
+       )
+    ) {
+       const numerator = simplified.args[0];
+       const denominator = simplified.args[1];
+
+       const res = {
+         type: 'Operator',
+         operator: numerator.operator,
+         args: numerator.args.map(term =>
+           this.integrate(
+             {
+               type: 'Operator',
+               operator: '/',
+               args: [term, denominator]
+             },
+             variable,
+             steps,
+             depth + 1,
+             context
+           )
+         )
+       } as CanonicalAST;
+
+       if (context) context.depth--;
+       return this.simplifier.simplify(res);
     }
 
     // Linearity: Constant Extraction
@@ -263,6 +314,102 @@ export class IntegrationEngine {
        ]};
     }
     
+    // ∫ c/x dx = c ln|x|
+    //
+    // Important for u-substitution where the transformed integrand
+    // may be -1/u, 1/2u, etc.
+    if (
+       node.type === 'Operator' &&
+       node.operator === '/' &&
+       node.args[0].type === 'Number' &&
+       node.args[1].type === 'Symbol' &&
+       node.args[1].name === variable
+    ) {
+       const coefficient = node.args[0];
+
+       steps.push({
+         id: `int_c_over_x_${Date.now()}`,
+         title: 'Logarithm Rule',
+         explanation: '∫ c/x dx = c ln|x|'
+       });
+
+       return this.simplifier.simplify({
+         type: 'Operator',
+         operator: '*',
+         args: [
+           coefficient,
+           {
+             type: 'Function',
+             name: 'ln',
+             args: [
+               {
+                 type: 'Function',
+                 name: 'abs',
+                 args: [node.args[1]]
+               }
+             ]
+           }
+         ]
+       });
+    }
+
+    // ∫ c/(a*x+b) dx = (c/a) ln|a*x+b|
+    if (
+       node.type === 'Operator' &&
+       node.operator === '/' &&
+       node.args[0].type === 'Number'
+    ) {
+       const numerator = node.args[0];
+       const denominator = node.args[1];
+
+       try {
+          const derivative = this.simplifier.simplify(
+             this.derivativeEngine.differentiate(
+                denominator,
+                variable
+             )
+          );
+
+          if (
+             derivative.type === 'Number' &&
+             derivative.value !== '0'
+          ) {
+             const coefficient = this.simplifier.simplify({
+                type: 'Operator',
+                operator: '/',
+                args: [numerator, derivative]
+             });
+
+             steps.push({
+                id: `int_linear_den_${Date.now()}`,
+                title: 'Linear Denominator Rule',
+                explanation: '∫ c/(ax+b) dx = (c/a) ln|ax+b|'
+             });
+
+             return this.simplifier.simplify({
+                type: 'Operator',
+                operator: '*',
+                args: [
+                   coefficient,
+                   {
+                      type: 'Function',
+                      name: 'ln',
+                      args: [
+                         {
+                            type: 'Function',
+                            name: 'abs',
+                            args: [denominator]
+                         }
+                      ]
+                   }
+                ]
+             });
+          }
+       } catch {
+          // Not a supported linear denominator.
+       }
+    }
+
     // ∫ 1/x dx (if formatted as division)
     if (node.type === 'Operator' && node.operator === '/' && node.args[0].type === 'Number' && node.args[0].value === '1') {
        if (node.args[1].type === 'Symbol' && node.args[1].name === variable) {
@@ -438,12 +585,48 @@ export class IntegrationEngine {
   }
 
   private isOnePlusXSquared(node: CanonicalAST, variable: string): boolean {
-    if (node.type === 'Operator' && node.operator === '+') {
-       const hasOne = node.args.some(a => a.type === 'Number' && a.value === '1');
-       const hasX2 = node.args.some(a => a.type === 'Operator' && a.operator === '^' && a.args[0].type === 'Symbol' && a.args[0].name === variable && a.args[1].type === 'Number' && a.args[1].value === '2');
-       return hasOne && hasX2;
+    if (node.type !== 'Operator' || node.operator !== '+') {
+      return false;
     }
-    return false;
+
+    const hasOne = node.args.some(
+      a => a.type === 'Number' && a.value === '1'
+    );
+
+    const isXSquared = (a: CanonicalAST): boolean => {
+      // x^2
+      if (
+        a.type === 'Operator' &&
+        a.operator === '^' &&
+        a.args.length === 2 &&
+        a.args[0].type === 'Symbol' &&
+        a.args[0].name === variable &&
+        a.args[1].type === 'Number' &&
+        a.args[1].value === '2'
+      ) {
+        return true;
+      }
+
+      // x*x
+      if (
+        a.type === 'Operator' &&
+        (
+          a.operator === '*' ||
+          a.operator === 'implicit_multiply'
+        ) &&
+        a.args.length === 2 &&
+        a.args[0].type === 'Symbol' &&
+        a.args[1].type === 'Symbol' &&
+        a.args[0].name === variable &&
+        a.args[1].name === variable
+      ) {
+        return true;
+      }
+
+      return false;
+    };
+
+    return hasOne && node.args.some(isXSquared);
   }
 
   private isOneMinusXSquared(node: CanonicalAST, variable: string): boolean {

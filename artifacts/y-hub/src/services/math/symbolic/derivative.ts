@@ -54,15 +54,44 @@ export class DerivativeEngine {
       }
 
       if (operator === '*' || operator === 'implicit_multiply') {
-        steps.push({ id: `product_rule`, title: 'Product Rule', explanation: 'd(uv) = u\'v + uv\'' });
-        const u = args[0], v = args[1];
-        const du = this.applyRules(u, variable, steps);
-        const dv = this.applyRules(v, variable, steps);
+        steps.push({
+          id: `product_rule`,
+          title: 'Product Rule',
+          explanation: 'Applied the product rule to all factors.'
+        });
+
+        if (args.length === 0) {
+          return { type: 'Number', value: '0' };
+        }
+
+        if (args.length === 1) {
+          return this.applyRules(args[0], variable, steps);
+        }
+
+        // d(f1*f2*...*fn)
+        // = sum_i [ fi' * product_(j != i) fj ]
+        const derivativeTerms: CanonicalAST[] = args.map(
+          (factor: CanonicalAST, index: number) => {
+            const differentiated =
+              this.applyRules(factor, variable, steps);
+
+            return {
+              type: 'Operator',
+              operator: '*',
+              args: args.map(
+                (original: CanonicalAST, factorIndex: number) =>
+                  factorIndex === index
+                    ? differentiated
+                    : original
+              )
+            } as CanonicalAST;
+          }
+        );
+
         return {
-          type: 'Operator', operator: '+', args: [
-            { type: 'Operator', operator: '*', args: [du, v] },
-            { type: 'Operator', operator: '*', args: [u, dv] }
-          ]
+          type: 'Operator',
+          operator: '+',
+          args: derivativeTerms
         };
       }
 

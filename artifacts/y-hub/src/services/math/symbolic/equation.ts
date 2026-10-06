@@ -546,3 +546,64 @@ export class EquationSolver {
     return { type: 'Operator', operator: '+', args: coeffs };
   }
 }
+
+
+/**
+ * Backward-compatible adapter for legacy math services.
+ *
+ * EquationSolver is the canonical API.
+ * Older ODE services still expect:
+ *
+ *   new EquationEngine().solveEquation(eq, variable)
+ *
+ * Keep this adapter until those consumers are migrated individually.
+ */
+export type LegacyEquationSolution = {
+  status: 'exact' | 'approximate';
+  value: CanonicalAST;
+  conditions: string[];
+  verification: EquationSolution['verification'];
+};
+
+export class EquationEngine {
+  private solver = new EquationSolver();
+
+  public solveEquation(
+    equation: CanonicalAST,
+    variable: string
+  ): LegacyEquationSolution[] {
+    try {
+      const result = this.solver.solve(
+        equation,
+        variable,
+        { domain: 'real', mode: 'AUTO' }
+      );
+
+      return result.finalSolutions
+        .filter(solution => !solution.extraneous)
+        .map(solution => ({
+          status:
+            solution.exact && !solution.approximation
+              ? 'exact'
+              : 'approximate',
+          value: solution.value,
+          conditions: solution.conditions,
+          verification: solution.verification
+        }));
+    } catch (error: any) {
+      const message = String(error?.message ?? error);
+
+      // Legacy callers historically treated unsupported symbolic routes
+      // as "no usable local solution", not as fatal engine failures.
+      if (
+        message === 'INFINITE_SOLUTIONS' ||
+        message.includes('ROUTE_TO_PYTHON') ||
+        message.includes('UNSUPPORTED')
+      ) {
+        return [];
+      }
+
+      throw error;
+    }
+  }
+}

@@ -5,12 +5,14 @@ import { SymbolicSimplifier } from '../symbolic/simplifier';
 import { DerivativeEngine } from '../symbolic/derivative';
 import { EquationEngine } from '../symbolic/equation';
 import { ASTUtils } from '../symbolic/utils';
+import { PolynomialExpander } from '../symbolic/expander';
 
 export class ExactODEEngine {
     private intEngine = new IntegrationEngine();
     private simplifier = new SymbolicSimplifier();
     private dEngine = new DerivativeEngine();
     private eqEngine = new EquationEngine();
+    private expander = new PolynomialExpander();
 
     public solve(req: ODERequest, explicitDeriv: CanonicalAST, context: ODEOrchestrationContext): { solutions: ODESolution[], steps: ODEStep[], exactness: 'locally_exact' | 'globally_exact' | 'requires_domain_condition' } | null {
         // Find M and N from explicitDeriv: y' = G(x,y).
@@ -26,8 +28,30 @@ export class ExactODEEngine {
             num = G.args[0];
             den = G.args[1];
         } else if (G.type === 'Operator' && G.operator === '*') {
-            // some parts might have negative exponents
-            // but we'll just treat G as num/1.
+            const fractionIndex = G.args.findIndex(
+                arg => arg.type === 'Operator' && arg.operator === '/'
+            );
+
+            if (fractionIndex !== -1) {
+                const fraction = G.args[fractionIndex];
+
+                if (
+                    fraction.type === 'Operator' &&
+                    fraction.operator === '/'
+                ) {
+                    const otherFactors = G.args.filter(
+                        (_, index) => index !== fractionIndex
+                    );
+
+                    num = this.simplifier.simplify({
+                        type: 'Operator',
+                        operator: '*',
+                        args: [...otherFactors, fraction.args[0]]
+                    });
+
+                    den = fraction.args[1];
+                }
+            }
         }
 
         const M = this.simplifier.simplify({ type: 'Operator', operator: '*', args: [{ type: 'Number', value: '-1' }, num] });
@@ -40,9 +64,20 @@ export class ExactODEEngine {
             const dMdy = this.simplifier.simplify(this.dEngine.differentiate(M, y));
             const dNdx = this.simplifier.simplify(this.dEngine.differentiate(N, x));
             
-            const diff = this.simplifier.simplify({ type: 'Operator', operator: '-', args: [dMdy, dNdx] });
+            let diff = this.simplifier.simplify({
+                type: 'Operator',
+                operator: '-',
+                args: [dMdy, dNdx]
+            });
+
             if (diff.type !== 'Number' || diff.value !== '0') {
-                return null; // Not exact
+                diff = this.simplifier.simplify(
+                    this.expander.expand(diff)
+                );
+            }
+
+            if (diff.type !== 'Number' || diff.value !== '0') {
+                return null;
             }
             
             const steps: ODEStep[] = [];

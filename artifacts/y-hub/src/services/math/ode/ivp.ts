@@ -19,6 +19,16 @@ export class IVPEngine {
         const x0 = req.initialCondition.x0;
         const y0 = req.initialCondition.y0;
         const higherDerivs = req.initialCondition.derivatives || [];
+
+        // Initial data at infinity is not a finite IVP condition.
+        if (
+            ASTUtils.isInfinity(x0) ||
+            ASTUtils.isInfinity(y0) ||
+            higherDerivs.some(value => ASTUtils.isInfinity(value))
+        ) {
+            return { validity: 'incompatible' };
+        }
+
         const n = 1 + higherDerivs.length;
 
         for (const sol of solutions) {
@@ -30,9 +40,16 @@ export class IVPEngine {
                     
                     const cSols = this.eqEngine.solveEquation(eq, 'C');
                     const validC = cSols.find(s => s.status === 'exact' && s.value);
-                    
-                    if (validC && validC.value) {
-                        const particularEq = ASTUtils.replaceNode(sol.equation, { type: 'Symbol', name: 'C' }, validC.value) as CanonicalAST;
+                    const cValue =
+                        validC?.value ??
+                        this.solveConstantEquation(eq);
+
+                    if (cValue) {
+                        const particularEq = ASTUtils.replaceNode(
+                            sol.equation,
+                            { type: 'Symbol', name: 'C' },
+                            cValue
+                        ) as CanonicalAST;
                         return {
                             particularSolution: { type: 'particular', equation: this.simplifier.simplify(particularEq), domain: sol.domain, assumptions: sol.assumptions },
                             validity: 'established'
@@ -111,9 +128,16 @@ export class IVPEngine {
                 
                 const cSols = this.eqEngine.solveEquation(eq, 'C');
                 const validC = cSols.find(s => s.status === 'exact' && s.value);
-                
-                if (validC && validC.value) {
-                    const particularEq = ASTUtils.replaceNode(sol.equation, { type: 'Symbol', name: 'C' }, validC.value) as CanonicalAST;
+                const cValue =
+                    validC?.value ??
+                    this.solveConstantEquation(eq);
+
+                if (cValue) {
+                    const particularEq = ASTUtils.replaceNode(
+                        sol.equation,
+                        { type: 'Symbol', name: 'C' },
+                        cValue
+                    ) as CanonicalAST;
                     return {
                         particularSolution: { type: 'particular', equation: this.simplifier.simplify(particularEq), domain: sol.domain, assumptions: sol.assumptions },
                         validity: 'established'
@@ -128,6 +152,124 @@ export class IVPEngine {
         }
 
         return { validity: 'incompatible' };
+    }
+
+    private solveConstantEquation(
+        equation: CanonicalAST
+    ): CanonicalAST | null {
+        if (equation.type !== 'Equation') return null;
+
+        const C: CanonicalAST = {
+            type: 'Symbol',
+            name: 'C'
+        };
+
+        const zero: CanonicalAST = {
+            type: 'Number',
+            value: '0'
+        };
+
+        try {
+            const residual = this.simplifier.simplify({
+                type: 'Operator',
+                operator: '-',
+                args: [equation.lhs, equation.rhs]
+            });
+
+            // First: general affine dependence a*C+b=0.
+            if (ASTUtils.containsVariable(residual, 'C')) {
+                const coefficient = this.simplifier.simplify(
+                    this.dEngine.differentiate(residual, 'C')
+                );
+
+                if (
+                    !ASTUtils.containsVariable(coefficient, 'C') &&
+                    !(
+                        coefficient.type === 'Number' &&
+                        coefficient.value === '0'
+                    )
+                ) {
+                    const atZero = this.simplifier.simplify(
+                        ASTUtils.replaceNode(
+                            residual,
+                            C,
+                            zero
+                        )
+                    );
+
+                    const affineValue =
+                        this.simplifier.simplify({
+                            type: 'Operator',
+                            operator: '/',
+                            args: [
+                                {
+                                    type: 'Operator',
+                                    operator: '*',
+                                    args: [
+                                        {
+                                            type: 'Number',
+                                            value: '-1'
+                                        },
+                                        atZero
+                                    ]
+                                },
+                                coefficient
+                            ]
+                        });
+
+                    if (
+                        !ASTUtils.containsVariable(
+                            affineValue,
+                            'C'
+                        )
+                    ) {
+                        return affineValue;
+                    }
+                }
+            }
+
+            // Second: A = exp(C) or exp(C) = A.
+            const isExpC = (
+                node: CanonicalAST
+            ): boolean =>
+                node.type === 'Function' &&
+                node.name === 'exp' &&
+                node.args.length === 1 &&
+                node.args[0].type === 'Symbol' &&
+                node.args[0].name === 'C';
+
+            if (
+                isExpC(equation.rhs) &&
+                !ASTUtils.containsVariable(
+                    equation.lhs,
+                    'C'
+                )
+            ) {
+                return {
+                    type: 'Function',
+                    name: 'ln',
+                    args: [equation.lhs]
+                };
+            }
+
+            if (
+                isExpC(equation.lhs) &&
+                !ASTUtils.containsVariable(
+                    equation.rhs,
+                    'C'
+                )
+            ) {
+                return {
+                    type: 'Function',
+                    name: 'ln',
+                    args: [equation.rhs]
+                };
+            }
+
+            return null;
+        } catch {
+            return null;
+        }
     }
 
     private solveLinearSystem(A: Rational[][], b: Rational[]): Rational[] | null {

@@ -61,11 +61,78 @@ export class SymbolicSimplifier {
     }
 
     if (op === '-') {
-      if (this.isNumber(args[1], 0)) return args[0];
-      if (ASTUtils.structuralEquals(args[0], args[1])) return { type: 'Number', value: '0' };
+      if (args.length === 2) {
+        if (this.isNumber(args[1], 0)) return args[0];
+
+        if (this.isNumber(args[0], 0)) {
+          return this.simplifyOperator(
+            '*',
+            [{ type: 'Number', value: '-1' }, args[1]],
+            assumptions
+          );
+        }
+
+        if (ASTUtils.structuralEquals(args[0], args[1])) {
+          return { type: 'Number', value: '0' };
+        }
+
+        // (a + b) - b -> a
+        if (args[0].type === 'Operator' && args[0].operator === '+') {
+          const remaining = [...args[0].args];
+          const index = remaining.findIndex(term =>
+            ASTUtils.structuralEquals(term, args[1])
+          );
+
+          if (index !== -1) {
+            remaining.splice(index, 1);
+
+            if (remaining.length === 0) {
+              return { type: 'Number', value: '0' };
+            }
+
+            return this.simplifyOperator('+', remaining, assumptions);
+          }
+        }
+      }
     }
 
     if (op === '*' || op === 'implicit_multiply') {
+      // Flatten nested products first.
+      args = args.flatMap(arg =>
+        arg.type === 'Operator' &&
+        (arg.operator === '*' || arg.operator === 'implicit_multiply')
+          ? arg.args
+          : [arg]
+      );
+
+      // Combine simple numeric coefficients.
+      const numeric = args.filter(
+        (
+          arg
+        ): arg is CanonicalAST & {
+          type: 'Number';
+          value: string;
+        } =>
+          arg.type === 'Number' &&
+          !arg.value.includes('/')
+      );
+
+      if (numeric.length > 1) {
+        const product = numeric.reduce(
+          (value, arg) => value * Number(arg.value),
+          1
+        );
+
+        args = args.filter(
+          arg => !(arg.type === 'Number' && !arg.value.includes('/'))
+        );
+
+        args.unshift({
+          type: 'Number',
+          value: product.toString()
+        });
+      }
+
       args = this.cancelFractions(args);
       args = this.multiplyRadicals(args);
 
@@ -80,6 +147,37 @@ export class SymbolicSimplifier {
       if (this.isNumber(args[0], 0)) return { type: 'Number', value: '0' };
       if (this.isNumber(args[1], 1)) return args[0];
       if (ASTUtils.structuralEquals(args[0], args[1])) return { type: 'Number', value: '1' };
+
+      // 1 / (a^-1) -> a
+      if (
+        this.isNumber(args[0], 1) &&
+        args[1].type === 'Operator' &&
+        args[1].operator === '^' &&
+        args[1].args[1].type === 'Number' &&
+        args[1].args[1].value === '-1'
+      ) {
+        return args[1].args[0];
+      }
+
+      // N / (A / B) -> (N * B) / A
+      if (
+        args[1].type === 'Operator' &&
+        args[1].operator === '/' &&
+        args[1].args.length === 2
+      ) {
+        return this.simplifyOperator(
+          '/',
+          [
+            this.simplifyOperator(
+              '*',
+              [args[0], args[1].args[1]],
+              assumptions
+            ),
+            args[1].args[0]
+          ],
+          assumptions
+        );
+      }
       
       const cancelled = this.cancelDivisionFactors(args[0], args[1]);
       if (cancelled) return this.simplifyOperator('/', [cancelled.num, cancelled.den], assumptions);
@@ -189,10 +287,69 @@ export class SymbolicSimplifier {
   }
 
   private combineLikeTerms(args: CanonicalAST[]): CanonicalAST {
-    if (args.length === 2 && ASTUtils.structuralEquals(args[0], args[1])) {
-      return { type: 'Operator', operator: '*', args: [{ type: 'Number', value: '2' }, args[0]] };
+    const remaining = [...args];
+
+    // Cancel a + (-1*a).
+    for (let i = 0; i < remaining.length; i++) {
+      for (let j = i + 1; j < remaining.length; j++) {
+        const a = remaining[i];
+        const b = remaining[j];
+
+        const negativeBase = (node: CanonicalAST): CanonicalAST | null => {
+          if (
+            node.type === 'Operator' &&
+            node.operator === '*' &&
+            node.args.length >= 2 &&
+            node.args[0].type === 'Number' &&
+            node.args[0].value === '-1'
+          ) {
+            if (node.args.length === 2) {
+              return node.args[1];
+            }
+
+            return {
+              type: 'Operator',
+              operator: '*',
+              args: node.args.slice(1)
+            };
+          }
+
+          return null;
+        };
+
+        const negA = negativeBase(a);
+        const negB = negativeBase(b);
+
+        if (
+          (negA && ASTUtils.structuralEquals(negA, b)) ||
+          (negB && ASTUtils.structuralEquals(negB, a))
+        ) {
+          remaining.splice(j, 1);
+          remaining.splice(i, 1);
+
+          if (remaining.length === 0) {
+            return { type: 'Number', value: '0' };
+          }
+
+          return this.combineLikeTerms(remaining);
+        }
+      }
     }
-    return { type: 'Operator', operator: '+', args };
+
+    if (
+      remaining.length === 2 &&
+      ASTUtils.structuralEquals(remaining[0], remaining[1])
+    ) {
+      return {
+        type: 'Operator',
+        operator: '*',
+        args: [{ type: 'Number', value: '2' }, remaining[0]]
+      };
+    }
+
+    if (remaining.length === 1) return remaining[0];
+
+    return { type: 'Operator', operator: '+', args: remaining };
   }
 
   private simplifyFunction(name: string, args: CanonicalAST[], assumptions: Assumption[]): CanonicalAST {

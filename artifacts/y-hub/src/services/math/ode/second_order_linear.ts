@@ -3,7 +3,8 @@ import { ODERequest, ODESolution, ODEStep, ODEOrchestrationContext } from '../ty
 import { ODEUtils } from './utils';
 import { SymbolicSimplifier } from '../symbolic/simplifier';
 import { ASTUtils } from '../symbolic/utils';
-import { DomainAnalyzer } from '../analysis/FunctionAnalyzer';
+import { SetEngine } from '../symbolic/sets';
+import { DomainAnalyzer } from '../domain';
 
 export class SecondOrderLinearODEEngine {
     private odeUtils = new ODEUtils();
@@ -28,7 +29,7 @@ export class SecondOrderLinearODEEngine {
         if (a0.type === 'Number' && a1.type === 'Number' && a2.type === 'Number') {
             return this.solveConstantCoeffs(req, a0, a1, a2, g, x, y);
         }
-        
+
         // Cauchy-Euler check
         // a2(x) = A x^2, a1(x) = B x, a0(x) = C
         const parseCE = (ast: CanonicalAST, power: number): CanonicalAST | null => {
@@ -82,7 +83,7 @@ export class SecondOrderLinearODEEngine {
         const isZeroG = g.type === 'Number' && g.value === '0';
         if (!isZeroG) {
             let ypFound = false;
-            
+
             // Try Undetermined Coefficients
             const { UndeterminedCoefficientsEngine } = require('./undetermined_coefficients');
             const ucEngine = new UndeterminedCoefficientsEngine();
@@ -92,14 +93,14 @@ export class SecondOrderLinearODEEngine {
                 finalY = { type: 'Operator', operator: '+', args: [finalY, ucRes.yp] } as CanonicalAST;
                 ypFound = true;
             }
-            
+
             // Fallback to Variation of Parameters
             if (!ypFound) {
                 const { VariationOfParametersEngine } = require('./variation_of_parameters');
                 const vopEngine = new VariationOfParametersEngine();
                 const vopRes = vopEngine.solveParticular(req, y1, y2, g, x);
                 if (!vopRes) return null;
-                
+
                 steps.push(...vopRes.steps);
                 finalY = { type: 'Operator', operator: '+', args: [finalY, vopRes.yp] } as CanonicalAST;
             }
@@ -246,19 +247,19 @@ export class SecondOrderLinearODEEngine {
         const A = parseRat(a2);
         const B = parseRat(a1);
         const C = parseRat(a0);
-        
+
         if (!A || !B || !C || A.num === 0n) return null;
-        
+
         const steps: ODEStep[] = [];
         const assumptions: string[] = [];
-        
+
         // Exact Arithmetic Helpers
         const add = (a: any, b: any) => ({ num: a.num * b.den + b.num * a.den, den: a.den * b.den });
         const sub = (a: any, b: any) => ({ num: a.num * b.den - b.num * a.den, den: a.den * b.den });
         const mul = (a: any, b: any) => ({ num: a.num * b.num, den: a.den * b.den });
         const div = (a: any, b: any) => ({ num: a.num * b.den, den: a.den * b.num });
         const sign = (a: any) => a.num * a.den > 0n ? 1 : (a.num === 0n ? 0 : -1);
-        
+
         const toAST = (r: any): CanonicalAST => {
             if (r.num === 0n) return { type: 'Number', value: '0' };
             const g = (a: bigint, b: bigint): bigint => b === 0n ? (a < 0n ? -a : a) : g(b, a % b);
@@ -275,10 +276,10 @@ export class SecondOrderLinearODEEngine {
 
         const D = sub(mul(B, B), mul({num: 4n, den: 1n}, mul(A, C)));
         const twoA = mul({num: 2n, den: 1n}, A);
-        
+
         let y1: CanonicalAST;
         let y2: CanonicalAST;
-        
+
         const s = sign(D);
         if (s > 0) {
             // Real distinct roots
@@ -287,10 +288,10 @@ export class SecondOrderLinearODEEngine {
             const sqrtD = { type: 'Operator', operator: '^', args: [D_AST, { type: 'Operator', operator: '/', args: [{type: 'Number', value: '1'}, {type: 'Number', value: '2'}] }] } as CanonicalAST;
             const twoA_AST = toAST(twoA);
             const term2 = { type: 'Operator', operator: '/', args: [sqrtD, twoA_AST] } as CanonicalAST;
-            
+
             const r1 = { type: 'Operator', operator: '+', args: [toAST(negB_over_2A), term2] } as CanonicalAST;
             const r2 = { type: 'Operator', operator: '-', args: [toAST(negB_over_2A), term2] } as CanonicalAST;
-            
+
             y1 = { type: 'Function', name: 'exp', args: [{ type: 'Operator', operator: '*', args: [r1, { type: 'Symbol', name: x }] }] };
             y2 = { type: 'Function', name: 'exp', args: [{ type: 'Operator', operator: '*', args: [r2, { type: 'Symbol', name: x }] }] };
         } else if (s === 0) {
@@ -308,27 +309,27 @@ export class SecondOrderLinearODEEngine {
             const sqrtNegD = { type: 'Operator', operator: '^', args: [negD_AST, { type: 'Operator', operator: '/', args: [{type: 'Number', value: '1'}, {type: 'Number', value: '2'}] }] } as CanonicalAST;
             const twoA_AST = toAST(twoA);
             const beta = { type: 'Operator', operator: '/', args: [sqrtNegD, twoA_AST] } as CanonicalAST;
-            
+
             const expPart = { type: 'Function', name: 'exp', args: [{ type: 'Operator', operator: '*', args: [toAST(alpha), { type: 'Symbol', name: x }] }] } as CanonicalAST;
             const cosPart = { type: 'Function', name: 'cos', args: [{ type: 'Operator', operator: '*', args: [beta, { type: 'Symbol', name: x }] }] } as CanonicalAST;
             const sinPart = { type: 'Function', name: 'sin', args: [{ type: 'Operator', operator: '*', args: [beta, { type: 'Symbol', name: x }] }] } as CanonicalAST;
-            
+
             y1 = { type: 'Operator', operator: '*', args: [expPart, cosPart] };
             y2 = { type: 'Operator', operator: '*', args: [expPart, sinPart] };
         }
-        
+
         y1 = this.simplifier.simplify(y1);
         y2 = this.simplifier.simplify(y2);
-        
+
         const yh = {
             type: 'Operator', operator: '+', args: [
                 { type: 'Operator', operator: '*', args: [{ type: 'Symbol', name: 'C1' }, y1] },
                 { type: 'Operator', operator: '*', args: [{ type: 'Symbol', name: 'C2' }, y2] }
             ]
         } as CanonicalAST;
-        
+
         let finalY = yh;
-        
+
         const isZeroG = g.type === 'Number' && g.value === '0';
         if (!isZeroG) {
             // Handled separately or return null for now
@@ -342,10 +343,14 @@ export class SecondOrderLinearODEEngine {
             resultingExpression: { type: 'Equation', lhs: { type: 'Symbol', name: y }, rhs: finalY }
         });
 
-        let domainSet = null;
+        let domainSet: ODESolution['domain'] = null;
         try {
-            const dr = this.domainAnalyzer.analyze(finalY, x);
-            if (dr && dr.domain) domainSet = dr.domain;
+            const restrictions =
+                this.domainAnalyzer.analyze(finalY);
+
+            if (restrictions.length === 0) {
+                domainSet = SetEngine.createRealLine(x);
+            }
         } catch(e) {}
 
         const solution: ODESolution = {

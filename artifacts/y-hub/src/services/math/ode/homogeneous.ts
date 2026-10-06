@@ -5,14 +5,16 @@ import { SeparableODEEngine } from './separable';
 import { SymbolicSimplifier } from '../symbolic/simplifier';
 import { EquationEngine } from '../symbolic/equation';
 import { ASTUtils } from '../symbolic/utils';
+import { PolynomialExpander } from '../symbolic/expander';
 
-import { DomainAnalyzer } from '../analysis/FunctionAnalyzer';
+import { DomainAnalyzer } from '../domain';
 import { SetEngine } from '../symbolic/sets';
 
 export class HomogeneousODEEngine {
     private odeUtils = new ODEUtils();
     private separableEngine = new SeparableODEEngine();
     private simplifier = new SymbolicSimplifier();
+    private expander = new PolynomialExpander();
     private eqEngine = new EquationEngine();
     private domainAnalyzer = new DomainAnalyzer();
 
@@ -27,17 +29,97 @@ export class HomogeneousODEEngine {
         // Substitution: y = vx => v = y/x
         const vVar = 'v_aux';
         
-        // Replace y with v*x in F(x,y)
-        const vx = { type: 'Operator', operator: '*', args: [{ type: 'Symbol', name: vVar }, { type: 'Symbol', name: x }] } as CanonicalAST;
-        const F_v = this.simplifier.simplify(ASTUtils.replaceNode(explicitDeriv, { type: 'Symbol', name: y }, vx));
+        // For a degree-zero homogeneous function:
+        //
+        //     F(x,y) = F(1, y/x).
+        //
+        // Therefore the reduced function of v can be obtained directly
+        // as F(1,v). This avoids depending on aggressive factor
+        // cancellation such as (x+vx)/(x-vx).
+        let F_v = ASTUtils.replaceNode(
+            explicitDeriv,
+            { type: 'Symbol', name: y },
+            { type: 'Symbol', name: vVar }
+        );
+
+        F_v = ASTUtils.replaceNode(
+            F_v,
+            { type: 'Symbol', name: x },
+            { type: 'Number', value: '1' }
+        );
+
+        F_v = this.simplifier.simplify(F_v);
         
         // Equation in v: v' = (F(v) - v) / x
-        const vDeriv = this.simplifier.simplify({
-            type: 'Operator', operator: '/', args: [
-                { type: 'Operator', operator: '-', args: [F_v, { type: 'Symbol', name: vVar }] },
-                { type: 'Symbol', name: x }
-            ]
-        });
+        const vNode: CanonicalAST = {
+            type: 'Symbol',
+            name: vVar
+        };
+
+        let vDeriv: CanonicalAST;
+
+        if (
+            F_v.type === 'Operator' &&
+            F_v.operator === '/' &&
+            F_v.args.length === 2
+        ) {
+            const numerator = F_v.args[0];
+            const denominator = F_v.args[1];
+
+            // F(v)-v = [A(v)-vB(v)]/B(v)
+            const reducedNumerator =
+                this.simplifier.simplify(
+                    this.expander.expand({
+                        type: 'Operator',
+                        operator: '-',
+                        args: [
+                            numerator,
+                            {
+                                type: 'Operator',
+                                operator: '*',
+                                args: [vNode, denominator]
+                            }
+                        ]
+                    })
+                );
+
+            // Keep x and v factors structurally separated.
+            vDeriv = this.simplifier.simplify({
+                type: 'Operator',
+                operator: '*',
+                args: [
+                    {
+                        type: 'Operator',
+                        operator: '^',
+                        args: [
+                            { type: 'Symbol', name: x },
+                            { type: 'Number', value: '-1' }
+                        ]
+                    },
+                    {
+                        type: 'Operator',
+                        operator: '/',
+                        args: [
+                            reducedNumerator,
+                            denominator
+                        ]
+                    }
+                ]
+            });
+        } else {
+            vDeriv = this.simplifier.simplify({
+                type: 'Operator',
+                operator: '/',
+                args: [
+                    {
+                        type: 'Operator',
+                        operator: '-',
+                        args: [F_v, vNode]
+                    },
+                    { type: 'Symbol', name: x }
+                ]
+            });
+        }
 
         const vReq: ODERequest = {
             ...req,
@@ -63,12 +145,12 @@ export class HomogeneousODEEngine {
         // Back-substitution: v = y/x
         const y_over_x = { type: 'Operator', operator: '/', args: [{ type: 'Symbol', name: y }, { type: 'Symbol', name: x }] } as CanonicalAST;
 
-        // Compute original ODE domain (where y' is defined)
-        let origDomainSet = null;
+        // Compute the domain only when no unresolved restrictions exist.
+        let origDomainSet: ODESolution['domain'] = null;
         try {
-            const domainRes = this.domainAnalyzer.analyze(explicitDeriv, x);
-            if (domainRes && domainRes.domain) {
-                origDomainSet = domainRes.domain;
+            const restrictions = this.domainAnalyzer.analyze(explicitDeriv);
+            if (restrictions.length === 0) {
+                origDomainSet = SetEngine.createRealLine(x);
             }
         } catch (e) {}
 
@@ -89,10 +171,15 @@ export class HomogeneousODEEngine {
                 
                 if (validSols.length > 0) {
                     for (const s of validSols) {
-                        let solDomainSet = null;
+                        let solDomainSet: ODESolution['domain'] = null;
                         try {
-                            const dr = this.domainAnalyzer.analyze(s.value!, x);
-                            if (dr && dr.domain) solDomainSet = dr.domain;
+                            const restrictions =
+                                this.domainAnalyzer.analyze(s.value!);
+
+                            if (restrictions.length === 0) {
+                                solDomainSet =
+                                    SetEngine.createRealLine(x);
+                            }
                         } catch(e) {}
                         
                         let validityInterval = solDomainSet;
