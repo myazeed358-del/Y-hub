@@ -152,7 +152,14 @@ export class PartialFractionsEngine {
        const c = coeffs[term.varIdx];
        if (Rat.isZero(c)) continue;
        const denom = this.buildLinearDenom(term.root.value, term.power, variable);
-       const frac = { type: 'Operator', operator: '/', args: [{ type: 'Number', value: Rat.toString(c) }, denom] } as CanonicalAST;
+       const frac = {
+          type: 'Operator',
+          operator: '/',
+          args: [
+             this.rationalToAST(c),
+             denom
+          ]
+       } as CanonicalAST;
        decompositionASTs.push(frac);
     }
     if (hasQuadratic) {
@@ -162,8 +169,25 @@ export class PartialFractionsEngine {
        if (!Rat.isZero(b) || !Rat.isZero(d)) {
           const denom = this.extractor.rebuildExact(remQ, variable);
           const numArgs: CanonicalAST[] = [];
-          if (!Rat.isZero(b)) numArgs.push({ type: 'Operator', operator: '*', args: [{ type: 'Number', value: Rat.toString(b) }, { type: 'Symbol', name: variable }] });
-          if (!Rat.isZero(d)) numArgs.push({ type: 'Number', value: Rat.toString(d) });
+          if (!Rat.isZero(b)) {
+             numArgs.push({
+                type: 'Operator',
+                operator: '*',
+                args: [
+                   this.rationalToAST(b),
+                   {
+                      type: 'Symbol',
+                      name: variable
+                   }
+                ]
+             });
+          }
+
+          if (!Rat.isZero(d)) {
+             numArgs.push(
+                this.rationalToAST(d)
+             );
+          }
           const num = numArgs.length === 1 ? numArgs[0] : { type: 'Operator', operator: '+', args: numArgs };
           const frac = { type: 'Operator', operator: '/', args: [num, denom] } as CanonicalAST;
           decompositionASTs.push(frac);
@@ -225,6 +249,115 @@ export class PartialFractionsEngine {
     return { type: 'Operator', operator: '+', args: finalResultParts };
   }
 
+  private rationalToAST(value: Rational): CanonicalAST {
+     const simplified = Rat.simplify(value);
+
+     if (simplified.den === 1n) {
+        return {
+           type: 'Number',
+           value: simplified.num.toString()
+        };
+     }
+
+     return {
+        type: 'Operator',
+        operator: '/',
+        args: [
+           {
+              type: 'Number',
+              value: simplified.num.toString()
+           },
+           {
+              type: 'Number',
+              value: simplified.den.toString()
+           }
+        ]
+     };
+  }
+
+  private exactConstantFromAST(
+     node: CanonicalAST
+  ): Rational | null {
+     if (node.type === 'Number') {
+        try {
+           if (node.value.includes('/')) {
+              const [num, den] = node.value.split('/');
+
+              if (!num || !den) return null;
+
+              return Rat.div(
+                 Rat.fromString(num),
+                 Rat.fromString(den)
+              );
+           }
+
+           return Rat.fromString(node.value);
+        } catch {
+           return null;
+        }
+     }
+
+     if (node.type !== 'Operator') {
+        return null;
+     }
+
+     const values = node.args.map(
+        arg => this.exactConstantFromAST(arg)
+     );
+
+     if (values.some(value => value === null)) {
+        return null;
+     }
+
+     const exactValues = values as Rational[];
+
+     try {
+        switch (node.operator) {
+           case '+':
+              return exactValues.reduce(
+                 (sum, value) => Rat.add(sum, value),
+                 Rat.zero
+              );
+
+           case '-':
+              if (exactValues.length === 1) {
+                 return Rat.mul(
+                    Rat.minusOne,
+                    exactValues[0]
+                 );
+              }
+
+              return exactValues.slice(1).reduce(
+                 (result, value) => Rat.sub(result, value),
+                 exactValues[0]
+              );
+
+           case '*':
+           case 'implicit_multiply':
+              return exactValues.reduce(
+                 (product, value) =>
+                    Rat.mul(product, value),
+                 Rat.one
+              );
+
+           case '/':
+              if (exactValues.length !== 2) {
+                 return null;
+              }
+
+              return Rat.div(
+                 exactValues[0],
+                 exactValues[1]
+              );
+
+           default:
+              return null;
+        }
+     } catch {
+        return null;
+     }
+  }
+
   private mapToPoly(coeffsMap: Map<number, CanonicalAST[]>): Rational[] | null {
      let maxDegree = -1;
      for (const [deg] of coeffsMap.entries()) {
@@ -236,12 +369,14 @@ export class PartialFractionsEngine {
      for (const [deg, args] of coeffsMap.entries()) {
         let sum = Rat.zero;
         for (const arg of args) {
-           if (arg.type === 'Number') sum = Rat.add(sum, Rat.fromString(arg.value));
-           else if (arg.type === 'Operator' && arg.operator === '-' && arg.args.length === 1 && arg.args[0].type === 'Number') {
-              sum = Rat.sub(sum, Rat.fromString(arg.args[0].value));
-           } else {
-              return null; // Not a rational number coefficient
+           const exact =
+              this.exactConstantFromAST(arg);
+
+           if (exact === null) {
+              return null;
            }
+
+           sum = Rat.add(sum, exact);
         }
         poly[deg] = sum;
      }
@@ -295,7 +430,8 @@ export class PartialFractionsEngine {
      if (Rat.isZero(root)) {
         base = x;
      } else {
-        const rootNum = { type: 'Number', value: Rat.toString(root) } as CanonicalAST;
+        const rootNum =
+           this.rationalToAST(root);
         // if root is negative, we can do x + |root| for better aesthetics, but x - root is fine
         base = { type: 'Operator', operator: '-', args: [x, rootNum] };
      }

@@ -140,7 +140,28 @@ export class SubstitutionEngine {
     }
 
     if (finalConstRat.num !== 1n || finalConstRat.den !== 1n) {
-       remainingIntTerms.unshift({ type: 'Number', value: Rat.toString(finalConstRat) });
+       const constantAST: CanonicalAST =
+          finalConstRat.den === 1n
+             ? {
+                 type: 'Number',
+                 value: finalConstRat.num.toString()
+               }
+             : {
+                 type: 'Operator',
+                 operator: '/',
+                 args: [
+                   {
+                     type: 'Number',
+                     value: finalConstRat.num.toString()
+                   },
+                   {
+                     type: 'Number',
+                     value: finalConstRat.den.toString()
+                   }
+                 ]
+               };
+
+       remainingIntTerms.unshift(constantAST);
     }
 
     if (remainingIntTerms.length === 0) return { type: 'Number', value: '1' };

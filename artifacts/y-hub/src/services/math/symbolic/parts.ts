@@ -9,7 +9,7 @@ import { Rat } from '../utils/rational';
 export class PartsEngine {
   private simplifier = new SymbolicSimplifier();
   private derivativeEngine = new DerivativeEngine();
-  private maxDepth = 3;
+  private maxPolynomialDegree = 3;
 
   public matchParts(
     integrand: CanonicalAST,
@@ -19,12 +19,21 @@ export class PartsEngine {
     depth: number
   ): { result: CanonicalAST, partsStep: IntegrationByPartsStep } | null {
     
-    if (depth >= this.maxDepth) return null;
-
     const candidate = this.detectPattern(integrand, variable);
     if (!candidate) return null;
 
     const { u, dv } = candidate;
+
+    // Bound repeated integration by parts by the structural
+    // polynomial degree of u, rather than the generic integration
+    // recursion depth. Generic depth also increases for harmless
+    // transformations such as constant extraction.
+    if (
+       this.getPolynomialDegree(u, variable) >
+       this.maxPolynomialDegree
+    ) {
+       return null;
+    }
 
     let du: CanonicalAST;
     try {
@@ -99,6 +108,45 @@ export class PartsEngine {
      }
 
      return null;
+  }
+
+  private getPolynomialDegree(
+     node: CanonicalAST,
+     variable: string
+  ): number {
+     if (
+        node.type === 'Symbol' &&
+        node.name === variable
+     ) {
+        return 1;
+     }
+
+     if (
+        node.type === 'Operator' &&
+        node.operator === '^' &&
+        node.args[0].type === 'Symbol' &&
+        node.args[0].name === variable &&
+        node.args[1].type === 'Number'
+     ) {
+        try {
+           const power = Rat.fromString(
+              node.args[1].value
+           );
+
+           if (
+              power.den === 1n &&
+              power.num > 0n
+           ) {
+              return Number(power.num);
+           }
+        } catch {
+           return Number.POSITIVE_INFINITY;
+        }
+     }
+
+     // ln(x) and other explicitly supported non-polynomial
+     // choices require only one integration-by-parts step.
+     return 1;
   }
 
   private isPowerOfX(node: CanonicalAST, variable: string): boolean {

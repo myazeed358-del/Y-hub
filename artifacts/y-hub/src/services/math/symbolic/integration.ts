@@ -14,6 +14,7 @@ import { TrigIntegrationEngine } from './trig';
 import { TrigSubEngine } from './trig_sub';
 import { PartsEngine } from './parts';
 import { PartialFractionsEngine } from './partial_fractions';
+import { EquivalenceVerifier } from '../verification/equivalence';
 
 export class IntegrationEngine {
   private simplifier = new SymbolicSimplifier();
@@ -25,6 +26,7 @@ export class IntegrationEngine {
   private pfEngine = new PartialFractionsEngine();
   private trigEngine = new TrigIntegrationEngine();
   private trigSubEngine = new TrigSubEngine();
+  private equivalenceVerifier = new EquivalenceVerifier();
 
   // Used to store the top-level substitution step
   private lastSubStep: SubstitutionStep | undefined = undefined;
@@ -38,7 +40,10 @@ export class IntegrationEngine {
     // Domain Analysis
     const restrictions = this.domainAnalyzer.analyze(req.expression);
     let domainSet = SetEngine.createRealLine();
-    for (const r of restrictions) {
+    let domainComplete = true;
+
+    try {
+      for (const r of restrictions) {
        let res;
        if (r.type === 'inverse_trig') {
           // -1 <= u <= 1  <=> u >= -1 AND u <= 1
@@ -85,6 +90,12 @@ export class IntegrationEngine {
               };
           }
        }
+      }
+    } catch {
+      // Some restrictions, such as sin(x) != 0, are valid domain
+      // constraints but are outside the polynomial inequality solver.
+      // Do not let domain analysis crash integration.
+      domainComplete = false;
     }
 
     try {
@@ -99,7 +110,7 @@ export class IntegrationEngine {
         request: req,
         status: 'exact_symbolic',
         antiderivative: antideriv,
-        domain: domainSet,
+        domain: domainComplete ? domainSet : null,
         verificationStatus: verifiedStatus,
         substitution: this.lastSubStep,
         parts: this.partsSteps,
@@ -117,7 +128,7 @@ export class IntegrationEngine {
         request: req,
         status: 'unresolved',
         antiderivative: null,
-        domain: domainSet,
+        domain: domainComplete ? domainSet : null,
         verificationStatus: 'verification_failed',
         substitution: this.lastSubStep,
         parts: this.partsSteps,
@@ -410,6 +421,53 @@ export class IntegrationEngine {
        }
     }
 
+    // ∫ 1/x^n dx = ∫ x^(-n) dx
+    //
+    // This form commonly appears after u-substitution, e.g.
+    // 2x/(x^2+1)^2 -> 1/u^2.
+    if (
+       node.type === 'Operator' &&
+       node.operator === '/' &&
+       node.args[0].type === 'Number' &&
+       node.args[0].value === '1' &&
+       node.args[1].type === 'Operator' &&
+       node.args[1].operator === '^' &&
+       node.args[1].args[0].type === 'Symbol' &&
+       node.args[1].args[0].name === variable &&
+       node.args[1].args[1].type === 'Number'
+    ) {
+       try {
+          const exponent = Rat.fromString(
+             node.args[1].args[1].value
+          );
+
+          const negativeExponent = Rat.mul(
+             Rat.minusOne,
+             exponent
+          );
+
+          const rewritten: CanonicalAST = {
+             type: 'Operator',
+             operator: '^',
+             args: [
+                node.args[1].args[0],
+                {
+                   type: 'Number',
+                   value: Rat.toString(negativeExponent)
+                }
+             ]
+          };
+
+          return this.matchBasicPattern(
+             rewritten,
+             variable,
+             steps
+          );
+       } catch {
+          // Fall through to the remaining direct patterns.
+       }
+    }
+
     // ∫ 1/x dx (if formatted as division)
     if (node.type === 'Operator' && node.operator === '/' && node.args[0].type === 'Number' && node.args[0].value === '1') {
        if (node.args[1].type === 'Symbol' && node.args[1].name === variable) {
@@ -641,10 +699,23 @@ export class IntegrationEngine {
     return false;
   }
 
-  private verify(original: CanonicalAST, antideriv: CanonicalAST, variable: string): VerificationStatus {
+  private verify(
+    original: CanonicalAST,
+    antideriv: CanonicalAST,
+    variable: string
+  ): VerificationStatus {
     try {
-      const differentiated = this.derivativeEngine.differentiate(antideriv, variable);
-      return this.areEquivalent(original, differentiated, variable) ? 'exactly_equivalent' : 'not_proven';
+      const differentiated =
+        this.derivativeEngine.differentiate(
+          antideriv,
+          variable
+        );
+
+      return this.equivalenceVerifier.verify(
+        original,
+        differentiated,
+        [variable]
+      );
     } catch {
       return 'verification_failed';
     }
