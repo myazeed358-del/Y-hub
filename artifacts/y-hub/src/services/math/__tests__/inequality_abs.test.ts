@@ -144,18 +144,30 @@ describe('CORE CALCULUS 4D - ABSOLUTE VALUE INEQUALITY ENGINE', () => {
 
   it('12. unknown symbolic bound', () => {
     const node = ineq('<', abs(xMinus2), sym('a'));
-    expect(() => engine.solve(node, 'x')).toThrow('requires_parameter_sign_analysis');
+    const result = engine.solve(node, 'x');
+    expect(result.kind).toBe('unsupported');
+    if (result.kind === 'unsupported') {
+      expect(result.status).toBe('requires_parameter_sign_analysis');
+    }
   });
 
   it('14. multiple absolute values', () => {
     const expr = add(abs(sym('x')), abs(xMinus2));
     const node = ineq('<', expr, num('5'));
-    expect(() => engine.solve(node, 'x')).toThrow('multiple_absolute_values_requires_partitioning');
+    const result = engine.solve(node, 'x');
+    expect(result.kind).toBe('unsupported');
+    if (result.kind === 'unsupported') {
+      expect(result.status).toBe('multiple_absolute_values_requires_partitioning');
+    }
   });
 
   it('15. nested absolute value', () => {
     const expr = abs(sub(abs(sym('x')), num('1')));
     const node = ineq('<', expr, num('5'));
-    expect(() => engine.solve(node, 'x')).toThrow('nested_absolute_value_requires_branch_solver');
+    const result = engine.solve(node, 'x');
+    expect(result.kind).toBe('unsupported');
+    if (result.kind === 'unsupported') {
+      expect(result.status).toBe('nested_absolute_value_requires_branch_solver');
+    }
   });
 });

@@ -36,6 +36,115 @@ export class SetEngine {
     }
 
     if (ASTUtils.structuralEquals(a.ast, b.ast)) return 0;
+
+    if (a.algebraic && b.algebraic) {
+      const compareRat = (
+        x: { num: bigint; den: bigint },
+        y: { num: bigint; den: bigint }
+      ): -1 | 0 | 1 => {
+        const diff = x.num * y.den - y.num * x.den;
+        if (diff === 0n) return 0;
+        return diff < 0n ? -1 : 1;
+      };
+
+      const signRat = (
+        x: { num: bigint; den: bigint }
+      ): -1 | 0 | 1 => {
+        if (x.num === 0n) return 0;
+        return x.num < 0n ? -1 : 1;
+      };
+
+      const midpoint = (
+        left: { num: bigint; den: bigint },
+        right: { num: bigint; den: bigint }
+      ) => Rat.div(
+        Rat.add(left, right),
+        { num: 2n, den: 1n }
+      );
+
+      const evalPoly = (
+        coeffs: { num: bigint; den: bigint }[],
+        x: { num: bigint; den: bigint }
+      ) => {
+        let sum = Rat.zero;
+        let power = Rat.one;
+
+        for (const coeff of coeffs) {
+          sum = Rat.add(sum, Rat.mul(coeff, power));
+          power = Rat.mul(power, x);
+        }
+
+        return sum;
+      };
+
+      const refine = (
+        left: { num: bigint; den: bigint },
+        right: { num: bigint; den: bigint },
+        coeffs: { num: bigint; den: bigint }[]
+      ): {
+        left: { num: bigint; den: bigint };
+        right: { num: bigint; den: bigint };
+      } | null => {
+        const fLeft = evalPoly(coeffs, left);
+        const fRight = evalPoly(coeffs, right);
+
+        if (signRat(fLeft) === 0) {
+          return { left, right: left };
+        }
+
+        if (signRat(fRight) === 0) {
+          return { left: right, right };
+        }
+
+        const mid = midpoint(left, right);
+        const fMid = evalPoly(coeffs, mid);
+
+        if (signRat(fMid) === 0) {
+          return { left: mid, right: mid };
+        }
+
+        if (signRat(fLeft) !== signRat(fMid)) {
+          return { left, right: mid };
+        }
+
+        if (signRat(fMid) !== signRat(fRight)) {
+          return { left: mid, right };
+        }
+
+        return null;
+      };
+
+      let aLeft = a.algebraic.isolatingInterval.left;
+      let aRight = a.algebraic.isolatingInterval.right;
+      let bLeft = b.algebraic.isolatingInterval.left;
+      let bRight = b.algebraic.isolatingInterval.right;
+
+      for (let i = 0; i < 96; i++) {
+        if (compareRat(aRight, bLeft) < 0) return -1;
+        if (compareRat(bRight, aLeft) < 0) return 1;
+
+        const nextA = refine(
+          aLeft,
+          aRight,
+          a.algebraic.polyCoeffsRat
+        );
+
+        const nextB = refine(
+          bLeft,
+          bRight,
+          b.algebraic.polyCoeffsRat
+        );
+
+        if (!nextA || !nextB) {
+          break;
+        }
+
+        aLeft = nextA.left;
+        aRight = nextA.right;
+        bLeft = nextB.left;
+        bRight = nextB.right;
+      }
+    }
     
     // Fallback: cannot exactly determine ordering symbolically
     return null;

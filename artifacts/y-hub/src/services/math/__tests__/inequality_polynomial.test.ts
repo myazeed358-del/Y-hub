@@ -84,16 +84,29 @@ describe('CORE CALCULUS 4B - POLYNOMIAL INEQUALITY ENGINE', () => {
   });
 
   describe('Root Isolation Incomplete Hardening', () => {
-    it('14. x^2 - 3 > 0 -> root_isolation_incomplete (no exact radical support yet)', () => {
+    it('14. x^2 - 3 > 0 -> exact algebraic endpoints', () => {
       const node = ineq('>', sub(pow(sym('x'), num('2')), num('3')), num('0'));
-      expect(() => engine.solve(node, 'x')).toThrow('root_isolation_incomplete');
+      const result = engine.solve(node, 'x');
+
+      expect(result.kind).toBe('solution_set');
+
+      if (result.kind === 'solution_set') {
+        expect(result.solution.intervals.length).toBe(2);
+        expect((result.solution.intervals[0].right as any).algebraic).toBeDefined();
+        expect((result.solution.intervals[1].left as any).algebraic).toBeDefined();
+      }
     });
 
-    it('15. x^5 - x + 1 > 0 -> root_isolation_incomplete', () => {
-      // x^5 - x + 1
+    it('15. x^5 - x + 1 > 0 -> unsupported root isolation', () => {
       const p = add(sub(pow(sym('x'), num('5')), sym('x')), num('1'));
       const node = ineq('>', p, num('0'));
-      expect(() => engine.solve(node, 'x')).toThrow('root_isolation_incomplete');
+      const result = engine.solve(node, 'x');
+
+      expect(result.kind).toBe('unsupported');
+
+      if (result.kind === 'unsupported') {
+        expect(result.status).toBe('root_isolation_incomplete');
+      }
     });
   });
 });

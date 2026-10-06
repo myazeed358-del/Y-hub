@@ -1,5 +1,5 @@
 import { CanonicalAST, InequalityNode, OperatorNode } from '../types/ast';
-import { SolutionSet, ParameterizedSolutionSet, Interval, Endpoint } from '../types/set';
+import { SolutionSet, Interval, Endpoint } from '../types/set';
 import { Rat } from '../utils/rational';
 import { PolynomialExtractor } from './polynomial';
 import { SymbolicSimplifier } from './simplifier';
@@ -13,9 +13,8 @@ interface InequalityStepOptions {
   transformation?: InequalityTransformationData;
 }
 
-export type InequalitySolveResult = 
+export type InequalitySolveResult =
   | { kind: 'solution_set'; solution: SolutionSet; steps: MathStep[] }
-  | { kind: 'parameterized'; solution: ParameterizedSolutionSet; steps: MathStep[] }
   | { kind: 'unsupported'; status: string; steps: MathStep[] };
 
 export class InequalityEngine {
@@ -544,7 +543,7 @@ export class InequalityEngine {
 
     if (aSign === 'unknown') {
       this.appendStep(steps, 'Error', 'requires_parameter_sign_analysis', { type: 'error', details: { message: 'requires_parameter_sign_analysis' } });
-      return [];
+      throw new Error('requires_parameter_sign_analysis');
     }
 
     let rel = node.operator;
@@ -655,128 +654,120 @@ export class InequalityEngine {
     }
   }
 
-  private solvePolynomialInequality(poly: Map<number, CanonicalAST[]>, rel: InequalityNode['operator'], variable: string, steps: MathStep[]): Interval[] {
-    const maxDeg = Math.max(...Array.from(poly.keys()));
-    const coeffsNum = new Array(maxDeg + 1).fill(0);
-    
-    for (const [deg, terms] of poly.entries()) {
-      if (deg < 0) {
-        this.appendStep(steps, 'Error', 'unsupported_polynomial_root_case', { type: 'error', details: { message: 'unsupported_polynomial_root_case' } });
-        return [];
-      }
-      const termNode = terms.length === 0 ? { type: 'Number', value: '0' } : (terms.length === 1 ? terms[0] : { type: 'Operator', operator: '+', args: terms });
-      const simplified = this.simplifier.simplify(termNode as CanonicalAST);
-      
-      let val = 0;
-      if (simplified.type === 'Number') {
-        val = parseFloat(simplified.value);
-      } else if (simplified.type === 'Operator' && simplified.operator === '*' && simplified.args[0].type === 'Number' && simplified.args[0].value === '-1' && simplified.args[1].type === 'Number') {
-        val = -parseFloat((simplified.args[1] as any).value);
-      } else {
-        this.appendStep(steps, 'Error', 'requires_parameter_sign_analysis', { type: 'error', details: { message: 'requires_parameter_sign_analysis' } });
-        return [];
-      }
-      coeffsNum[deg] = val;
-    }
-    
-    const a_n = coeffsNum[maxDeg];
-    if (Math.abs(a_n) < 1e-9) return []; 
+  private solvePolynomialInequality(
+    poly: Map<number, CanonicalAST[]>,
+    rel: InequalityNode['operator'],
+    variable: string,
+    steps: MathStep[]
+  ): Interval[] {
+    const rootData = this.extractPolynomialRootsHelper(poly, steps);
 
-    const leadingSign = a_n > 0 ? 1 : -1;
-    
-    // Exact real roots
-    const rootData = this.extractor.findRationalRoots(coeffsNum);
-    const roots = [...rootData.roots];
-    const rem = rootData.remainingCoeffs;
-    
-    let rootCompleteness: 'complete' | 'partial' | 'unknown' = 'complete';
-
-    if (rem.length > 3) {
-       rootCompleteness = roots.length > 0 ? 'partial' : 'unknown';
-    } else if (rem.length === 3) {
-       const c = rem[0], b = rem[1], a = rem[2];
-       const delta = b*b - 4*a*c;
-       if (delta > 0) {
-           const sqrtDelta = Math.sqrt(delta);
-           if (Number.isInteger(sqrtDelta)) {
-               this.addRealRoot(roots, (-b - sqrtDelta)/(2*a));
-               this.addRealRoot(roots, (-b + sqrtDelta)/(2*a));
-           } else {
-               rootCompleteness = roots.length > 0 ? 'partial' : 'unknown';
-           }
-       } else if (Math.abs(delta) < 1e-9) {
-           this.addRealRoot(roots, -b/(2*a), 2);
-       }
-    } else if (rem.length === 2) {
-       const c = rem[0], b = rem[1];
-       if (b !== 0) this.addRealRoot(roots, -c/b);
-    }
-    
-    if (rootCompleteness !== 'complete') {
-       this.appendStep(steps, 'Error: root isolation incomplete', `Root completeness: ${rootCompleteness}. Supported scope: univariate polynomial inequalities for which all required real critical roots can be established by the currently implemented exact root-discovery mechanisms.`, {
-         type: 'error',
-         details: {
-           message: 'root_isolation_incomplete'
-         },
-         transformation: {
-           method: 'root_isolation_incomplete',
-           rootCompleteness,
-           justification: 'Supported scope: Univariate polynomial inequalities for which all required real critical roots can be established by the currently implemented exact root-discovery mechanisms.'
-         }
-       });
-       throw new Error('root_isolation_incomplete');
-    }
-    
-    roots.sort((a,b) => a.value - b.value);
-    
-    let currentSign = leadingSign * (maxDeg % 2 === 1 ? -1 : 1);
-    const validIntervals: Interval[] = [];
-    
-    const satisfies = (s: number, r: string) => {
-        if (r === '<') return s < 0;
-        if (r === '<=') return s <= 0;
-        if (r === '>') return s > 0;
-        if (r === '>=') return s >= 0;
-        if (r === '!=') return s !== 0;
-        return false;
+    const satisfies = (sign: number): boolean => {
+      switch (rel) {
+        case '<':
+          return sign < 0;
+        case '<=':
+          return sign <= 0;
+        case '>':
+          return sign > 0;
+        case '>=':
+          return sign >= 0;
+        case '!=':
+          return sign !== 0;
+        default:
+          return false;
+      }
     };
-    
-    if (satisfies(currentSign, rel)) {
-       validIntervals.push({
-           left: { type: 'infinity', sign: -1 },
-           right: roots.length > 0 ? roots[0].endpoint : { type: 'infinity', sign: 1 },
-           leftClosed: false, rightClosed: false
-       });
-    }
-    
-    for (let i = 0; i < roots.length; i++) {
-        const root = roots[i];
-        if (satisfies(0, rel)) {
-            const ep = root.endpoint;
-            validIntervals.push({ left: ep, right: ep, leftClosed: true, rightClosed: true });
-        }
-        
-        if (root.multiplicity % 2 === 1) currentSign = -currentSign;
-        
-        if (satisfies(currentSign, rel)) {
-            const leftEp = root.endpoint;
-            const rightEp = i + 1 < roots.length ? roots[i+1].endpoint : { type: 'infinity', sign: 1 };
-            validIntervals.push({ left: leftEp, right: rightEp, leftClosed: false, rightClosed: false });
-        }
-    }
-    
-    this.appendStep(steps, 'Polynomial sign chart', `polynomial_sign_chart for ${rel}. Constructed sign chart using ${roots.length} exact roots and their multiplicities; the sign at positive infinity is ${leadingSign > 0 ? 'positive' : 'negative'}.`, {
-      type: 'transformation',
-      transformation: {
-        method: 'polynomial_sign_chart',
-        relation: rel,
-        rootCompleteness: 'complete',
-        roots,
-        infinitySign: { plusInfinity: leadingSign > 0 ? 'positive' : 'negative' },
-        justification: 'Constructed sign chart using exact roots and multiplicities.'
+
+    if (rootData.isZero) {
+      if (!satisfies(0)) {
+        return [];
       }
-    });
-    
+
+      return [{
+        left: { type: 'infinity', sign: -1 },
+        right: { type: 'infinity', sign: 1 },
+        leftClosed: false,
+        rightClosed: false
+      }];
+    }
+
+    const roots = rootData.roots;
+
+    let currentSign =
+      rootData.leadingSign *
+      (rootData.maxDeg % 2 === 1 ? -1 : 1);
+
+    const validIntervals: Interval[] = [];
+
+    if (satisfies(currentSign)) {
+      validIntervals.push({
+        left: { type: 'infinity', sign: -1 },
+        right: roots.length > 0
+          ? (roots[0].endpoint ?? this.makeEndpoint(roots[0].value))
+          : { type: 'infinity', sign: 1 },
+        leftClosed: false,
+        rightClosed: false
+      });
+    }
+
+    for (let i = 0; i < roots.length; i++) {
+      const root = roots[i];
+      const endpoint =
+        root.endpoint ?? this.makeEndpoint(root.value);
+
+      if (satisfies(0)) {
+        validIntervals.push({
+          left: endpoint,
+          right: endpoint,
+          leftClosed: true,
+          rightClosed: true
+        });
+      }
+
+      if (root.multiplicity % 2 === 1) {
+        currentSign = -currentSign;
+      }
+
+      if (satisfies(currentSign)) {
+        const rightEndpoint =
+          i + 1 < roots.length
+            ? (roots[i + 1].endpoint ??
+               this.makeEndpoint(roots[i + 1].value))
+            : { type: 'infinity', sign: 1 } as Endpoint;
+
+        validIntervals.push({
+          left: endpoint,
+          right: rightEndpoint,
+          leftClosed: false,
+          rightClosed: false
+        });
+      }
+    }
+
+    this.appendStep(
+      steps,
+      'Polynomial sign chart',
+      `polynomial_sign_chart for ${rel}. Constructed sign chart using ${roots.length} exact roots and their multiplicities; the sign at positive infinity is ${rootData.leadingSign > 0 ? 'positive' : 'negative'}.`,
+      {
+        type: 'transformation',
+        transformation: {
+          method: 'polynomial_sign_chart',
+          relation: rel,
+          rootCompleteness: 'complete',
+          roots,
+          infinitySign: {
+            plusInfinity:
+              rootData.leadingSign > 0
+                ? 'positive'
+                : 'negative'
+          },
+          justification:
+            'Constructed sign chart using exact roots and multiplicities.'
+        }
+      }
+    );
+
     return SetEngine.normalizeUnion(validIntervals);
   }
 
