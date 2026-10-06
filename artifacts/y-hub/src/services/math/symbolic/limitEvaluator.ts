@@ -129,9 +129,26 @@ export class LimitEvaluator {
         if (e.type === 'finite') return e.value > 0 ? { type: 'finite', value: 0 } : { type: 'infinity', sign: 1 }; // simplifying 1/0 as +inf for powers of 0 generally, though sign may vary for odd roots of negatives.
       }
 
-      // inf ^ pos = inf, inf ^ neg = 0
-      if (b.type === 'infinity') {
-        if (e.type === 'finite') return e.value > 0 ? { type: 'infinity', sign: b.sign } : { type: 'finite', value: 0 };
+      // Infinite powers must respect parity for negative infinity.
+      if (b.type === 'infinity' && e.type === 'finite') {
+        if (e.value > 0) {
+          if (b.sign === 1) {
+            return { type: 'infinity', sign: 1 };
+          }
+
+          if (Number.isInteger(e.value)) {
+            return {
+              type: 'infinity',
+              sign: Math.abs(e.value % 2) === 0 ? 1 : -1
+            };
+          }
+
+          return { type: 'undefined' };
+        }
+
+        if (e.value < 0) {
+          return { type: 'finite', value: 0 };
+        }
       }
     }
 
@@ -150,9 +167,44 @@ export class LimitEvaluator {
     if (name === 'sqrt') {
       if (inner.type === 'finite') {
         if (inner.value < 0) return { type: 'undefined' };
+
+        // At a real-domain boundary, inspect the requested side.
+        // Example: sqrt(x), x -> 0- is undefined even though
+        // direct substitution at x = 0 gives sqrt(0).
+        if (Math.abs(inner.value) < 1e-10) {
+          const probeInner = this.numericProbe(
+            args[0],
+            variable,
+            approach,
+            direction
+          );
+
+          if (Number.isNaN(probeInner) || probeInner < 0) {
+            return { type: 'undefined' };
+          }
+        }
+
         return { type: 'finite', value: Math.sqrt(inner.value) };
       }
-      if (inner.type === 'infinity') return inner.sign === 1 ? { type: 'infinity', sign: 1 } : { type: 'undefined' };
+
+      if (inner.type === 'infinity') {
+        return inner.sign === 1
+          ? { type: 'infinity', sign: 1 }
+          : { type: 'undefined' };
+      }
+    }
+
+    if (name === 'tan') {
+      if (inner.type === 'infinity') {
+        return { type: 'undefined' };
+      }
+
+      if (inner.type === 'finite') {
+        return {
+          type: 'finite',
+          value: Math.tan(inner.value)
+        };
+      }
     }
 
     if (name === 'exp') {

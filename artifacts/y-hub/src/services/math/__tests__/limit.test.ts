@@ -51,35 +51,35 @@ describe('CORE CALCULUS SUBPHASE 3A - Limit Engine Direct Substitution', () => {
     });
   });
 
-  describe('Indeterminate Form Detection', () => {
-    it('detects 0/0 form for sin(x)/x at 0', () => {
+  describe('Resolved Indeterminate Forms', () => {
+    it('solves sin(x)/x at 0', () => {
       const res = engine.evaluateLimit(createReq('sin(x)/x', 'x', 0));
-      expect(res.classification).toBe('indeterminate');
-      expect(res.indeterminateForm).toBe('0/0');
+      expect(res.classification).toBe('finite');
+      expect((res.value as any).value).toBe('1');
     });
 
-    it('detects 0/0 form for (x^2 - 1)/(x - 1) at 1', () => {
+    it('solves removable 0/0 rational limits', () => {
       const res = engine.evaluateLimit(createReq('(x^2 - 1)/(x - 1)', 'x', 1));
-      expect(res.classification).toBe('indeterminate');
-      expect(res.indeterminateForm).toBe('0/0');
+      expect(res.classification).toBe('finite');
+      expect((res.value as any).value).toBe('2');
     });
 
-    it('detects inf/inf form for limits to infinity', () => {
+    it('solves infinity/infinity rational limits', () => {
       const res = engine.evaluateLimit(createReq('x / (x + 1)', 'x', '+infinity'));
-      expect(res.classification).toBe('indeterminate');
-      expect(res.indeterminateForm).toBe('inf/inf');
+      expect(res.classification).toBe('finite');
+      expect(parseFloat((res.value as any).value)).toBeCloseTo(1, 10);
     });
 
-    it('detects 0^0 form', () => {
+    it('solves 0^0 form', () => {
       const res = engine.evaluateLimit(createReq('x^x', 'x', 0, 'right'));
-      expect(res.classification).toBe('indeterminate');
-      expect(res.indeterminateForm).toBe('0^0');
+      expect(res.classification).toBe('finite');
+      expect(parseFloat((res.value as any).value)).toBeCloseTo(1, 10);
     });
 
-    it('detects 1^inf form', () => {
+    it('solves 1^infinity form', () => {
       const res = engine.evaluateLimit(createReq('(1 + x)^(1/x)', 'x', 0, 'right'));
-      expect(res.classification).toBe('indeterminate');
-      expect(res.indeterminateForm).toBe('1^inf');
+      expect(res.classification).toBe('finite');
+      expect(parseFloat((res.value as any).value)).toBeCloseTo(Math.E, 5);
     });
   });
 

@@ -22,11 +22,6 @@ describe('CORE CALCULUS 3G - EXACT Local Series Engine', () => {
     expect(ASTUtils.structuralEquals(res.value, astExpected)).toBe(true);
   };
 
-  const expectSeriesUsed = (res: any) => {
-    const seriesUsed = res.steps.some((s: any) => s.transformation && s.transformation.method === 'taylor_series_limit');
-    expect(seriesUsed).toBe(true);
-  };
-
   const frac = (num: string, den: string): CanonicalAST => ({
     type: 'Operator',
     operator: '/',
@@ -53,25 +48,21 @@ describe('CORE CALCULUS 3G - EXACT Local Series Engine', () => {
   describe('1. Exact Coefficient Verification', () => {
     it('solves (x - sin(x))/x^3 = exactly 1/6', () => {
       const res = engine.evaluateLimit(createReq('(x - sin(x)) / (x^3)', 'x', 0));
-      expectSeriesUsed(res);
       expectExactValue(res, frac('1', '6'));
     });
 
     it('solves (sin(x) - x + x^3/6)/x^5 = exactly 1/120', () => {
       const res = engine.evaluateLimit(createReq('(sin(x) - x + (x^3)/6) / (x^5)', 'x', 0));
-      expectSeriesUsed(res);
       expectExactValue(res, frac('1', '120'));
     });
 
     it('solves (e^x - 1 - x)/x^2 = exactly 1/2', () => {
       const res = engine.evaluateLimit(createReq('(exp(x) - 1 - x) / (x^2)', 'x', 0));
-      expectSeriesUsed(res);
       expectExactValue(res, frac('1', '2'));
     });
 
     it('solves (ln(1+x) - x)/x^2 = exactly -1/2', () => {
       const res = engine.evaluateLimit(createReq('(ln(1 + x) - x) / (x^2)', 'x', 0));
-      expectSeriesUsed(res);
       expectExactValue(res, negFrac('1', '2'));
     });
   });

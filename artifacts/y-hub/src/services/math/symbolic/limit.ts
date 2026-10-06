@@ -35,8 +35,8 @@ export class LimitEngine {
   ];
 
   private asymptoticStrategies = [
-    new RadicalAsymptoticStrategy(),
     new RationalizationStrategy(),
+    new RadicalAsymptoticStrategy(),
     new InfiniteRationalStrategy(),
     new InfinitePolynomialStrategy(),
     new AbsoluteValueLimitStrategy(),
@@ -69,13 +69,49 @@ export class LimitEngine {
       });
 
       if (leftRes.classification === 'finite' && rightRes.classification === 'finite') {
-        if (leftRes.value && rightRes.value && leftRes.value.type === 'Number' && rightRes.value.type === 'Number' && leftRes.value.value === rightRes.value.value) {
+        if (
+          leftRes.value &&
+          rightRes.value &&
+          ASTUtils.structuralEquals(
+            leftRes.value,
+            rightRes.value
+          )
+        ) {
           return { ...leftRes, direction: 'both', steps };
-        } else {
-          return { ...leftRes, classification: 'does_not_exist', value: undefined, direction: 'both', steps, strategy: 'one_sided_mismatch' };
         }
+
+        if (
+          leftRes.value &&
+          rightRes.value &&
+          leftRes.value.type === 'Number' &&
+          rightRes.value.type === 'Number'
+        ) {
+          const leftValue = Number(leftRes.value.value);
+          const rightValue = Number(rightRes.value.value);
+
+          if (
+            Number.isFinite(leftValue) &&
+            Number.isFinite(rightValue) &&
+            Math.abs(leftValue - rightValue) <= 1e-12
+          ) {
+            return { ...leftRes, direction: 'both', steps };
+          }
+        }
+
+        return {
+          ...leftRes,
+          classification: 'does_not_exist',
+          value: undefined,
+          direction: 'both',
+          steps,
+          strategy: 'one_sided_mismatch'
+        };
       }
       
+      if (leftRes.classification === 'undefined' && rightRes.classification === 'undefined') {
+        return { ...leftRes, direction: 'both', steps };
+      }
+
       if (leftRes.classification === '+infinity' && rightRes.classification === '+infinity') {
         return { ...leftRes, direction: 'both', steps };
       }
@@ -117,6 +153,7 @@ export class LimitEngine {
     let indeterminateForm: any = 'none';
     let valueAST: CanonicalAST | undefined;
     let finalStrategy = 'direct_substitution';
+    let exactTransformedValue: CanonicalAST | undefined;
     
     const simplifiedExpr = this.simplifier.simplify(req.expression);
     if (!ASTUtils.structuralEquals(simplifiedExpr, req.expression)) {
@@ -140,6 +177,90 @@ export class LimitEngine {
       classification = res.classification;
       indeterminateForm = res.indeterminateForm;
       valueAST = res.valueAST;
+
+      if (
+        classification === 'finite' &&
+        exactTransformedValue
+      ) {
+        valueAST = ASTUtils.clone(exactTransformedValue);
+      }
+
+      // exp/log indeterminate forms are resolved by first proving
+      // the limit of the transformed exponent.
+      if (
+        classification === 'indeterminate' &&
+        currentExpr.type === 'Function' &&
+        currentExpr.name === 'exp' &&
+        (currentExpr as any).transformedByExpLog === true
+      ) {
+        const exponentSteps: MathStep[] = [];
+
+        const exponentResult = this.evaluateLimit(
+          {
+            ...req,
+            expression: currentExpr.args[0]
+          },
+          exponentSteps
+        );
+
+        conditions.push(...exponentResult.conditions);
+        warnings.push(...exponentResult.warnings);
+
+        steps.push({
+          id: `exp_exponent_limit_${iter}_${Date.now()}`,
+          title: 'Exponential Form Resolution',
+          explanation:
+            'Resolved the transformed exponent limit before applying exp.',
+          subSteps: exponentSteps
+        });
+
+        if (
+          exponentResult.classification === 'finite' &&
+          exponentResult.value?.type === 'Number'
+        ) {
+          const exponentValue = parseFloat(
+            exponentResult.value.value
+          );
+
+          if (Number.isFinite(exponentValue)) {
+            const expValue = Math.exp(exponentValue);
+
+            classification = 'finite';
+            indeterminateForm = 'none';
+            valueAST = {
+              type: 'Number',
+              value: expValue.toString()
+            };
+
+            finalStrategy =
+              'exponential_logarithmic_transformation';
+          }
+        } else if (
+          exponentResult.classification === '+infinity'
+        ) {
+          classification = '+infinity';
+          indeterminateForm = 'none';
+          valueAST = {
+            type: 'Constant',
+            name: 'Infinity'
+          };
+
+          finalStrategy =
+            'exponential_logarithmic_transformation';
+        } else if (
+          exponentResult.classification === '-infinity'
+        ) {
+          classification = 'finite';
+          indeterminateForm = 'none';
+          valueAST = {
+            type: 'Number',
+            value: '0'
+          };
+
+          finalStrategy =
+            'exponential_logarithmic_transformation';
+        }
+      }
 
       if (classification === 'finite' || classification === '+infinity' || classification === '-infinity' || classification === 'undefined' || classification === 'does_not_exist') {
         if (iter === 0) {
@@ -185,8 +306,113 @@ export class LimitEngine {
               finalStrategy = 'standard_trigonometric_limit';
             } else if (transformation.method === 'exponential_logarithmic_transformation') {
               finalStrategy = 'exponential_logarithmic_transformation';
+
+              if (
+                transformation.after.type === 'Function' &&
+                transformation.after.name === 'exp'
+              ) {
+                const exponentSteps: MathStep[] = [];
+
+                const exponentResult = this.evaluateLimit(
+                  {
+                    ...req,
+                    expression: transformation.after.args[0]
+                  },
+                  exponentSteps
+                );
+
+                conditions.push(...exponentResult.conditions);
+                warnings.push(...exponentResult.warnings);
+
+                steps.push({
+                  id: `exp_exponent_limit_${iter}_${Date.now()}`,
+                  title: 'Exponential Form Resolution',
+                  explanation:
+                    'Resolved the exponent limit after logarithmic transformation.',
+                  subSteps: exponentSteps
+                });
+
+                if (
+                  exponentResult.classification === 'finite' &&
+                  exponentResult.value?.type === 'Number'
+                ) {
+                  const exponentValue = parseFloat(
+                    exponentResult.value.value
+                  );
+
+                  if (Number.isFinite(exponentValue)) {
+                    return {
+                      type: 'limit',
+                      classification: 'finite',
+                      indeterminateForm: 'none',
+                      direction: req.direction,
+                      approachPoint: req.approach,
+                      strategy:
+                        'exponential_logarithmic_transformation',
+                      value: {
+                        type: 'Number',
+                        value: Math.exp(exponentValue).toString()
+                      },
+                      conditions: [...new Set(conditions)],
+                      steps,
+                      warnings: [...new Set(warnings)],
+                      engineUsed: 'local_ts'
+                    };
+                  }
+                }
+
+                if (
+                  exponentResult.classification === '+infinity'
+                ) {
+                  return {
+                    type: 'limit',
+                    classification: '+infinity',
+                    indeterminateForm: 'none',
+                    direction: req.direction,
+                    approachPoint: req.approach,
+                    strategy:
+                      'exponential_logarithmic_transformation',
+                    value: {
+                      type: 'Constant',
+                      name: 'Infinity'
+                    },
+                    conditions: [...new Set(conditions)],
+                    steps,
+                    warnings: [...new Set(warnings)],
+                    engineUsed: 'local_ts'
+                  };
+                }
+
+                if (
+                  exponentResult.classification === '-infinity'
+                ) {
+                  return {
+                    type: 'limit',
+                    classification: 'finite',
+                    indeterminateForm: 'none',
+                    direction: req.direction,
+                    approachPoint: req.approach,
+                    strategy:
+                      'exponential_logarithmic_transformation',
+                    value: {
+                      type: 'Number',
+                      value: '0'
+                    },
+                    conditions: [...new Set(conditions)],
+                    steps,
+                    warnings: [...new Set(warnings)],
+                    engineUsed: 'local_ts'
+                  };
+                }
+              }
             } else if (transformation.method === 'taylor_series_limit') {
               finalStrategy = 'taylor_series_limit';
+
+              if (!this.hasVariable(transformation.after, req.variable)) {
+                exactTransformedValue = ASTUtils.clone(
+                  transformation.after
+                );
+              }
             } else {
               finalStrategy = (req.approach === '+infinity' || req.approach === '-infinity') ? 'asymptotic_analysis' : 'algebraic_resolution';
             }

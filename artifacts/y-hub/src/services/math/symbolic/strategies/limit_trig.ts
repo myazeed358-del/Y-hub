@@ -3,6 +3,7 @@ import { LimitApproach, LimitDirection } from '../../types/limit';
 import { TransformationData } from '../../types/step';
 import { SymbolicSimplifier } from '../simplifier';
 import { LimitEvaluator } from '../limitEvaluator';
+import { ASTUtils } from '../utils';
 import { LimitStrategy } from './limit_algebra';
 
 export class TrigonometricLimitStrategy implements LimitStrategy {
@@ -52,7 +53,9 @@ export class TrigonometricLimitStrategy implements LimitStrategy {
       const u = node.args[0];
       if (this.evaluatesToZero(u, variable, approach, direction)) {
         identities.add('lim_{u->0} tan(u)/u = 1');
-        restrictions.push(`cos(u) != 0`); // Structural domain preservation
+        restrictions.push(
+          `cos(${ASTUtils.serialize(u)}) != 0`
+        ); // Structural domain preservation
         return { changed: true, node: u };
       }
     }

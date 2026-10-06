@@ -1,8 +1,8 @@
 import { CanonicalAST } from '../../types/ast';
 import { LimitApproach, LimitDirection } from '../../types/limit';
 import { TransformationData } from '../../types/step';
-import { SymbolicSimplifier } from '../simplifier';
 import { LimitEvaluator } from '../limitEvaluator';
+import { SymbolicSimplifier } from '../simplifier';
 import { LimitStrategy } from './limit_algebra';
 
 export class ProductRearrangementStrategy implements LimitStrategy {
@@ -16,7 +16,7 @@ export class ProductRearrangementStrategy implements LimitStrategy {
       return {
         method: 'product_rearrangement',
         before: ast,
-        after: this.simplifier.simplify(after),
+        after,
         restrictionsAdded: [],
         justification: 'Rearranged 0 * infinity product into an explicit quotient form.',
         verified: true
@@ -29,16 +29,31 @@ export class ProductRearrangementStrategy implements LimitStrategy {
     if (node.type === 'Operator' && (node.operator === '*' || node.operator === 'implicit_multiply') && node.args.length === 2) {
       const safeDir = direction === 'both' ? 'right' : direction;
       try {
-        const r0 = this.evaluator.evaluateForm(node.args[0], variable, approach, safeDir);
-        const r1 = this.evaluator.evaluateForm(node.args[1], variable, approach, safeDir);
+        const unwrapParenthesis = (n: CanonicalAST): CanonicalAST =>
+          n.type === 'Parenthesis' ? n.content : n;
+
+        const arg0 = unwrapParenthesis(node.args[0]);
+        const arg1 = unwrapParenthesis(node.args[1]);
+
+        const r0 = this.evaluator.evaluateForm(
+          arg0,
+          variable,
+          approach,
+          safeDir
+        );
+
+        const r1 = this.evaluator.evaluateForm(
+          arg1,
+          variable,
+          approach,
+          safeDir
+        );
         
         const is0 = (r: any) => r.type === 'finite' && Math.abs(r.value) < 1e-7;
         const isInf = (r: any) => r.type === 'infinity';
         
         if ((is0(r0) && isInf(r1)) || (isInf(r0) && is0(r1))) {
           onApply();
-          const arg0 = node.args[0];
-          const arg1 = node.args[1];
           
           const isTranscendental = (n: CanonicalAST) => n.type === 'Function' && (n.name === 'ln' || n.name === 'log' || n.name === 'exp');
           
@@ -48,12 +63,21 @@ export class ProductRearrangementStrategy implements LimitStrategy {
           else if (isInf(r1)) { num = arg1; den = arg0; }
           else { num = arg0; den = arg1; }
           
+          const reciprocalDenominator = this.simplifier.simplify({
+            type: 'Operator',
+            operator: '/',
+            args: [
+              { type: 'Number', value: '1' },
+              den
+            ]
+          } as CanonicalAST);
+
           return {
             type: 'Operator',
             operator: '/',
             args: [
               num,
-              { type: 'Operator', operator: '/', args: [{ type: 'Number', value: '1' }, den] }
+              reciprocalDenominator
             ]
           };
         }
@@ -78,7 +102,6 @@ export class ProductRearrangementStrategy implements LimitStrategy {
 
 export class ExponentialFormStrategy implements LimitStrategy {
   private evaluator = new LimitEvaluator();
-  private simplifier = new SymbolicSimplifier();
 
   public apply(ast: CanonicalAST, variable: string, approach: LimitApproach, direction: LimitDirection): TransformationData | null {
     let applied = false;
@@ -89,7 +112,7 @@ export class ExponentialFormStrategy implements LimitStrategy {
       return {
         method: 'exponential_logarithmic_transformation',
         before: ast,
-        after: this.simplifier.simplify(after),
+        after,
         restrictionsAdded: restrictions,
         justification: `Applied logarithmic transformation: f(x)^g(x) -> exp(g(x) * ln(f(x)))`,
         verified: true
@@ -101,7 +124,12 @@ export class ExponentialFormStrategy implements LimitStrategy {
   private transform(node: CanonicalAST, variable: string, approach: LimitApproach, direction: LimitDirection, onApply: () => void, restrictions: string[]): CanonicalAST {
     if (node.type === 'Operator' && node.operator === '^' && (node as any).transformedByExpLog !== true) {
       const base = node.args[0];
-      const exp = node.args[1];
+
+      const rawExp = node.args[1];
+      const exp =
+        rawExp.type === 'Parenthesis'
+          ? rawExp.content
+          : rawExp;
       
       const safeDir = direction === 'both' ? 'right' : direction;
       try {

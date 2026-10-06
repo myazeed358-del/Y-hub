@@ -146,6 +146,15 @@ export class SymbolicSimplifier {
     if (op === '/') {
       if (this.isNumber(args[0], 0)) return { type: 'Number', value: '0' };
       if (this.isNumber(args[1], 1)) return args[0];
+
+      if (this.isNumber(args[1], -1)) {
+        return this.simplifyOperator(
+          '*',
+          [{ type: 'Number', value: '-1' }, args[0]],
+          assumptions
+        );
+      }
+
       if (ASTUtils.structuralEquals(args[0], args[1])) return { type: 'Number', value: '1' };
 
       // 1 / (a^-1) -> a
@@ -260,10 +269,65 @@ export class SymbolicSimplifier {
         if (arg.type === 'Operator' && arg.operator === '/') {
           const num = arg.args[0];
           const den = arg.args[1];
-          const denIdx = newArgs.findIndex((a, idx) => idx !== i && ASTUtils.structuralEquals(a, den));
+
+          const denIdx = newArgs.findIndex(
+            (a, idx) =>
+              idx !== i &&
+              ASTUtils.structuralEquals(a, den)
+          );
+
           if (denIdx !== -1) {
             newArgs[i] = num;
             newArgs.splice(denIdx, 1);
+            changed = true;
+            break;
+          }
+
+          const powerIdx = newArgs.findIndex(
+            (a, idx) =>
+              idx !== i &&
+              a.type === 'Operator' &&
+              a.operator === '^' &&
+              a.args.length === 2 &&
+              ASTUtils.structuralEquals(a.args[0], den) &&
+              a.args[1].type === 'Number' &&
+              Number.isInteger(Number(a.args[1].value)) &&
+              Number(a.args[1].value) > 0
+          );
+
+          if (powerIdx !== -1) {
+            const power = newArgs[powerIdx] as Extract<
+              CanonicalAST,
+              { type: 'Operator' }
+            >;
+
+            const exponent = Number(
+              (power.args[1] as Extract<
+                CanonicalAST,
+                { type: 'Number' }
+              >).value
+            );
+
+            newArgs[i] = num;
+
+            if (exponent === 1) {
+              newArgs.splice(powerIdx, 1);
+            } else if (exponent === 2) {
+              newArgs[powerIdx] = den;
+            } else {
+              newArgs[powerIdx] = {
+                type: 'Operator',
+                operator: '^',
+                args: [
+                  den,
+                  {
+                    type: 'Number',
+                    value: String(exponent - 1)
+                  }
+                ]
+              };
+            }
+
             changed = true;
             break;
           }

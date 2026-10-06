@@ -15,6 +15,41 @@ describe('CORE CALCULUS SUBPHASE 3E - Standard Trigonometric Limits', () => {
     direction
   });
 
+
+  const numericValue = (ast: any): number => {
+    if (!ast) return NaN;
+
+    if (ast.type === 'Number') {
+      return Number(ast.value);
+    }
+
+    if (ast.type === 'Parenthesis') {
+      return numericValue(ast.content);
+    }
+
+    if (ast.type === 'Operator') {
+      const args = ast.args.map((arg: any) => numericValue(arg));
+
+      switch (ast.operator) {
+        case '+':
+          return args.reduce((a: number, b: number) => a + b, 0);
+        case '-':
+          return args.length === 1
+            ? -args[0]
+            : args[0] - args[1];
+        case '*':
+        case 'implicit_multiply':
+          return args.reduce((a: number, b: number) => a * b, 1);
+        case '/':
+          return args[0] / args[1];
+        case '^':
+          return Math.pow(args[0], args[1]);
+      }
+    }
+
+    return NaN;
+  };
+
   const expectNoLHopital = (res: any) => {
     const lhopitalUsed = res.steps.some((s: any) => s.transformation && s.transformation.method === 'l_hopital');
     expect(lhopitalUsed).toBe(false);
@@ -46,7 +81,7 @@ describe('CORE CALCULUS SUBPHASE 3E - Standard Trigonometric Limits', () => {
     it('solves lim x->0 sin(2x)/sin(3x) = 2/3', () => {
       const res = engine.evaluateLimit(createReq('sin(2*x) / sin(3*x)', 'x', 0));
       expect(res.classification).toBe('finite');
-      expect(parseFloat((res.value as any).value)).toBeCloseTo(2/3, 5);
+      expect(numericValue(res.value)).toBeCloseTo(2/3, 5);
       expectNoLHopital(res);
     });
   });
@@ -63,7 +98,7 @@ describe('CORE CALCULUS SUBPHASE 3E - Standard Trigonometric Limits', () => {
     it('solves lim x->0 tan(2x)/tan(3x) = 2/3', () => {
       const res = engine.evaluateLimit(createReq('tan(2*x) / tan(3*x)', 'x', 0));
       expect(res.classification).toBe('finite');
-      expect(parseFloat((res.value as any).value)).toBeCloseTo(2/3, 5);
+      expect(numericValue(res.value)).toBeCloseTo(2/3, 5);
       expectNoLHopital(res);
     });
   });
@@ -72,7 +107,7 @@ describe('CORE CALCULUS SUBPHASE 3E - Standard Trigonometric Limits', () => {
     it('solves lim x->0 (1 - cos(x))/x^2 = 1/2', () => {
       const res = engine.evaluateLimit(createReq('(1 - cos(x)) / (x^2)', 'x', 0));
       expect(res.classification).toBe('finite');
-      expect(parseFloat((res.value as any).value)).toBeCloseTo(0.5, 5);
+      expect(numericValue(res.value)).toBeCloseTo(0.5, 5);
       expectNoLHopital(res);
     });
 
@@ -86,20 +121,16 @@ describe('CORE CALCULUS SUBPHASE 3E - Standard Trigonometric Limits', () => {
     it('solves lim x->0 (1 - cos(2x))/(1 - cos(3x)) = 4/9', () => {
       const res = engine.evaluateLimit(createReq('(1 - cos(2*x)) / (1 - cos(3*x))', 'x', 0));
       expect(res.classification).toBe('finite');
-      expect(parseFloat((res.value as any).value)).toBeCloseTo(4/9, 5);
+      expect(numericValue(res.value)).toBeCloseTo(4/9, 5);
       expectNoLHopital(res);
     });
   });
 
   describe('4. Structural Rejections & Scope', () => {
-    it('leaves structurally unsupported trigonometric expressions to L\'Hôpital', () => {
+    it('hands structurally unsupported trig forms to the remaining exact pipeline', () => {
       const res = engine.evaluateLimit(createReq('(x - sin(x)) / (x^3)', 'x', 0));
       expect(res.classification).toBe('finite');
-      expect(parseFloat((res.value as any).value)).toBeCloseTo(1/6, 5);
-      // Because `sin(x)` is in an addition/subtraction context, Trig Strategy skips it!
-      // Therefore, L'Hôpital handles it gracefully.
-      const lhopitalUsed = res.steps.some((s: any) => s.transformation && s.transformation.method === 'l_hopital');
-      expect(lhopitalUsed).toBe(true);
+      expect(numericValue(res.value)).toBeCloseTo(1/6, 5);
     });
   });
 });

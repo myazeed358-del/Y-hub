@@ -3,11 +3,9 @@ import { LimitApproach, LimitDirection } from '../../types/limit';
 import { TransformationData } from '../../types/step';
 import { LimitStrategy } from './limit_algebra';
 import { LocalSeriesEngine, Rat, Rational } from '../series';
-import { SymbolicSimplifier } from '../simplifier';
 
 export class SeriesLimitStrategy implements LimitStrategy {
   private engine = new LocalSeriesEngine();
-  private simplifier = new SymbolicSimplifier();
   
   public apply(ast: CanonicalAST, variable: string, approach: LimitApproach, direction: LimitDirection): TransformationData | null {
     if (typeof approach !== 'number') return null;
@@ -60,7 +58,7 @@ export class SeriesLimitStrategy implements LimitStrategy {
       return {
         method: 'taylor_series_limit',
         before: ast,
-        after: this.simplifier.simplify(after),
+        after,
         restrictionsAdded: [],
         justification: `Resolved using local series expansion up to order ${order}. Leading terms: ${m} (num) and ${n} (den).`,
         verified: 'limit_preserving_series' as any
@@ -77,11 +75,31 @@ export class SeriesLimitStrategy implements LimitStrategy {
     let coeffAST: CanonicalAST;
     if (c.den === 1n) {
       coeffAST = { type: 'Number', value: c.num.toString() };
+    } else if (c.num < 0n) {
+      coeffAST = {
+        type: 'Operator',
+        operator: '*',
+        args: [
+          { type: 'Number', value: '-1' },
+          {
+            type: 'Operator',
+            operator: '/',
+            args: [
+              { type: 'Number', value: (-c.num).toString() },
+              { type: 'Number', value: c.den.toString() }
+            ]
+          }
+        ]
+      };
     } else {
-      coeffAST = { type: 'Operator', operator: '/', args: [
-        { type: 'Number', value: c.num.toString() },
-        { type: 'Number', value: c.den.toString() }
-      ] };
+      coeffAST = {
+        type: 'Operator',
+        operator: '/',
+        args: [
+          { type: 'Number', value: c.num.toString() },
+          { type: 'Number', value: c.den.toString() }
+        ]
+      };
     }
 
     if (degree === 0) return coeffAST;

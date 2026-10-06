@@ -97,10 +97,13 @@ describe('CORE CALCULUS SUBPHASE 3C - Asymptotic Limit Engine', () => {
   });
 
   describe('5. Unsupported Cases', () => {
-    it('leaves transcendental asymptotics unresolved', () => {
-      const res = engine.evaluateLimit(createReq('exp(x) / x', 'x', '+infinity'));
-      expect(res.classification).toBe('indeterminate');
-      expect(res.indeterminateForm).toBe('inf/inf');
+    it('resolves exp(x) / x at +infinity', () => {
+      const res = engine.evaluateLimit(
+        createReq('exp(x) / x', 'x', '+infinity')
+      );
+
+      expect(res.classification).toBe('+infinity');
+      expect(res.strategy).toBe('l_hopital');
     });
   });
 });
