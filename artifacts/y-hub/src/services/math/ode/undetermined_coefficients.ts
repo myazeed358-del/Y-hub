@@ -13,206 +13,701 @@ export class UndeterminedCoefficientsEngine {
     private utils = new ODEUtils();
     private polyExtractor = new PolynomialExtractor();
 
-    public solveParticular(req: ODERequest, g: CanonicalAST, x: string, coeffs: CanonicalAST[]): { yp: CanonicalAST, steps: ODEStep[] } | null {
-        // 1. Analyze forcing term to find roots of its annihilator
-        const roots = this.findAnnihilatorRoots(g, x);
-        if (!roots) return null; // Unsupported forcing family
+    public solveParticular(
+        req: ODERequest,
+        g: CanonicalAST,
+        x: string,
+        coeffs: CanonicalAST[]
+    ): { yp: CanonicalAST, steps: ODEStep[] } | null {
+        const forcing = this.analyzeForcing(g, x);
+        if (!forcing) return null;
 
-        // 2. Determine multiplicity of these roots in the characteristic equation
+        // PolynomialExtractor expects characteristic coefficients
+        // in ascending order: [a0, a1, ..., an].
         const charCoeffs: Rational[] = [];
-        for (let i = coeffs.length - 1; i >= 0; i--) {
+
+        for (let i = 0; i < coeffs.length; i++) {
             const r = this.parseRat(coeffs[i]);
             if (!r) return null;
+
             charCoeffs.push(r);
         }
-        const charRootsRes = this.polyExtractor.findRationalRootsExact(charCoeffs);
-        
-        // Count resonance
-        let multiplicity = 0;
-        for (const root of roots) {
-            const match = charRootsRes.roots.find(r => Rat.equals(r.value, root.value));
-            if (match && match.multiplicity > multiplicity) {
-                multiplicity = match.multiplicity; // We use max multiplicity for simplicity of trial x^m
-            }
+
+        const charRoots =
+            this.polyExtractor.findRationalRootsExact(charCoeffs);
+
+        let resonanceMultiplicity = 0;
+
+        if (
+            forcing.kind === 'polynomial' ||
+            forcing.kind === 'exp_polynomial'
+        ) {
+            const root =
+                forcing.kind === 'polynomial'
+                    ? Rat.zero
+                    : forcing.a!;
+
+            const match = charRoots.roots.find(r =>
+                Rat.equals(r.value, root)
+            );
+
+            resonanceMultiplicity =
+                match?.multiplicity ?? 0;
+        } else {
+            resonanceMultiplicity =
+                this.complexResonanceMultiplicity(
+                    coeffs,
+                    forcing.b!
+                );
         }
 
-        // 3. Build trial solution
-        const { trial, constants } = this.buildTrialSolution(roots, multiplicity, x);
-        
-        // 4. E(x) = L[y_p] - g(x) = 0
-        let L_yp: CanonicalAST = { type: 'Number', value: '0' };
-        let currentDeriv = trial;
-        
+        const { trial, constants } =
+            this.buildTrialForForcing(
+                forcing,
+                resonanceMultiplicity,
+                x
+            );
+
+        // E(x) = L[y_p] - g(x)
+        let Lyp: CanonicalAST = {
+            type: 'Number',
+            value: '0'
+        };
+
+        let currentDerivative = trial;
+
         for (let i = 0; i < coeffs.length; i++) {
-            const term = { type: 'Operator', operator: '*', args: [coeffs[i], currentDeriv] } as CanonicalAST;
-            if (i === 0) L_yp = term;
-            else L_yp = { type: 'Operator', operator: '+', args: [L_yp, term] };
+            const term: CanonicalAST = {
+                type: 'Operator',
+                operator: '*',
+                args: [coeffs[i], currentDerivative]
+            };
+
+            Lyp =
+                i === 0
+                    ? term
+                    : {
+                        type: 'Operator',
+                        operator: '+',
+                        args: [Lyp, term]
+                    };
+
             if (i < coeffs.length - 1) {
-                currentDeriv = this.simplifier.simplify(this.dEngine.differentiate(currentDeriv, x));
+                currentDerivative =
+                    this.simplifier.simplify(
+                        this.dEngine.differentiate(
+                            currentDerivative,
+                            x
+                        )
+                    );
             }
         }
-        
-        const E = this.simplifier.simplify({ type: 'Operator', operator: '-', args: [L_yp, g] });
 
-        // 5. Generate equations via Taylor evaluation E^(k)(0) = 0
-        const n = constants.length;
-        const eqns: CanonicalAST[] = [];
-        let currE = E;
-        eqns.push(this.simplifier.simplify(ASTUtils.replaceNode(currE, { type: 'Symbol', name: x }, { type: 'Number', value: '0' })));
-        
-        for (let i = 1; i < n; i++) {
-            currE = this.simplifier.simplify(this.dEngine.differentiate(currE, x));
-            eqns.push(this.simplifier.simplify(ASTUtils.replaceNode(currE, { type: 'Symbol', name: x }, { type: 'Number', value: '0' })));
+        let E = this.simplifier.simplify({
+            type: 'Operator',
+            operator: '-',
+            args: [Lyp, g]
+        });
+
+        // Generate as many independent equations as unknowns
+        // using E^(k)(0)=0.
+        const equations: CanonicalAST[] = [];
+
+        for (let i = 0; i < constants.length; i++) {
+            equations.push(
+                this.simplifier.simplify(
+                    ASTUtils.replaceNode(
+                        E,
+                        { type: 'Symbol', name: x },
+                        { type: 'Number', value: '0' }
+                    )
+                )
+            );
+
+            if (i < constants.length - 1) {
+                E = this.simplifier.simplify(
+                    this.dEngine.differentiate(E, x)
+                );
+            }
         }
 
-        // 6. Extract linear system
         const matrix: Rational[][] = [];
-        const rhsVec: Rational[] = [];
-        
-        let valid = true;
-        for (let i = 0; i < n; i++) {
+        const rhs: Rational[] = [];
+
+        for (const equation of equations) {
             const row: Rational[] = [];
-            for (let j = 0; j < n; j++) {
-                const coeffAST = this.simplifier.simplify(this.dEngine.differentiate(eqns[i], constants[j]));
-                const coeff = this.parseRat(coeffAST);
-                if (!coeff) valid = false;
-                row.push(coeff || Rat.zero);
+
+            for (const constant of constants) {
+                const coefficient =
+                    this.simplifier.simplify(
+                        this.dEngine.differentiate(
+                            equation,
+                            constant
+                        )
+                    );
+
+                const parsed = this.parseRat(coefficient);
+                if (!parsed) return null;
+
+                row.push(parsed);
             }
+
+            let constantPart = equation;
+
+            for (const constant of constants) {
+                constantPart = ASTUtils.replaceNode(
+                    constantPart,
+                    {
+                        type: 'Symbol',
+                        name: constant
+                    },
+                    {
+                        type: 'Number',
+                        value: '0'
+                    }
+                );
+            }
+
+            const parsedConstant =
+                this.parseRat(
+                    this.simplifier.simplify(
+                        constantPart
+                    )
+                );
+
+            if (!parsedConstant) return null;
+
             matrix.push(row);
-            
-            let cstExpr = eqns[i];
-            for (const c of constants) {
-                cstExpr = ASTUtils.replaceNode(cstExpr, { type: 'Symbol', name: c }, { type: 'Number', value: '0' });
-            }
-            const cst = this.parseRat(this.simplifier.simplify(cstExpr));
-            if (!cst) valid = false;
-            rhsVec.push(valid && cst ? { num: -cst.num, den: cst.den } : Rat.zero);
+            rhs.push({
+                num: -parsedConstant.num,
+                den: parsedConstant.den
+            });
         }
 
-        if (!valid) return null;
+        const solved =
+            this.solveLinearSystem(matrix, rhs);
 
-        const solvedConsts = this.solveLinearSystem(matrix, rhsVec);
-        if (!solvedConsts) return null;
+        if (!solved) return null;
 
-        // 7. Substitute back
         let yp = trial;
-        for (let i = 0; i < n; i++) {
-            yp = ASTUtils.replaceNode(yp, { type: 'Symbol', name: constants[i] }, this.ratToAST(solvedConsts[i])) as CanonicalAST;
+
+        for (let i = 0; i < constants.length; i++) {
+            yp = ASTUtils.replaceNode(
+                yp,
+                {
+                    type: 'Symbol',
+                    name: constants[i]
+                },
+                this.ratToAST(solved[i])
+            );
         }
+
+        yp = this.simplifier.simplify(yp);
 
         return {
-            yp: this.simplifier.simplify(yp),
+            yp,
             steps: [{
                 strategy: 'Undetermined Coefficients',
                 inputExpression: g,
-                transformation: 'Generated trial solution and solved constants using exact linear system. Resonance multiplier x^n applied.',
-                resultingExpression: this.simplifier.simplify(yp)
+                transformation:
+                    `Generated a forcing-family trial and solved ` +
+                    `its exact coefficient system; resonance ` +
+                    `multiplier x^${resonanceMultiplicity} applied.`,
+                resultingExpression: yp
             }]
         };
     }
 
-    private findAnnihilatorRoots(g: CanonicalAST, x: string): { value: Rational, multiplicity: number, type: 'real'|'complex' }[] | null {
-        // Limited extraction for standard forms
-        // Polynomial: root 0
-        // Exp: exp(a x) -> root a
-        // Sin/Cos: sin(b x) -> root +- i b
-        // Product: we just sum roots
-        
-        if (g.type === 'Number' || (g.type === 'Symbol' && g.name === x)) return [{ value: Rat.zero, multiplicity: 1, type: 'real' }];
-        
-        if (g.type === 'Operator' && g.operator === '^' && g.args[0].type === 'Symbol' && g.args[0].name === x && g.args[1].type === 'Number') {
-            return [{ value: Rat.zero, multiplicity: parseInt(g.args[1].value) + 1, type: 'real' }];
+    private analyzeForcing(
+        g: CanonicalAST,
+        x: string
+    ):
+        | {
+            kind: 'polynomial';
+            degree: number;
         }
-        
-        if (g.type === 'Function' && g.name === 'exp') {
-            // exp(a x)
-            const arg = g.args[0];
-            if (arg.type === 'Operator' && arg.operator === '*' && arg.args[1].type === 'Symbol' && arg.args[1].name === x) {
-                const a = this.parseRat(arg.args[0]);
-                if (a) return [{ value: a, multiplicity: 1, type: 'real' }];
-            }
-            if (arg.type === 'Symbol' && arg.name === x) {
-                return [{ value: Rat.one, multiplicity: 1, type: 'real' }];
-            }
+        | {
+            kind: 'exp_polynomial';
+            degree: number;
+            a: Rational;
         }
-        
-        if (g.type === 'Function' && (g.name === 'sin' || g.name === 'cos')) {
-            const arg = g.args[0];
-            if (arg.type === 'Operator' && arg.operator === '*' && arg.args[1].type === 'Symbol' && arg.args[1].name === x) {
-                const b = this.parseRat(arg.args[0]);
-                if (b) return [{ value: b, multiplicity: 1, type: 'complex' }];
-            }
-            if (arg.type === 'Symbol' && arg.name === x) {
-                return [{ value: Rat.one, multiplicity: 1, type: 'complex' }];
-            }
+        | {
+            kind: 'trig_polynomial';
+            degree: number;
+            b: Rational;
         }
-        
-        if (g.type === 'Operator' && g.operator === '+') {
-            const r1 = this.findAnnihilatorRoots(g.args[0], x);
-            const r2 = this.findAnnihilatorRoots(g.args[1], x);
-            if (r1 && r2) return [...r1, ...r2];
+        | null {
+        const directDegree =
+            this.polynomialDegree(g, x);
+
+        if (directDegree !== null) {
+            return {
+                kind: 'polynomial',
+                degree: directDegree
+            };
         }
-        
-        if (g.type === 'Operator' && g.operator === '*') {
-            // Very simplified: return roots of terms if it matches P(x)*exp or P(x)*sin
-            const roots = [];
-            for (const arg of g.args) {
-                const r = this.findAnnihilatorRoots(arg, x);
-                if (r) roots.push(...r);
-                else return null;
+
+        const factors =
+            g.type === 'Operator' &&
+            (
+                g.operator === '*' ||
+                g.operator === 'implicit_multiply'
+            )
+                ? g.args
+                : [g];
+
+        let exponential: Rational | null = null;
+        let trig: Rational | null = null;
+        let polynomialDegree = 0;
+
+        for (const factor of factors) {
+            if (
+                factor.type === 'Function' &&
+                factor.name === 'exp'
+            ) {
+                if (exponential !== null || trig !== null) {
+                    return null;
+                }
+
+                exponential =
+                    this.linearArgumentCoefficient(
+                        factor.args[0],
+                        x
+                    );
+
+                if (!exponential) return null;
+                continue;
             }
-            return roots; // This handles x^n exp(a x) as having roots {0, a}. 
-            // Technically annihilator root for x^n e^{ax} is 'a' with multiplicity n+1.
-            // But this will just construct trial terms for both 0 and a, which safely covers the space!
+
+            if (
+                factor.type === 'Function' &&
+                (
+                    factor.name === 'sin' ||
+                    factor.name === 'cos'
+                )
+            ) {
+                if (trig !== null || exponential !== null) {
+                    return null;
+                }
+
+                trig =
+                    this.linearArgumentCoefficient(
+                        factor.args[0],
+                        x
+                    );
+
+                if (!trig) return null;
+                continue;
+            }
+
+            const degree =
+                this.polynomialDegree(factor, x);
+
+            if (degree === null) return null;
+
+            polynomialDegree += degree;
         }
-        
+
+        if (exponential) {
+            return {
+                kind: 'exp_polynomial',
+                degree: polynomialDegree,
+                a: exponential
+            };
+        }
+
+        if (trig) {
+            return {
+                kind: 'trig_polynomial',
+                degree: polynomialDegree,
+                b: trig
+            };
+        }
+
         return null;
     }
 
-    private buildTrialSolution(roots: { value: Rational, multiplicity: number, type: 'real'|'complex' }[], resMultiplicity: number, x: string): { trial: CanonicalAST, constants: string[] } {
-        const terms: CanonicalAST[] = [];
+    private polynomialDegree(
+        node: CanonicalAST,
+        x: string
+    ): number | null {
+        if (node.type === 'Number') return 0;
+
+        if (
+            node.type === 'Symbol' &&
+            node.name === x
+        ) {
+            return 1;
+        }
+
+        if (
+            node.type === 'Operator' &&
+            node.operator === '^' &&
+            node.args.length === 2 &&
+            node.args[0].type === 'Symbol' &&
+            node.args[0].name === x &&
+            node.args[1].type === 'Number'
+        ) {
+            const power =
+                Number(node.args[1].value);
+
+            if (
+                Number.isInteger(power) &&
+                power >= 0
+            ) {
+                return power;
+            }
+
+            return null;
+        }
+
+        if (
+            node.type === 'Operator' &&
+            (
+                node.operator === '+' ||
+                node.operator === '-'
+            )
+        ) {
+            const degrees =
+                node.args.map(arg =>
+                    this.polynomialDegree(arg, x)
+                );
+
+            if (
+                degrees.some(
+                    degree => degree === null
+                )
+            ) {
+                return null;
+            }
+
+            return Math.max(
+                ...degrees as number[]
+            );
+        }
+
+        if (
+            node.type === 'Operator' &&
+            (
+                node.operator === '*' ||
+                node.operator ===
+                    'implicit_multiply'
+            )
+        ) {
+            let degree = 0;
+
+            for (const arg of node.args) {
+                const d =
+                    this.polynomialDegree(arg, x);
+
+                if (d === null) return null;
+
+                degree += d;
+            }
+
+            return degree;
+        }
+
+        if (node.type === 'Parenthesis') {
+            return this.polynomialDegree(
+                node.content,
+                x
+            );
+        }
+
+        return null;
+    }
+
+    private linearArgumentCoefficient(
+        node: CanonicalAST,
+        x: string
+    ): Rational | null {
+        if (
+            node.type === 'Symbol' &&
+            node.name === x
+        ) {
+            return Rat.one;
+        }
+
+        if (
+            node.type === 'Operator' &&
+            (
+                node.operator === '*' ||
+                node.operator ===
+                    'implicit_multiply'
+            )
+        ) {
+            let coefficient = Rat.one;
+            let foundX = false;
+
+            for (const arg of node.args) {
+                if (
+                    arg.type === 'Symbol' &&
+                    arg.name === x
+                ) {
+                    if (foundX) return null;
+                    foundX = true;
+                    continue;
+                }
+
+                const r = this.parseRat(arg);
+                if (!r) return null;
+
+                coefficient =
+                    Rat.mul(coefficient, r);
+            }
+
+            return foundX
+                ? Rat.simplify(coefficient)
+                : null;
+        }
+
+        return null;
+    }
+
+    private buildTrialForForcing(
+        forcing:
+            | {
+                kind: 'polynomial';
+                degree: number;
+            }
+            | {
+                kind: 'exp_polynomial';
+                degree: number;
+                a: Rational;
+            }
+            | {
+                kind: 'trig_polynomial';
+                degree: number;
+                b: Rational;
+            },
+        resonanceMultiplicity: number,
+        x: string
+    ): {
+        trial: CanonicalAST;
+        constants: string[];
+    } {
         const constants: string[] = [];
-        let cIdx = 1;
-        
-        const getConst = () => {
-            const name = `A${cIdx++}`;
+        let nextConstant = 1;
+
+        const constant = (): CanonicalAST => {
+            const name = `A${nextConstant++}`;
             constants.push(name);
-            return { type: 'Symbol', name } as CanonicalAST;
+
+            return {
+                type: 'Symbol',
+                name
+            };
         };
 
-        for (const r of roots) {
-            let mTotal = r.multiplicity + resMultiplicity;
-            
-            for (let m = 0; m < mTotal; m++) {
-                let xTerm: CanonicalAST = { type: 'Number', value: '1' };
-                if (m === 1) xTerm = { type: 'Symbol', name: x };
-                else if (m > 1) xTerm = { type: 'Operator', operator: '^', args: [{ type: 'Symbol', name: x }, { type: 'Number', value: m.toString() }] };
-                
-                if (r.type === 'real') {
-                    let expTerm: CanonicalAST = { type: 'Number', value: '1' };
-                    if (!Rat.isZero(r.value)) {
-                        expTerm = { type: 'Function', name: 'exp', args: [{ type: 'Operator', operator: '*', args: [this.ratToAST(r.value), { type: 'Symbol', name: x }] }] };
-                    }
-                    
-                    const term = { type: 'Operator', operator: '*', args: [getConst(), xTerm, expTerm] } as CanonicalAST;
-                    terms.push(this.simplifier.simplify(term));
-                } else {
-                    const arg = { type: 'Operator', operator: '*', args: [this.ratToAST(r.value), { type: 'Symbol', name: x }] } as CanonicalAST;
-                    const sinTerm = { type: 'Function', name: 'sin', args: [arg] } as CanonicalAST;
-                    const cosTerm = { type: 'Function', name: 'cos', args: [arg] } as CanonicalAST;
-                    
-                    terms.push(this.simplifier.simplify({ type: 'Operator', operator: '*', args: [getConst(), xTerm, sinTerm] }));
-                    terms.push(this.simplifier.simplify({ type: 'Operator', operator: '*', args: [getConst(), xTerm, cosTerm] }));
-                }
+        const xPower = (
+            power: number
+        ): CanonicalAST => {
+            if (power === 0) {
+                return {
+                    type: 'Number',
+                    value: '1'
+                };
             }
+
+            if (power === 1) {
+                return {
+                    type: 'Symbol',
+                    name: x
+                };
+            }
+
+            return {
+                type: 'Operator',
+                operator: '^',
+                args: [
+                    {
+                        type: 'Symbol',
+                        name: x
+                    },
+                    {
+                        type: 'Number',
+                        value: power.toString()
+                    }
+                ]
+            };
+        };
+
+        const polynomial = (
+            degree: number
+        ): CanonicalAST => {
+            let result: CanonicalAST | null =
+                null;
+
+            for (
+                let power = 0;
+                power <= degree;
+                power++
+            ) {
+                const term =
+                    this.simplifier.simplify({
+                        type: 'Operator',
+                        operator: '*',
+                        args: [
+                            constant(),
+                            xPower(power)
+                        ]
+                    });
+
+                result =
+                    result === null
+                        ? term
+                        : {
+                            type: 'Operator',
+                            operator: '+',
+                            args: [result, term]
+                        };
+            }
+
+            return result!;
+        };
+
+        let baseTrial: CanonicalAST;
+
+        if (forcing.kind === 'polynomial') {
+            baseTrial =
+                polynomial(forcing.degree);
+        } else if (
+            forcing.kind === 'exp_polynomial'
+        ) {
+            const expTerm: CanonicalAST = {
+                type: 'Function',
+                name: 'exp',
+                args: [{
+                    type: 'Operator',
+                    operator: '*',
+                    args: [
+                        this.ratToAST(
+                            forcing.a
+                        ),
+                        {
+                            type: 'Symbol',
+                            name: x
+                        }
+                    ]
+                }]
+            };
+
+            baseTrial = {
+                type: 'Operator',
+                operator: '*',
+                args: [
+                    polynomial(forcing.degree),
+                    expTerm
+                ]
+            };
+        } else {
+            const argument: CanonicalAST = {
+                type: 'Operator',
+                operator: '*',
+                args: [
+                    this.ratToAST(
+                        forcing.b
+                    ),
+                    {
+                        type: 'Symbol',
+                        name: x
+                    }
+                ]
+            };
+
+            const cosPolynomial =
+                polynomial(forcing.degree);
+
+            const sinPolynomial =
+                polynomial(forcing.degree);
+
+            baseTrial = {
+                type: 'Operator',
+                operator: '+',
+                args: [
+                    {
+                        type: 'Operator',
+                        operator: '*',
+                        args: [
+                            cosPolynomial,
+                            {
+                                type: 'Function',
+                                name: 'cos',
+                                args: [argument]
+                            }
+                        ]
+                    },
+                    {
+                        type: 'Operator',
+                        operator: '*',
+                        args: [
+                            sinPolynomial,
+                            {
+                                type: 'Function',
+                                name: 'sin',
+                                args: [argument]
+                            }
+                        ]
+                    }
+                ]
+            };
         }
-        
-        let trial = terms[0];
-        for (let i = 1; i < terms.length; i++) {
-            trial = { type: 'Operator', operator: '+', args: [trial, terms[i]] };
+
+        if (resonanceMultiplicity > 0) {
+            baseTrial = {
+                type: 'Operator',
+                operator: '*',
+                args: [
+                    xPower(
+                        resonanceMultiplicity
+                    ),
+                    baseTrial
+                ]
+            };
         }
-        
-        return { trial, constants };
+
+        return {
+            trial:
+                this.simplifier.simplify(
+                    baseTrial
+                ),
+            constants
+        };
+    }
+
+    private complexResonanceMultiplicity(
+        coeffs: CanonicalAST[],
+        b: Rational
+    ): number {
+        // Exact second-order test for roots ± i*b:
+        // a0 - a2*b² = 0 and a1*b = 0.
+        if (coeffs.length !== 3) return 0;
+
+        const a0 = this.parseRat(coeffs[0]);
+        const a1 = this.parseRat(coeffs[1]);
+        const a2 = this.parseRat(coeffs[2]);
+
+        if (!a0 || !a1 || !a2) return 0;
+
+        const realPart =
+            Rat.sub(
+                a0,
+                Rat.mul(
+                    a2,
+                    Rat.mul(b, b)
+                )
+            );
+
+        const imaginaryPart =
+            Rat.mul(a1, b);
+
+        return (
+            Rat.isZero(realPart) &&
+            Rat.isZero(imaginaryPart)
+        )
+            ? 1
+            : 0;
     }
 
     private solveLinearSystem(A: Rational[][], b: Rational[]): Rational[] | null {

@@ -26,17 +26,24 @@ export class HigherOrderLinearODEEngine {
         const coeffs = linRes.coeffs; // a0, a1, ... an
         const n = coeffs.length - 1;
 
-        // Ensure constant coefficients
+        // Ensure constant coefficients.
+        //
+        // PolynomialExtractor uses ascending coefficient order:
+        // [a0, a1, ..., an] <=> a0 + a1*r + ... + an*r^n.
         const ratCoeffs: Rational[] = [];
-        for (let i = n; i >= 0; i--) {
+        for (let i = 0; i <= n; i++) {
             const a = coeffs[i];
-            if (a.type !== 'Number') return null; // Not constant coeff
+
+            if (a.type !== 'Number') return null;
+
             const r = this.parseRat(a.value);
             if (!r) return null;
+
             ratCoeffs.push(r);
         }
 
-        // We have a polynomial in decreasing powers of r: a_n r^n + ... + a_0 = 0
+        // Characteristic polynomial:
+        // a0 + a1*r + ... + an*r^n = 0.
         const rootsRes = this.polyExtractor.findRationalRootsExact(ratCoeffs);
         const exactRoots = rootsRes.roots;
         const remaining = rootsRes.remainingCoeffs;

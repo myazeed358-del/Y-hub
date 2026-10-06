@@ -5,6 +5,8 @@ import { SymbolicSimplifier } from '../symbolic/simplifier';
 import { ASTUtils } from '../symbolic/utils';
 import { SetEngine } from '../symbolic/sets';
 import { DomainAnalyzer } from '../domain';
+import { UndeterminedCoefficientsEngine } from './undetermined_coefficients';
+import { VariationOfParametersEngine } from './variation_of_parameters';
 
 export class SecondOrderLinearODEEngine {
     private odeUtils = new ODEUtils();
@@ -330,14 +332,87 @@ export class SecondOrderLinearODEEngine {
 
         let finalY = yh;
 
-        const isZeroG = g.type === 'Number' && g.value === '0';
+        const isZeroG =
+            g.type === 'Number' &&
+            g.value === '0';
+
         if (!isZeroG) {
-            // Handled separately or return null for now
-            return null;
+            let particularFound = false;
+
+            const ucEngine =
+                new UndeterminedCoefficientsEngine();
+
+            const ucResult =
+                ucEngine.solveParticular(
+                    req,
+                    g,
+                    x,
+                    [a0, a1, a2]
+                );
+
+            if (ucResult) {
+                steps.push(...ucResult.steps);
+
+                finalY = {
+                    type: 'Operator',
+                    operator: '+',
+                    args: [
+                        finalY,
+                        ucResult.yp
+                    ]
+                };
+
+                particularFound = true;
+            }
+
+            if (!particularFound) {
+                const vopEngine =
+                    new VariationOfParametersEngine();
+
+                const normalizedG =
+                    (
+                        a2.type === 'Number' &&
+                        a2.value === '1'
+                    )
+                        ? g
+                        : this.simplifier.simplify({
+                            type: 'Operator',
+                            operator: '/',
+                            args: [g, a2]
+                        });
+
+                const vopResult =
+                    vopEngine.solveParticular(
+                        req,
+                        y1,
+                        y2,
+                        normalizedG,
+                        x
+                    );
+
+                if (!vopResult) {
+                    return null;
+                }
+
+                steps.push(...vopResult.steps);
+
+                finalY = {
+                    type: 'Operator',
+                    operator: '+',
+                    args: [
+                        finalY,
+                        vopResult.yp
+                    ]
+                };
+
+                particularFound = true;
+            }
         }
 
         steps.push({
-            strategy: 'Second-Order Linear Homogeneous (Constant Coefficients)',
+            strategy: isZeroG
+                ? 'Second-Order Linear Homogeneous (Constant Coefficients)'
+                : 'Second-Order Nonhomogeneous (Constant Coefficients)',
             inputExpression: req.equation,
             transformation: 'Solved exact characteristic equation',
             resultingExpression: { type: 'Equation', lhs: { type: 'Symbol', name: y }, rhs: finalY }

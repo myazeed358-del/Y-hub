@@ -47,27 +47,123 @@ export class VariationOfParametersEngine {
         });
         
         try {
-            // Integrate
-            // We ignore steps output from integration for ODE trace brevity
-            const u1 = this.iEngine.integrate(u1p, x, []);
-            const u2 = this.iEngine.integrate(u2p, x, []);
-            
+            const integrateOrFormal = (
+                integrand: CanonicalAST
+            ): CanonicalAST => {
+                try {
+                    return this.iEngine.integrate(
+                        integrand,
+                        x,
+                        []
+                    );
+                } catch {
+                    // An unevaluated integral is still an exact
+                    // symbolic Variation-of-Parameters expression.
+                    return {
+                        type: 'Function',
+                        name: 'Integral',
+                        args: [
+                            integrand,
+                            {
+                                type: 'Symbol',
+                                name: x
+                            }
+                        ]
+                    };
+                }
+            };
+
+            const u1 = integrateOrFormal(u1p);
+            const u2 = integrateOrFormal(u2p);
+
             const yp = this.simplifier.simplify({
-                type: 'Operator', operator: '+', args: [
-                    { type: 'Operator', operator: '*', args: [u1, y1] },
-                    { type: 'Operator', operator: '*', args: [u2, y2] }
+                type: 'Operator',
+                operator: '+',
+                args: [
+                    {
+                        type: 'Operator',
+                        operator: '*',
+                        args: [u1, y1]
+                    },
+                    {
+                        type: 'Operator',
+                        operator: '*',
+                        args: [u2, y2]
+                    }
                 ]
             });
-            
+
+            const containsFormalIntegral = (
+                node: CanonicalAST
+            ): boolean => {
+                if (
+                    node.type === 'Function' &&
+                    node.name === 'Integral'
+                ) {
+                    return true;
+                }
+
+                if (
+                    node.type === 'Operator' ||
+                    node.type === 'Function'
+                ) {
+                    return node.args.some(
+                        containsFormalIntegral
+                    );
+                }
+
+                if (node.type === 'Parenthesis') {
+                    return containsFormalIntegral(
+                        node.content
+                    );
+                }
+
+                if (
+                    node.type === 'Equation' ||
+                    node.type === 'Inequality'
+                ) {
+                    return (
+                        containsFormalIntegral(node.lhs) ||
+                        containsFormalIntegral(node.rhs)
+                    );
+                }
+
+                if (node.type === 'Matrix') {
+                    return node.rows.some(row =>
+                        row.some(
+                            containsFormalIntegral
+                        )
+                    );
+                }
+
+                if (node.type === 'Vector') {
+                    return node.elements.some(
+                        containsFormalIntegral
+                    );
+                }
+
+                return false;
+            };
+
+            const hasFormalIntegral =
+                containsFormalIntegral(yp);
+
             steps.push({
                 strategy: 'Variation of Parameters',
                 inputExpression: g,
-                transformation: 'Wronskian evaluated and integrals computed',
+                transformation:
+                    hasFormalIntegral
+                        ? 'Wronskian evaluated; unsupported antiderivatives preserved as formal symbolic integrals'
+                        : 'Wronskian evaluated and integrals computed',
                 resultingExpression: yp,
                 verificationCondition: wCondition
             });
-            
-            return { yp, steps, wCondition };
+
+            return {
+                yp,
+                steps,
+                wCondition
+            };
         } catch (e) {
             return null;
         }
