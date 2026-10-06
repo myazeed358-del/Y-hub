@@ -201,7 +201,29 @@ export class TrigIntegrationEngine {
      let transformedAST: CanonicalAST;
      let identityStr = '';
 
-     if (n >= 2 && n % 2 === 0) {
+     if (m === 2 && n === 0) {
+        // tan²(x) = sec²(x) - 1
+        //
+        // This reduces directly to two Phase 6A integrals:
+        // ∫sec²(x)dx - ∫1dx = tan(x) - x.
+        transformedAST = {
+           type: 'Operator',
+           operator: '-',
+           args: [
+              this.createTrigNode(
+                 'sec',
+                 2,
+                 variable
+              ),
+              {
+                 type: 'Number',
+                 value: '1'
+              }
+           ]
+        };
+
+        identityStr = 'tan²(x) = sec²(x) - 1';
+     } else if (n >= 2 && n % 2 === 0) {
         // Even sec: sec^2(x) dx is du for u=tan(x)
         // sec^n(x) = (1+tan^2(x))^((n-2)/2) sec^2(x)
         const k = (n - 2) / 2;

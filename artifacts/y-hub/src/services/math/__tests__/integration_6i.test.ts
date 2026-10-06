@@ -87,13 +87,31 @@ describe('CORE CALCULUS 6I - NUMERICAL INTEGRATION', () => {
     expect(res.classification).toBe('singularity_detected');
   });
 
-  it('L) Function producing NaN', () => {
-    // sqrt(-1) evaluates to NaN for x=0 if not caught by domain analyzer
-    // we use a tricky structure to bypass analyzer and force evaluator to fail
-    const trickyAst = { type: 'Function', name: 'sqrt', args: [num('-1')] };
-    const req: NumericalIntegrationRequest = { integrand: trickyAst as CanonicalAST, variable: 'x', lowerBound: num('0'), upperBound: num('1'), method: 'trapezoidal' };
-    const res = engine.evaluateNumericalIntegral(req);
-    expect(res.classification).toBe('non_finite_evaluation');
+  it('L) Constant expression with an empty real domain', () => {
+    // sqrt(-1) has no real-valued domain.
+    //
+    // Domain analysis should reject the integral before numerical
+    // sampling rather than allowing NaN to escape from evaluation.
+    const trickyAst = {
+      type: 'Function',
+      name: 'sqrt',
+      args: [num('-1')]
+    };
+
+    const req: NumericalIntegrationRequest = {
+      integrand: trickyAst as CanonicalAST,
+      variable: 'x',
+      lowerBound: num('0'),
+      upperBound: num('1'),
+      method: 'trapezoidal'
+    };
+
+    const res =
+      engine.evaluateNumericalIntegral(req);
+
+    expect(res.classification).toBe(
+      'domain_invalid'
+    );
   });
 
   it('N) Resource limit (max evaluations)', () => {

@@ -227,12 +227,48 @@ export class TrigSubEngine {
      const integrandWithRadicalReplaced = this.replaceAST(integrand, radicalOriginalNode, radicalTransformation);
      // Replace remaining x
      const integrandWithXReplaced = this.replaceAST(integrandWithRadicalReplaced, { type: 'Symbol', name: variable }, substitution);
-     // Multiply by dx
-     const transformedIntegrand = this.simplifier.simplify({
-        type: 'Operator',
-        operator: '*',
-        args: [integrandWithXReplaced, dxTransformation]
-     });
+     // Multiply by dx.
+     //
+     // Handle exact reciprocal cancellation structurally before
+     // delegating to the generic simplifier. This commonly occurs in
+     // cases such as
+     //
+     //   dx / sqrt(a^2 - x^2)
+     //
+     // where substitution produces
+     //
+     //   1 / (a cos(theta)) * (a cos(theta)) = 1.
+     //
+     // Restrict this optimization to an exact structural match so
+     // branch-sensitive expressions such as
+     // tan(theta) / abs(tan(theta)) are never cancelled.
+     let transformedIntegrand: CanonicalAST;
+
+     if (
+        integrandWithXReplaced.type === 'Operator' &&
+        integrandWithXReplaced.operator === '/' &&
+        integrandWithXReplaced.args.length === 2 &&
+        integrandWithXReplaced.args[0].type === 'Number' &&
+        integrandWithXReplaced.args[0].value === '1' &&
+        ASTUtils.structuralEquals(
+           integrandWithXReplaced.args[1],
+           dxTransformation
+        )
+     ) {
+        transformedIntegrand = {
+           type: 'Number',
+           value: '1'
+        };
+     } else {
+        transformedIntegrand = this.simplifier.simplify({
+           type: 'Operator',
+           operator: '*',
+           args: [
+              integrandWithXReplaced,
+              dxTransformation
+           ]
+        });
+     }
 
      steps.push({
         id: `trigsub_${Date.now()}`,

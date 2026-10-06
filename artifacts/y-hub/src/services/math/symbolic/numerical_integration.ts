@@ -227,12 +227,52 @@ export class NumericalIntegrationEngine {
   }
 
   private evaluateNumeric(node: CanonicalAST): number {
-     if (node.type === 'Symbol' && (node.name === 'infinity' || node.name === 'inf' || node.name === '\\infty')) return Infinity;
-     if (node.type === 'Operator' && node.operator === '*' && node.args.length === 2 && node.args[0].type === 'Number' && node.args[0].value === '-1' && node.args[1].type === 'Symbol' && (node.args[1].name === 'infinity' || node.args[1].name === 'inf')) return -Infinity;
+     if (
+        node.type === 'Symbol' &&
+        (
+           node.name === 'infinity' ||
+           node.name === 'inf' ||
+           node.name === '\\infty'
+        )
+     ) {
+        return Infinity;
+     }
+
+     if (
+        node.type === 'Symbol'
+     ) {
+        if (node.name === 'pi') {
+           return Math.PI;
+        }
+
+        if (node.name === 'e') {
+           return Math.E;
+        }
+     }
+
+     if (
+        node.type === 'Operator' &&
+        node.operator === '*' &&
+        node.args.length === 2 &&
+        node.args[0].type === 'Number' &&
+        node.args[0].value === '-1' &&
+        node.args[1].type === 'Symbol' &&
+        (
+           node.args[1].name === 'infinity' ||
+           node.args[1].name === 'inf'
+        )
+     ) {
+        return -Infinity;
+     }
      
      try {
-        const val = this.evaluator.evaluate(node, {});
-        if (typeof val === 'number') return val;
+        const val =
+           this.evaluator.evaluate(node, {});
+
+        if (typeof val === 'number') {
+           return val;
+        }
+
         return NaN;
      } catch {
         return NaN;

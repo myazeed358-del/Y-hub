@@ -92,47 +92,6 @@ export class AdvancedIntegrationOrchestrator {
   private get improperEngine() { return new ImproperIntegrationEngine(); }
   private get numericalEngine() { return new NumericalIntegrationEngine(); }
 
-    public async orchestrateAsync(req: OrchestrationRequest): Promise<OrchestrationResult> {
-    // 1. Try Python backend first
-    if (req.operation === 'integrate') {
-      try {
-        const pyRes = await this.adapter.executePythonCalculus('integrate', req.integrand, req.variable, req.lowerBound, req.upperBound);
-        if (pyRes && pyRes.status === 'solved') {
-           const trace: IntegrationStrategyTrace[] = [{
-              strategy: 'PythonSymPyBackend',
-              applicability: 'applicable',
-              attempted: true,
-              depth: 0,
-              resultStatus: pyRes.classification,
-              verificationStatus: pyRes.verification_status
-           }];
-           
-           let finalMode = pyRes.classification.includes('definite') ? 'symbolic_definite' : 
-                           (pyRes.classification.includes('indefinite') ? 'symbolic_indefinite' : 'numerical');
-           
-           return this.buildResult(
-               req,
-               finalMode as IntegrationMode,
-               pyRes.classification,
-               !req.lowerBound ? pyRes.result : null,
-               req.lowerBound && !pyRes.classification.includes('improper') ? { classification: pyRes.classification, value: pyRes.result } : null,
-               pyRes.classification.includes('improper') ? { classification: pyRes.classification, value: pyRes.result } : null,
-               pyRes.classification.includes('numerical') ? { classification: pyRes.classification, value: pyRes.result } : null,
-               trace,
-               pyRes.warnings || []
-           );
-        }
-        if (pyRes && (pyRes.status === 'no_solution' || pyRes.status === 'resource_limit')) {
-           return this.buildResult(req, 'symbolic_indefinite', pyRes.status, null, null, null, null, [], pyRes.warnings || []);
-        }
-      } catch (e) {
-        // network failure or error, gracefully fallback
-      }
-    }
-    
-    // 2. Fallback to existing TS
-    return this.orchestrate(req);
-  }
 
   public orchestrate(req: OrchestrationRequest): OrchestrationResult {
     const trace: IntegrationStrategyTrace[] = [];
@@ -236,10 +195,39 @@ export class AdvancedIntegrationOrchestrator {
       depth: 0,
       transformationCount: 0,
       parentStrategy: null,
-      maxDepth: req.maxDepth || 6,
-      maxAttempts: req.maxStrategyAttempts || 10,
-      maxTransformations: req.maxTransformations || 20
+      maxDepth: req.maxDepth ?? 6,
+      maxAttempts: req.maxStrategyAttempts ?? 10,
+      maxTransformations: req.maxTransformations ?? 20
     };
+
+    // An explicitly supplied zero budget means no symbolic work is
+    // permitted. Do not silently replace zero with the default.
+    if (
+      context.maxDepth <= 0 ||
+      context.maxAttempts <= 0 ||
+      context.maxTransformations <= 0
+    ) {
+      trace.push({
+        strategy: 'IntegrationEngine',
+        applicability: 'applicable',
+        attempted: false,
+        depth: 0,
+        resultStatus: 'resource_limit',
+        reason: 'Requested orchestration resource budget is exhausted'
+      });
+
+      return this.buildResult(
+        req,
+        'symbolic_indefinite',
+        'resource_limit',
+        null,
+        null,
+        null,
+        null,
+        trace,
+        warnings
+      );
+    }
 
     try {
         const result = this.integrationEngine.integrate(req.integrand, req.variable, [], 0, context);
@@ -279,9 +267,54 @@ export class AdvancedIntegrationOrchestrator {
         upperBound: req.upperBound!
     };
     try {
-        const res = this.definiteEngine.evaluateDefiniteIntegral(dReq);
-        trace.push({ strategy: 'DefiniteIntegrationEngine (6G)', applicability: 'applicable', attempted: true, depth: 0, resultStatus: res.classification });
-        return this.buildResult(req, 'symbolic_definite', res.classification, null, res, null, null, trace, warnings);
+        const res =
+          this.definiteEngine.evaluateDefiniteIntegral(dReq);
+
+        trace.push({
+          strategy: 'DefiniteIntegrationEngine (6G)',
+          applicability: 'applicable',
+          attempted: true,
+          depth: 0,
+          resultStatus: res.classification
+        });
+
+        // The initial classifier is intentionally lightweight.
+        // If authoritative 6G domain analysis discovers an endpoint
+        // or interior singularity, auto mode must promote the request
+        // to the improper engine rather than lose the original-domain
+        // exclusion through orchestration.
+        if (
+          req.mode === 'auto' &&
+          res.classification === 'improper_detected'
+        ) {
+          trace.push({
+            strategy: 'ImproperPromotion',
+            applicability: 'applicable',
+            attempted: true,
+            depth: 0,
+            resultStatus: 'symbolic_improper',
+            reason:
+              '6G detected an original-domain singularity'
+          });
+
+          return this.routeImproper(
+            req,
+            trace,
+            warnings
+          );
+        }
+
+        return this.buildResult(
+          req,
+          'symbolic_definite',
+          res.classification,
+          null,
+          res,
+          null,
+          null,
+          trace,
+          warnings
+        );
     } catch (e: any) {
         return this.buildResult(req, 'symbolic_definite', 'unresolved', null, null, null, null, trace, warnings);
     }
@@ -322,17 +355,31 @@ export class AdvancedIntegrationOrchestrator {
     }
   }
 
-  private buildResult(req: OrchestrationRequest, mode: IntegrationMode, classification: string, sym: CanonicalAST | null, def: any, imp: any, num: any, trace: IntegrationStrategyTrace[], warnings: string[]): OrchestrationResult {
+  private buildResult(
+    req: OrchestrationRequest,
+    mode: IntegrationMode,
+    classification: string,
+    sym: CanonicalAST | null,
+    def: any,
+    imp: any,
+    num: any,
+    trace: IntegrationStrategyTrace[],
+    warnings: string[]
+  ): OrchestrationResult {
     return {
-        request: req,
-        modeExecuted: mode,
-        finalClassification: classification,
-        symbolicResult: sym,
-        definiteResult: def,
-        improperResult: imp,
-        numericalResult: num,
-        trace,
-        warnings
+      request: req,
+      modeExecuted: mode,
+      finalClassification: classification,
+      symbolicResult:
+        sym === null ? undefined : sym,
+      definiteResult:
+        def === null ? undefined : def,
+      improperResult:
+        imp === null ? undefined : imp,
+      numericalResult:
+        num === null ? undefined : num,
+      trace,
+      warnings
     };
   }
 }

@@ -29,6 +29,35 @@ export class DomainAnalyzer {
 
     if (node.type === 'Function') {
       const fn = node.name.toLowerCase();
+
+      // Trigonometric functions with reciprocal definitions carry
+      // non-zero denominator constraints.
+      //
+      // tan(u), sec(u): cos(u) != 0
+      // cot(u), csc(u): sin(u) != 0
+      if (fn === 'tan' || fn === 'sec') {
+        restrictions.push({
+          type: 'denominator',
+          conditionAST: {
+            type: 'Function',
+            name: 'cos',
+            args: [node.args[0]]
+          },
+          message: 'cos(argument) must not equal zero'
+        });
+      }
+
+      if (fn === 'cot' || fn === 'csc') {
+        restrictions.push({
+          type: 'denominator',
+          conditionAST: {
+            type: 'Function',
+            name: 'sin',
+            args: [node.args[0]]
+          },
+          message: 'sin(argument) must not equal zero'
+        });
+      }
       if (fn === 'log' || fn === 'ln') {
         restrictions.push({
           type: 'logarithm',

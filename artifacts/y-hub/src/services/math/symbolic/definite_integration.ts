@@ -9,6 +9,7 @@ import { SymbolicSimplifier } from './simplifier';
 import { DerivativeEngine } from './derivative';
 import { ASTEvaluator } from './evaluator';
 import { ASTUtils } from './utils';
+import { Rat, Rational } from '../utils/rational';
 
 export class DefiniteIntegrationEngine {
   private integrationEngine = new IntegrationEngine();
@@ -164,11 +165,22 @@ export class DefiniteIntegrationEngine {
        const F_b = this.evaluateAt(antiderivative, req.variable, orientation === 1 ? req.upperBound : req.lowerBound);
        const F_a = this.evaluateAt(antiderivative, req.variable, orientation === 1 ? req.lowerBound : req.upperBound);
 
-       const diff = this.simplifier.simplify({ type: 'Operator', operator: '-', args: [F_b, F_a] });
+       const diff = this.simplifyPreservingExactRationals({
+          type: 'Operator',
+          operator: '-',
+          args: [F_b, F_a]
+       });
        
        // Handle orientation
        if (orientation === -1) {
-          finalValue = this.simplifier.simplify({ type: 'Operator', operator: '*', args: [{ type: 'Number', value: '-1' }, diff] });
+          finalValue = this.simplifyPreservingExactRationals({
+             type: 'Operator',
+             operator: '*',
+             args: [
+                { type: 'Number', value: '-1' },
+                diff
+             ]
+          });
        } else {
           finalValue = diff;
        }
@@ -234,15 +246,211 @@ export class DefiniteIntegrationEngine {
   }
 
   private evaluateNumeric(node: CanonicalAST): number {
+     // Some existing callers/tests represent mathematical constants
+     // as Symbol nodes rather than Constant nodes.
+     if (node.type === 'Symbol') {
+        if (node.name === 'pi') return Math.PI;
+        if (node.name === 'e') return Math.E;
+     }
+
      const res = this.evaluator.evaluate(node, {});
-     if (typeof res === 'number') return res;
+
+     if (typeof res === 'number') {
+        return res;
+     }
+
      throw new Error('Not numeric');
   }
 
-  private evaluateAt(expr: CanonicalAST, variable: string, valueNode: CanonicalAST): CanonicalAST {
+  private evaluateAt(
+     expr: CanonicalAST,
+     variable: string,
+     valueNode: CanonicalAST
+  ): CanonicalAST {
      // Structural substitution
-     let subbed = this.replaceAST(expr, { type: 'Symbol', name: variable }, valueNode);
-     return this.simplifier.simplify(subbed);
+     const subbed = this.replaceAST(
+        expr,
+        { type: 'Symbol', name: variable },
+        valueNode
+     );
+
+     return this.simplifyPreservingExactRationals(
+        subbed
+     );
+  }
+
+  private simplifyPreservingExactRationals(
+     node: CanonicalAST
+  ): CanonicalAST {
+     const exact =
+        this.evaluateExactRationalAST(node);
+
+     if (exact !== null) {
+        return this.rationalToAST(exact);
+     }
+
+     return this.simplifier.simplify(node);
+  }
+
+  private evaluateExactRationalAST(
+     node: CanonicalAST
+  ): Rational | null {
+     if (node.type === 'Number') {
+        try {
+           if (node.value.includes('/')) {
+              const [num, den] =
+                 node.value.split('/');
+
+              if (!num || !den) {
+                 return null;
+              }
+
+              return Rat.div(
+                 Rat.fromString(num),
+                 Rat.fromString(den)
+              );
+           }
+
+           return Rat.fromString(node.value);
+        } catch {
+           return null;
+        }
+     }
+
+     if (node.type !== 'Operator') {
+        return null;
+     }
+
+     const values = node.args.map(
+        arg => this.evaluateExactRationalAST(arg)
+     );
+
+     if (values.some(value => value === null)) {
+        return null;
+     }
+
+     const exactValues = values as Rational[];
+
+     try {
+        switch (node.operator) {
+           case '+':
+              return exactValues.reduce(
+                 (sum, value) =>
+                    Rat.add(sum, value),
+                 Rat.zero
+              );
+
+           case '-':
+              if (exactValues.length === 1) {
+                 return Rat.mul(
+                    Rat.minusOne,
+                    exactValues[0]
+                 );
+              }
+
+              return exactValues.slice(1).reduce(
+                 (result, value) =>
+                    Rat.sub(result, value),
+                 exactValues[0]
+              );
+
+           case '*':
+           case 'implicit_multiply':
+              return exactValues.reduce(
+                 (product, value) =>
+                    Rat.mul(product, value),
+                 Rat.one
+              );
+
+           case '/':
+              if (exactValues.length !== 2) {
+                 return null;
+              }
+
+              return Rat.div(
+                 exactValues[0],
+                 exactValues[1]
+              );
+
+           case '^': {
+              if (exactValues.length !== 2) {
+                 return null;
+              }
+
+              const exponent =
+                 Rat.simplify(exactValues[1]);
+
+              if (exponent.den !== 1n) {
+                 return null;
+              }
+
+              const absExponent =
+                 exponent.num < 0n
+                    ? -exponent.num
+                    : exponent.num;
+
+              // Keep exact evaluation bounded.
+              if (absExponent > 100n) {
+                 return null;
+              }
+
+              let result = Rat.one;
+
+              for (
+                 let i = 0n;
+                 i < absExponent;
+                 i++
+              ) {
+                 result = Rat.mul(
+                    result,
+                    exactValues[0]
+                 );
+              }
+
+              if (exponent.num < 0n) {
+                 return Rat.div(
+                    Rat.one,
+                    result
+                 );
+              }
+
+              return result;
+           }
+
+           default:
+              return null;
+        }
+     } catch {
+        return null;
+     }
+  }
+
+  private rationalToAST(
+     value: Rational
+  ): CanonicalAST {
+     const simplified = Rat.simplify(value);
+
+     if (simplified.den === 1n) {
+        return {
+           type: 'Number',
+           value: simplified.num.toString()
+        };
+     }
+
+     return {
+        type: 'Operator',
+        operator: '/',
+        args: [
+           {
+              type: 'Number',
+              value: simplified.num.toString()
+           },
+           {
+              type: 'Number',
+              value: simplified.den.toString()
+           }
+        ]
+     };
   }
 
   private replaceAST(node: CanonicalAST, target: CanonicalAST, replacement: CanonicalAST): CanonicalAST {

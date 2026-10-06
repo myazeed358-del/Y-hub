@@ -23,35 +23,192 @@ export class ImproperIntegrationEngine {
     const assumptions: string[] = [];
 
     // 1. Analyze domain
-    const restrictions = this.domainAnalyzer.analyze(req.integrand);
-    let originalDomain = SetEngine.createRealLine();
+    const restrictions =
+       this.domainAnalyzer.analyze(req.integrand);
+
+    let originalDomain =
+       SetEngine.createRealLine(req.variable);
+
+    let domainComplete = true;
+
     for (const r of restrictions) {
-       let res;
-       if (r.type === 'inverse_trig') {
-          const gteq: CanonicalAST = { type: 'Inequality', operator: '>=', lhs: r.conditionAST, rhs: { type: 'Number', value: '-1' } };
-          const lteq: CanonicalAST = { type: 'Inequality', operator: '<=', lhs: r.conditionAST, rhs: { type: 'Number', value: '1' } };
-          const s1 = this.inequalityEngine.solve(gteq, req.variable);
-          const s2 = this.inequalityEngine.solve(lteq, req.variable);
-          if (s1.kind === 'solution_set' && s2.kind === 'solution_set') {
-             const intersect = SetEngine.intersection(s1.solution.intervals, s2.solution.intervals);
-             originalDomain = { type: 'SolutionSet', variable: req.variable, domainRestrictions: [], intervals: SetEngine.intersection(originalDomain.intervals, intersect) };
+       try {
+          if (r.type === 'inverse_trig') {
+             const gteq: CanonicalAST = {
+                type: 'Inequality',
+                operator: '>=',
+                lhs: r.conditionAST,
+                rhs: {
+                   type: 'Number',
+                   value: '-1'
+                }
+             };
+
+             const lteq: CanonicalAST = {
+                type: 'Inequality',
+                operator: '<=',
+                lhs: r.conditionAST,
+                rhs: {
+                   type: 'Number',
+                   value: '1'
+                }
+             };
+
+             const s1 =
+                this.inequalityEngine.solve(
+                   gteq,
+                   req.variable
+                );
+
+             const s2 =
+                this.inequalityEngine.solve(
+                   lteq,
+                   req.variable
+                );
+
+             if (
+                s1.kind === 'solution_set' &&
+                s2.kind === 'solution_set'
+             ) {
+                const intersect =
+                   SetEngine.intersection(
+                      s1.solution.intervals,
+                      s2.solution.intervals
+                   );
+
+                originalDomain = {
+                   ...originalDomain,
+                   intervals:
+                      SetEngine.intersection(
+                         originalDomain.intervals,
+                         intersect
+                      )
+                };
+             }
+          } else if (
+             r.type === 'inverse_sec_csc'
+          ) {
+             const lteq: CanonicalAST = {
+                type: 'Inequality',
+                operator: '<=',
+                lhs: r.conditionAST,
+                rhs: {
+                   type: 'Number',
+                   value: '-1'
+                }
+             };
+
+             const gteq: CanonicalAST = {
+                type: 'Inequality',
+                operator: '>=',
+                lhs: r.conditionAST,
+                rhs: {
+                   type: 'Number',
+                   value: '1'
+                }
+             };
+
+             const s1 =
+                this.inequalityEngine.solve(
+                   lteq,
+                   req.variable
+                );
+
+             const s2 =
+                this.inequalityEngine.solve(
+                   gteq,
+                   req.variable
+                );
+
+             if (
+                s1.kind === 'solution_set' &&
+                s2.kind === 'solution_set'
+             ) {
+                const union =
+                   SetEngine.union(
+                      s1.solution.intervals,
+                      s2.solution.intervals
+                   );
+
+                originalDomain = {
+                   ...originalDomain,
+                   intervals:
+                      SetEngine.intersection(
+                         originalDomain.intervals,
+                         union
+                      )
+                };
+             }
+          } else {
+             const ineq: CanonicalAST = {
+                type: 'Inequality',
+                operator:
+                   r.type === 'denominator'
+                      ? '!='
+                      : r.type === 'even_root'
+                        ? '>='
+                        : '>',
+                lhs: r.conditionAST,
+                rhs: {
+                   type: 'Number',
+                   value: '0'
+                }
+             };
+
+             const solved =
+                this.inequalityEngine.solve(
+                   ineq,
+                   req.variable
+                );
+
+             if (
+                solved.kind === 'solution_set'
+             ) {
+                originalDomain = {
+                   ...originalDomain,
+                   intervals:
+                      SetEngine.intersection(
+                         originalDomain.intervals,
+                         solved.solution.intervals
+                      )
+                };
+             }
           }
-       } else if (r.type === 'inverse_sec_csc') {
-          const lteq: CanonicalAST = { type: 'Inequality', operator: '<=', lhs: r.conditionAST, rhs: { type: 'Number', value: '-1' } };
-          const gteq: CanonicalAST = { type: 'Inequality', operator: '>=', lhs: r.conditionAST, rhs: { type: 'Number', value: '1' } };
-          const s1 = this.inequalityEngine.solve(lteq, req.variable);
-          const s2 = this.inequalityEngine.solve(gteq, req.variable);
-          if (s1.kind === 'solution_set' && s2.kind === 'solution_set') {
-             const union = SetEngine.union(s1.solution.intervals, s2.solution.intervals);
-             originalDomain = { type: 'SolutionSet', variable: req.variable, domainRestrictions: [], intervals: SetEngine.intersection(originalDomain.intervals, union) };
-          }
-       } else {
-          const ineq: CanonicalAST = { type: 'Inequality', operator: r.type === 'denominator' ? '!=' : (r.type === 'even_root' ? '>=' : '>'), lhs: r.conditionAST, rhs: { type: 'Number', value: '0' } };
-          const solved = this.inequalityEngine.solve(ineq, req.variable);
-          if (solved.kind === 'solution_set') {
-             originalDomain = { type: 'SolutionSet', variable: req.variable, domainRestrictions: [], intervals: SetEngine.intersection(originalDomain.intervals, solved.solution.intervals) };
+       } catch {
+          // Do not guess the domain of symbolic/non-polynomial
+          // restrictions. Improper convergence depends critically on
+          // singularity placement, so mark the analysis incomplete.
+          domainComplete = false;
+
+          const condition =
+             ASTUtils.serialize(
+                r.conditionAST
+             );
+
+          if (
+             !originalDomain.domainRestrictions.includes(
+                condition
+             )
+          ) {
+             originalDomain.domainRestrictions.push(
+                condition
+             );
           }
        }
+    }
+
+    if (!domainComplete) {
+       return this.buildResult(
+          req,
+          'unresolved',
+          [],
+          originalDomain,
+          [],
+          null,
+          'not_proven',
+          assumptions,
+          steps
+       );
     }
 
     if (!this.isNumericOrInf(req.lowerBound) || !this.isNumericOrInf(req.upperBound)) {
@@ -306,15 +463,56 @@ export class ImproperIntegrationEngine {
     };
   }
 
-  private isPointInDomain(pt: number, domainSet: any, checkRight: boolean): boolean {
-     // A very simple continuity check
+  private isPointInDomain(
+     pt: number,
+     domainSet: any,
+     _checkRight: boolean
+  ): boolean {
+     // This method answers membership, not one-sided accessibility.
+     //
+     // An open endpoint is NOT in the domain even when the interval
+     // extends to the right/left of it. Improperness is determined
+     // precisely by that distinction.
      for (const interval of domainSet.intervals) {
-        const min = interval.left.type === 'infinity' ? -Infinity : Number(interval.left.rational.num)/Number(interval.left.rational.den);
-        const max = interval.right.type === 'infinity' ? Infinity : Number(interval.right.rational.num)/Number(interval.right.rational.den);
-        if (pt > min && pt < max) return true;
-        if (pt === min && checkRight) return true; // It's fine if we are moving right into the interval
-        if (pt === max && !checkRight) return true; // It's fine if we are moving left into the interval
+        const min =
+           interval.left.type === 'infinity'
+              ? -Infinity
+              : Number(
+                   interval.left.rational.num
+                ) /
+                Number(
+                   interval.left.rational.den
+                );
+
+        const max =
+           interval.right.type === 'infinity'
+              ? Infinity
+              : Number(
+                   interval.right.rational.num
+                ) /
+                Number(
+                   interval.right.rational.den
+                );
+
+        if (pt > min && pt < max) {
+           return true;
+        }
+
+        if (
+           pt === min &&
+           interval.leftClosed
+        ) {
+           return true;
+        }
+
+        if (
+           pt === max &&
+           interval.rightClosed
+        ) {
+           return true;
+        }
      }
+
      return false;
   }
 

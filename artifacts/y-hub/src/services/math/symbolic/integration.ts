@@ -39,63 +39,159 @@ export class IntegrationEngine {
     
     // Domain Analysis
     const restrictions = this.domainAnalyzer.analyze(req.expression);
-    let domainSet = SetEngine.createRealLine();
-    let domainComplete = true;
+    let domainSet = SetEngine.createRealLine(req.variable);
 
-    try {
-      for (const r of restrictions) {
-       let res;
-       if (r.type === 'inverse_trig') {
-          // -1 <= u <= 1  <=> u >= -1 AND u <= 1
-          const gteq: CanonicalAST = { type: 'Inequality', operator: '>=', lhs: r.conditionAST, rhs: { type: 'Number', value: '-1' } };
-          const lteq: CanonicalAST = { type: 'Inequality', operator: '<=', lhs: r.conditionAST, rhs: { type: 'Number', value: '1' } };
-          const s1 = this.inequalityEngine.solve(gteq, req.variable);
-          const s2 = this.inequalityEngine.solve(lteq, req.variable);
-          if (s1.kind === 'solution_set' && s2.kind === 'solution_set') {
-             const intersect = SetEngine.intersection(s1.solution.intervals, s2.solution.intervals);
-             domainSet = {
-                 ...domainSet,
-                 intervals: SetEngine.intersection(
-                   domainSet.intervals,
-                   intersect
-                 )
-              };
+    for (const r of restrictions) {
+      try {
+        if (r.type === 'inverse_trig') {
+          // -1 <= u <= 1
+          const gteq: CanonicalAST = {
+            type: 'Inequality',
+            operator: '>=',
+            lhs: r.conditionAST,
+            rhs: { type: 'Number', value: '-1' }
+          };
+
+          const lteq: CanonicalAST = {
+            type: 'Inequality',
+            operator: '<=',
+            lhs: r.conditionAST,
+            rhs: { type: 'Number', value: '1' }
+          };
+
+          const s1 = this.inequalityEngine.solve(
+            gteq,
+            req.variable
+          );
+
+          const s2 = this.inequalityEngine.solve(
+            lteq,
+            req.variable
+          );
+
+          if (
+            s1.kind === 'solution_set' &&
+            s2.kind === 'solution_set'
+          ) {
+            const intersect = SetEngine.intersection(
+              s1.solution.intervals,
+              s2.solution.intervals
+            );
+
+            domainSet = {
+              ...domainSet,
+              intervals: SetEngine.intersection(
+                domainSet.intervals,
+                intersect
+              )
+            };
           }
-       } else if (r.type === 'inverse_sec_csc') {
+        } else if (r.type === 'inverse_sec_csc') {
           // u <= -1 OR u >= 1
-          const lteq: CanonicalAST = { type: 'Inequality', operator: '<=', lhs: r.conditionAST, rhs: { type: 'Number', value: '-1' } };
-          const gteq: CanonicalAST = { type: 'Inequality', operator: '>=', lhs: r.conditionAST, rhs: { type: 'Number', value: '1' } };
-          const s1 = this.inequalityEngine.solve(lteq, req.variable);
-          const s2 = this.inequalityEngine.solve(gteq, req.variable);
-          if (s1.kind === 'solution_set' && s2.kind === 'solution_set') {
-             const union = SetEngine.union(s1.solution.intervals, s2.solution.intervals);
-             domainSet = {
-                 ...domainSet,
-                 intervals: SetEngine.intersection(
-                   domainSet.intervals,
-                   union
-                 )
-              };
+          const lteq: CanonicalAST = {
+            type: 'Inequality',
+            operator: '<=',
+            lhs: r.conditionAST,
+            rhs: { type: 'Number', value: '-1' }
+          };
+
+          const gteq: CanonicalAST = {
+            type: 'Inequality',
+            operator: '>=',
+            lhs: r.conditionAST,
+            rhs: { type: 'Number', value: '1' }
+          };
+
+          const s1 = this.inequalityEngine.solve(
+            lteq,
+            req.variable
+          );
+
+          const s2 = this.inequalityEngine.solve(
+            gteq,
+            req.variable
+          );
+
+          if (
+            s1.kind === 'solution_set' &&
+            s2.kind === 'solution_set'
+          ) {
+            const union = SetEngine.union(
+              s1.solution.intervals,
+              s2.solution.intervals
+            );
+
+            domainSet = {
+              ...domainSet,
+              intervals: SetEngine.intersection(
+                domainSet.intervals,
+                union
+              )
+            };
           }
-       } else {
-          const ineq: CanonicalAST = { type: 'Inequality', operator: r.type === 'denominator' ? '!=' : (r.type === 'even_root' ? '>=' : '>'), lhs: r.conditionAST, rhs: { type: 'Number', value: '0' } };
-          const solved = this.inequalityEngine.solve(ineq, req.variable);
+        } else {
+          const ineq: CanonicalAST = {
+            type: 'Inequality',
+            operator:
+              r.type === 'denominator'
+                ? '!='
+                : r.type === 'even_root'
+                  ? '>='
+                  : '>',
+            lhs: r.conditionAST,
+            rhs: { type: 'Number', value: '0' }
+          };
+
+          const solved = this.inequalityEngine.solve(
+            ineq,
+            req.variable
+          );
+
           if (solved.kind === 'solution_set') {
-             domainSet = {
-                 ...domainSet,
-                 intervals: SetEngine.intersection(
-                   domainSet.intervals,
-                   solved.solution.intervals
-                 )
-              };
+            domainSet = {
+              ...domainSet,
+              intervals: SetEngine.intersection(
+                domainSet.intervals,
+                solved.solution.intervals
+              )
+            };
           }
-       }
+        }
+      } catch {
+        // Some valid restrictions are symbolic/periodic and cannot
+        // be represented as a finite interval union by the current
+        // polynomial inequality solver. Preserve the exact
+        // restriction instead of discarding the whole domain.
+        const condition =
+          ASTUtils.serialize(r.conditionAST);
+
+        let relation: string;
+
+        if (r.type === 'denominator') {
+          relation = '!= 0';
+        } else if (r.type === 'even_root') {
+          relation = '>= 0';
+        } else if (r.type === 'logarithm') {
+          relation = '> 0';
+        } else if (r.type === 'inverse_trig') {
+          relation = 'in [-1, 1]';
+        } else {
+          relation = '<= -1 or >= 1';
+        }
+
+        const description =
+          `${condition} ${relation}`;
+
+        if (
+          !domainSet.domainRestrictions.includes(
+            description
+          )
+        ) {
+          domainSet.domainRestrictions.push(
+            description
+          );
+        }
       }
-    } catch {
-      // Some restrictions, such as sin(x) != 0, are valid domain
-      // constraints but are outside the polynomial inequality solver.
-      // Do not let domain analysis crash integration.
-      domainComplete = false;
     }
 
     try {
@@ -110,7 +206,7 @@ export class IntegrationEngine {
         request: req,
         status: 'exact_symbolic',
         antiderivative: antideriv,
-        domain: domainComplete ? domainSet : null,
+        domain: domainSet,
         verificationStatus: verifiedStatus,
         substitution: this.lastSubStep,
         parts: this.partsSteps,
@@ -128,7 +224,7 @@ export class IntegrationEngine {
         request: req,
         status: 'unresolved',
         antiderivative: null,
-        domain: domainComplete ? domainSet : null,
+        domain: domainSet,
         verificationStatus: 'verification_failed',
         substitution: this.lastSubStep,
         parts: this.partsSteps,
@@ -466,6 +562,50 @@ export class IntegrationEngine {
        } catch {
           // Fall through to the remaining direct patterns.
        }
+    }
+
+    // ∫ 1/sqrt(x) dx = 2sqrt(x)
+    //
+    // Keep this structural rather than rewriting the exponent as a
+    // Number such as "-1/2". Canonical Number nodes are decimal/integer
+    // literals; exact fractions belong in AST operator form.
+    if (
+       node.type === 'Operator' &&
+       node.operator === '/' &&
+       node.args[0].type === 'Number' &&
+       node.args[0].value === '1' &&
+       node.args[1].type === 'Function' &&
+       node.args[1].name === 'sqrt' &&
+       node.args[1].args.length === 1 &&
+       node.args[1].args[0].type === 'Symbol' &&
+       node.args[1].args[0].name === variable
+    ) {
+       steps.push({
+          id: `int_inv_sqrt_${Date.now()}`,
+          title: 'Inverse Square Root Rule',
+          explanation: '∫ 1/sqrt(x) dx = 2sqrt(x)'
+       });
+
+       return {
+          type: 'Operator',
+          operator: '*',
+          args: [
+             {
+                type: 'Number',
+                value: '2'
+             },
+             {
+                type: 'Function',
+                name: 'sqrt',
+                args: [
+                   {
+                      type: 'Symbol',
+                      name: variable
+                   }
+                ]
+             }
+          ]
+       };
     }
 
     // ∫ 1/x dx (if formatted as division)

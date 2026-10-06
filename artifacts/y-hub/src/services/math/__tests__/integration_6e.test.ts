@@ -88,11 +88,26 @@ describe('CORE CALCULUS 6E - TRIGONOMETRIC INTEGRALS ENGINE', () => {
 
   it('J) Domain constraints of tan(x) are preserved', () => {
     const ast = func('tan', sym('x'));
-    const req: IntegrationRequest = { expression: ast, variable: 'x' };
+    const req: IntegrationRequest = {
+      expression: ast,
+      variable: 'x'
+    };
+
     const res = engine.integrateRequest(req);
+
     expect(res.domain).not.toBeNull();
-    // tan(x) should have undefined points preserved
-    expect(res.domain?.intervals.length).toBeGreaterThan(1);
+
+    // tan(x) is undefined wherever cos(x) = 0.
+    //
+    // This is a periodic infinite exclusion and therefore cannot be
+    // represented faithfully as a finite list of intervals.
+    expect(
+      res.domain?.domainRestrictions.some(
+        restriction =>
+          restriction.includes('cos(x)') &&
+          restriction.includes('!= 0')
+      )
+    ).toBe(true);
   });
 
   it('K) Complexity / limit check', () => {

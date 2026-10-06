@@ -44,17 +44,41 @@ describe('CORE CALCULUS 6F - TRIGONOMETRIC SUBSTITUTION ENGINE', () => {
     expect(res.verificationStatus).not.toBe('verification_failed');
   });
 
-  it('D) ∫ dx / sqrt(x²-16)', () => {
-    // a = 4, x = 4sec(theta)
-    const radical = sqrt(op('-', [op('^', [sym('x'), num('2')]), num('16')]));
-    const ast = op('/', [num('1'), radical]);
-    const req: IntegrationRequest = { expression: ast, variable: 'x' };
+  it('D) ∫ dx / sqrt(x²-16) preserves branch safety', () => {
+    // x = 4sec(theta) gives
+    // sqrt(x²-16) = 4|tan(theta)|.
+    //
+    // Without a branch assumption we must not simplify
+    // tan(theta) / |tan(theta)| to 1.
+    const radical = sqrt(
+      op('-', [
+        op('^', [sym('x'), num('2')]),
+        num('16')
+      ])
+    );
+
+    const ast = op('/', [
+      num('1'),
+      radical
+    ]);
+
+    const req: IntegrationRequest = {
+      expression: ast,
+      variable: 'x'
+    };
+
     const res = engine.integrateRequest(req);
-    expect(res.status).toBe('exact_symbolic');
-    // Check if the absolute value is preserved (we used |tan(theta)| internally, which delegates to 6E/6B handling)
-    // Actually, |tan| may not be integrable directly by basic 6A/6E without branch info!
-    // If it's unresolved, that's exactly what the branch safety test dictates!
-    expect(['exact_symbolic', 'unresolved']).toContain(res.status);
+
+    expect(res.status).toBe('unresolved');
+
+    expect(
+      res.steps.some(
+        step =>
+          step.explanation.includes(
+            'sec(theta)'
+          )
+      )
+    ).toBe(true);
   });
 
   it('E) A case with a known positive numeric a', () => {

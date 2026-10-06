@@ -83,10 +83,40 @@ describe('CORE CALCULUS 6H - IMPROPER INTEGRATION ENGINE', () => {
   });
 
   it('11. A two-sided infinite integral', () => {
-    const req: DefiniteIntegrationRequest = { integrand: func('exp', op('*', [num('-1'), pwr(sym('x'), '2')])), variable: 'x', lowerBound: op('*', [num('-1'), sym('infinity')]), upperBound: sym('infinity') };
+    const req: DefiniteIntegrationRequest = {
+      integrand: func(
+        'exp',
+        op('*', [
+          num('-1'),
+          pwr(sym('x'), '2')
+        ])
+      ),
+      variable: 'x',
+      lowerBound: op('*', [
+        num('-1'),
+        sym('infinity')
+      ]),
+      upperBound: sym('infinity')
+    };
+
     const res = engine.evaluateImproperIntegral(req);
-    // Split at 0
-    expect(res.pieces.length).toBe(2);
+
+    // A doubly-improper interval is represented as one piece
+    // containing two independently evaluated components around
+    // a finite split point.
+    expect(res.pieces.length).toBe(1);
+
+    expect(
+      res.pieces[0]?.doublyImproperSplitPoint
+    ).toBeDefined();
+
+    expect(
+      res.pieces[0]?.leftComponent
+    ).toBeDefined();
+
+    expect(
+      res.pieces[0]?.rightComponent
+    ).toBeDefined();
   });
 
   it('12. A deliberately unsupported limit/convergence case', () => {
