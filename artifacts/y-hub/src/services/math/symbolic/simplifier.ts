@@ -341,11 +341,34 @@ export class SymbolicSimplifier {
     const vals = args.map(a => parseFloat((a as any).value));
     let res = 0;
     switch (op) {
-      case '+': res = vals[0] + vals[1]; break;
-      case '-': res = vals[0] - vals[1]; break;
-      case '*': case 'implicit_multiply': res = vals[0] * vals[1]; break;
-      case '/': res = vals[0] / vals[1]; break;
-      case '^': res = Math.pow(vals[0], vals[1]); break;
+      case '+':
+        res = vals.reduce((sum, value) => sum + value, 0);
+        break;
+
+      case '-':
+        res = vals.length === 1
+          ? -vals[0]
+          : vals[0] - vals.slice(1).reduce(
+              (sum, value) => sum + value,
+              0
+            );
+        break;
+
+      case '*':
+      case 'implicit_multiply':
+        res = vals.reduce(
+          (product, value) => product * value,
+          1
+        );
+        break;
+
+      case '/':
+        res = vals[0] / vals[1];
+        break;
+
+      case '^':
+        res = Math.pow(vals[0], vals[1]);
+        break;
     }
     return { type: 'Number', value: res.toString() };
   }

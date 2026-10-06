@@ -94,9 +94,26 @@ export class MathVerifier {
       return { status: 'exactly_equivalent', methodUsed: 'substitution', explanation: 'Substituting the root back into the equation maintains strict equality.' };
     }
     if (eq === 'numerically_consistent') {
-      return { status: 'numerically_consistent', methodUsed: 'substitution', explanation: 'Substituting the root back into the equation yields numerically consistent equality.' };
+      return {
+        status: 'numerically_consistent',
+        methodUsed: 'substitution',
+        explanation: 'Substituting the root back into the equation yields numerically consistent equality.'
+      };
     }
-    return { status: 'not_proven', methodUsed: 'substitution', explanation: 'Could not prove root correctness symbolically or numerically.' };
+
+    if (eq === 'not_equivalent') {
+      return {
+        status: 'not_equivalent',
+        methodUsed: 'substitution',
+        explanation: 'Substituting the candidate into the original equation contradicts the equality.'
+      };
+    }
+
+    return {
+      status: 'not_proven',
+      methodUsed: 'substitution',
+      explanation: 'Could not prove root correctness symbolically or numerically.'
+    };
   }
 }
 

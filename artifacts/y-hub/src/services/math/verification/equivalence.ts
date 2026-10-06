@@ -28,6 +28,21 @@ export class EquivalenceVerifier {
       const varsIn2 = ASTUtils.extractSymbols(ast2);
       const allVars = Array.from(new Set([...varsIn1, ...varsIn2]));
       
+      if (allVars.length === 0) {
+        try {
+          const v1 = this.evaluator.evaluate(ast1, {});
+          const v2 = this.evaluator.evaluate(ast2, {});
+
+          if (Number.isFinite(v1) && Number.isFinite(v2)) {
+            return Math.abs(v1 - v2) < 1e-9
+              ? 'numerically_consistent'
+              : 'not_equivalent';
+          }
+        } catch {
+          // Fall through to the existing symbolic result.
+        }
+      }
+
       if (allVars.length > 0) {
         let matches = 0;
         let attempts = 0;

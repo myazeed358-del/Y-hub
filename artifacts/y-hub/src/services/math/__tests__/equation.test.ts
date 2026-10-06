@@ -1,6 +1,7 @@
 import { EquationSolver } from '../symbolic/equation';
 import { ExpressionParser } from '../parser';
 import { ASTNormalizer } from '../parser/normalizer';
+import { ASTUtils } from '../symbolic/utils';
 
 describe('CORE CALCULUS SUBPHASE 2 - Equation Solver Benchmarks', () => {
   const parser = new ExpressionParser();
@@ -38,7 +39,17 @@ describe('CORE CALCULUS SUBPHASE 2 - Equation Solver Benchmarks', () => {
       const ast = parseToAST('x^2 + 1 = 0');
       const { finalSolutions } = solver.solve(ast, 'x', { domain: 'complex', mode: 'EXACT' });
       expect(finalSolutions.length).toBe(2);
-      expect(finalSolutions[0].value.type).toBe('Operator'); // AST containing i
+
+      expect(
+        finalSolutions.every(solution =>
+          ASTUtils.findNode(
+            solution.value,
+            node =>
+              node.type === 'Constant' &&
+              node.name === 'i'
+          ) !== null
+        )
+      ).toBe(true);
     });
   });
 
