@@ -6,8 +6,8 @@ export class RuleEngine {
   private evalMembership(x: number, m_type: string, params: Record<string, number>): number {
     if (m_type === 'triangle') {
       const { a, b, c } = params;
-      if (x <= a || x >= c) return 0;
       if (x === b) return 1;
+      if (x <= a || x >= c) return 0;
       return x < b ? (x - a) / (b - a) : (c - x) / (c - b);
     }
     if (m_type === 'trapezoid') {

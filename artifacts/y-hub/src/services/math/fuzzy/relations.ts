@@ -123,6 +123,51 @@ export class FuzzyRelation {
     return { reflexive, irreflexive, symmetric, antisymmetric, transitive, isTolerance, isEquivalence };
   }
 
+  public project(axis: 0 | 1): number[] {
+    if (axis === 0) {
+      return Array.from(
+        { length: this.cols },
+        (_, j) => Math.max(...this.matrix.map(row => row[j]))
+      );
+    }
+
+    if (axis === 1) {
+      return this.matrix.map(row => Math.max(...row));
+    }
+
+    throw new Error('Projection axis must be 0 or 1.');
+  }
+
+  public static cylindricalExtension(
+    projection: number[],
+    size: number,
+    axis: 0 | 1
+  ): FuzzyRelation {
+    if (!Number.isInteger(size) || size <= 0) {
+      throw new Error('Cylindrical extension size must be a positive integer.');
+    }
+
+    if (projection.length === 0) {
+      throw new Error('Projection must not be empty.');
+    }
+
+    if (axis === 0) {
+      return new FuzzyRelation(
+        Array.from({ length: size }, () => [...projection])
+      );
+    }
+
+    if (axis === 1) {
+      return new FuzzyRelation(
+        projection.map(value =>
+          Array.from({ length: size }, () => value)
+        )
+      );
+    }
+
+    throw new Error('Cylindrical extension axis must be 0 or 1.');
+  }
+
   public transitiveClosure(limit: number = 100): RelationClosureResult {
     let current: FuzzyRelation = this;
     let converged = false;

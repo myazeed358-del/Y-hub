@@ -50,7 +50,6 @@ describe('Fuzzy Defuzzification', () => {
     // cumulative: 0.2, 1.0, 1.0 -> target 0.5 -> crosses at index 1 (x=1)
     expect(engine.executeDiscrete(points, 'bisector').value).toBe(1);
   });
-  });
 
   it('Rejects weighted_average for invalid input types', () => {
     const points = [

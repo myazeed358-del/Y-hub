@@ -40,7 +40,6 @@ describe('Fuzzy Relations', () => {
     // 0 -> 1 -> 2 => 0 -> 2 with min(0.5, 0.5) = 0.5
     expect(closure.matrix[0][2]).toBe(0.5);
   });
-  });
 
   it('Calculates Max-Product Composition', () => {
     const A = new FuzzyRelation([[0.5, 0.8]]);

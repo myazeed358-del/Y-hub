@@ -430,9 +430,9 @@ export default function MathSolver() {
                     paper_bgcolor: 'transparent',
                     plot_bgcolor: 'transparent',
                     scene: {
-                      xaxis: { title: 'X', showgrid: true, zeroline: true },
-                      yaxis: { title: 'Y', showgrid: true, zeroline: true },
-                      zaxis: { title: 'Z', showgrid: true, zeroline: true },
+                      xaxis: { title: { text: 'X' }, showgrid: true, zeroline: true },
+                      yaxis: { title: { text: 'Y' }, showgrid: true, zeroline: true },
+                      zaxis: { title: { text: 'Z' }, showgrid: true, zeroline: true },
                     }
                   }}
                   useResizeHandler={true}

@@ -128,7 +128,6 @@ describe('Unified Fuzzy Controller Engine (F10)', () => {
     expect(res.x.length).toBe(10);
     expect(res.y.length).toBe(10);
   });
-  });
 
   it('TEST P - Resource limiting avoids unbounded sweeps', async () => {
     const heavyReq: ResponseAnalysisRequest = { controller: baseController, fixedInputs: { humidity: 75 }, sweepVariable: 'temp', targetOutput: 'fan', points: 10000000 };

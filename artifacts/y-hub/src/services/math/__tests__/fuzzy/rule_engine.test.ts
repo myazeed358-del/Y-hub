@@ -35,6 +35,8 @@ describe('Fuzzy Rule Parser', () => {
 });
 
 describe('Fuzzy Rule Engine', () => {
+  const parser = new RuleParser();
+
   const ruleBase: RuleBase = {
     variables: {
       temp: {
@@ -85,7 +87,6 @@ describe('Fuzzy Rule Engine', () => {
     const diag = badEngine.analyzeDiagnostics();
     expect(diag.duplicates.length).toBeGreaterThan(0);
   });
-  });
 
   it('Verifies AST Precedence (NOT > AND > OR)', () => {
     // A OR B AND NOT C => A OR (B AND (NOT C))
@@ -103,9 +104,9 @@ describe('Fuzzy Rule Engine', () => {
   it('Rejects deep nesting to prevent stack overflows', () => {
     let deep = 'A IS high';
     for (let i = 0; i < 55; i++) {
-       deep = \( \ AND A IS high ) \;
+         deep = `( ${deep} AND A IS high )`;
     }
-    expect(() => parser.parseRule(\IF \ THEN B IS low\)).toThrow();
+      expect(() => parser.parseRule(`IF ${deep} THEN B IS low`)).toThrow();
   });
 });
 
@@ -137,7 +138,11 @@ describe('Fuzzy Engine Diagnostics & Semantics', () => {
   };
 
   it('Enforces variable boundaries [0, 100]', () => {
-    const engine = new RuleEngine(ruleBase);
+    const engine = new RuleEngine(ruleBase, {
+      tNorm: 'min',
+      tConorm: 'max',
+      domainPolicy: 'clamp'
+    });
     const fuz = engine.fuzzify({ temp: 150 });
     // Should clamp to 100
     expect(fuz['temp'].crispInput).toBe(100);
@@ -155,9 +160,6 @@ describe('Fuzzy Engine Diagnostics & Semantics', () => {
     expect(evalsR1[0].firingStrength).toBeCloseTo(Math.sqrt(0.5) * 1.0, 8); // somewhat
     expect(evalsR2[0].firingStrength).toBeCloseTo(Math.sqrt(0.5) * 1.0, 8); // more-or-less (rule 2 weight changed back to 1.0 for this test)
   }); // x=65 -> mem=0.5
-    const evals = engine.evaluateRules(fuz).filter(r => r.ruleId === 'R1');
-    expect(evals[0].firingStrength).toBeCloseTo(Math.sqrt(0.5), 8);
-  });
 
   it('Throws on invalid rule weight', () => {
     const badEngine = new RuleEngine({
@@ -166,9 +168,6 @@ describe('Fuzzy Engine Diagnostics & Semantics', () => {
     });
     const fuz = badEngine.fuzzify({ temp: 65 });
     expect(() => badEngine.evaluateRules(fuz)).toThrow(/Rule weight must be in \[0,1\]/);
-  });
-    expect(() => engine.evaluateRules(fuz)).toThrow(/Rule weight must be in \[0,1\]/);
-  });
   });
 
   it('Evaluates VERY hedge boundary and intermediate values exactly as x^2', () => {
