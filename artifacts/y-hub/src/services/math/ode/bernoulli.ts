@@ -65,7 +65,7 @@ export class BernoulliODEEngine {
 
         // Back-substitution: y^(1-n) = v
         for (const sol of linRes.solutions) {
-            if (sol.type === 'explicit') {
+            if (sol.type === 'explicit' && sol.equation.type === 'Equation') {
                 const vExpr = sol.equation.rhs;
                 const implicitEq = { type: 'Equation', lhs: { type: 'Operator', operator: '^', args: [{ type: 'Symbol', name: y }, oneMinusN] }, rhs: vExpr } as CanonicalAST;
                 

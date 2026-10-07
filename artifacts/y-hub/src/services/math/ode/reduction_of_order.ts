@@ -5,6 +5,7 @@ import { DerivativeEngine } from '../symbolic/derivative';
 import { IntegrationEngine } from '../symbolic/integration';
 import { ODEUtils } from './utils';
 import { DomainAnalyzer } from '../domain';
+import { SetEngine } from '../symbolic/sets';
 
 export class ReductionOfOrderEngine {
     private simplifier = new SymbolicSimplifier();
@@ -69,7 +70,13 @@ export class ReductionOfOrderEngine {
             // y = v * y1
             const y2 = this.simplifier.simplify({ type: 'Operator', operator: '*', args: [v, y1] });
 
-            const domain = this.domainAnalyzer.analyzeDomain(y2, x);
+            let domain: ODESolution['domain'] = null;
+            try {
+                const restrictions = this.domainAnalyzer.analyze(y2);
+                if (restrictions.length === 0) {
+                    domain = SetEngine.createRealLine(x);
+                }
+            } catch {}
             
             return {
                 solutions: [{

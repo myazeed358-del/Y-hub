@@ -57,6 +57,8 @@ export class IVPEngine {
                     }
                 } else {
                     // N-th order system
+                    if (sol.equation.type !== 'Equation') continue;
+
                     const cNames = Array.from({ length: n }, (_, i) => `C${i + 1}`);
                     
                     const f_x = sol.equation.rhs;
@@ -109,7 +111,7 @@ export class IVPEngine {
 
                     const constants = this.solveLinearSystem(matrix, rhsVec);
                     if (constants) {
-                        let particularEq = sol.equation;
+                        let particularEq: CanonicalAST = sol.equation;
                         for (let i = 0; i < n; i++) {
                             const cstAST = this.ratToAST(constants[i]);
                             particularEq = ASTUtils.replaceNode(particularEq, { type: 'Symbol', name: cNames[i] }, cstAST) as CanonicalAST;
@@ -143,7 +145,11 @@ export class IVPEngine {
                         validity: 'established'
                     };
                 }
-            } else if (sol.type === 'equilibrium' && n === 1) {
+            } else if (
+                sol.type === 'equilibrium' &&
+                n === 1 &&
+                sol.equation.type === 'Equation'
+            ) {
                 const diff = this.simplifier.simplify({ type: 'Operator', operator: '-', args: [y0, sol.equation.rhs] });
                 if (diff.type === 'Number' && diff.value === '0') {
                     return { particularSolution: sol, validity: 'established' };

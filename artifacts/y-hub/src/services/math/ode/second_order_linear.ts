@@ -82,38 +82,7 @@ export class SecondOrderLinearODEEngine {
 
         if (!A || !B || !C || A.num === 0n) return null;
 
-        const isZeroG = g.type === 'Number' && g.value === '0';
-        if (!isZeroG) {
-            let ypFound = false;
-
-            // Try Undetermined Coefficients
-            const { UndeterminedCoefficientsEngine } = require('./undetermined_coefficients');
-            const ucEngine = new UndeterminedCoefficientsEngine();
-            const ucRes = ucEngine.solveParticular(req, g, x, [a0, a1, a2]);
-            if (ucRes) {
-                steps.push(...ucRes.steps);
-                finalY = { type: 'Operator', operator: '+', args: [finalY, ucRes.yp] } as CanonicalAST;
-                ypFound = true;
-            }
-
-            // Fallback to Variation of Parameters
-            if (!ypFound) {
-                const { VariationOfParametersEngine } = require('./variation_of_parameters');
-                const vopEngine = new VariationOfParametersEngine();
-                const vopRes = vopEngine.solveParticular(req, y1, y2, g, x);
-                if (!vopRes) return null;
-
-                steps.push(...vopRes.steps);
-                finalY = { type: 'Operator', operator: '+', args: [finalY, vopRes.yp] } as CanonicalAST;
-            }
-        }
-
-        steps.push({
-            strategy: isZeroG ? 'Second-Order Linear Homogeneous (Constant Coefficients)' : 'Second-Order Nonhomogeneous (Constant Coefficients)',
-            inputExpression: req.equation,
-            transformation: 'Solved characteristic equation and assembled full solution',
-            resultingExpression: { type: 'Equation', lhs: { type: 'Symbol', name: y }, rhs: finalY }
-        });
+        const steps: ODEStep[] = [];
 
         // Exact Arithmetic Helpers
         const add = (a: any, b: any) => ({ num: a.num * b.den + b.num * a.den, den: a.den * b.den });
@@ -191,8 +160,65 @@ export class SecondOrderLinearODEEngine {
 
         let finalY = yh;
 
+        const isZeroG =
+            g.type === 'Number' &&
+            g.value === '0';
+
+        if (!isZeroG) {
+            // Normalize A*x^2*y'' + B*x*y' + C*y = g(x)
+            // to y'' + p(x)y' + q(x)y = g(x)/(A*x^2)
+            // before applying variation of parameters.
+            const leadingCoeff = this.simplifier.simplify({
+                type: 'Operator',
+                operator: '*',
+                args: [
+                    toAST(A),
+                    {
+                        type: 'Operator',
+                        operator: '^',
+                        args: [
+                            { type: 'Symbol', name: x },
+                            { type: 'Number', value: '2' }
+                        ]
+                    }
+                ]
+            } as CanonicalAST);
+
+            const normalizedG = this.simplifier.simplify({
+                type: 'Operator',
+                operator: '/',
+                args: [g, leadingCoeff]
+            } as CanonicalAST);
+
+            const vopEngine =
+                new VariationOfParametersEngine();
+
+            const vopResult =
+                vopEngine.solveParticular(
+                    req,
+                    y1,
+                    y2,
+                    normalizedG,
+                    x
+                );
+
+            if (!vopResult) {
+                return null;
+            }
+
+            steps.push(...vopResult.steps);
+
+            finalY = this.simplifier.simplify({
+                type: 'Operator',
+                operator: '+',
+                args: [finalY, vopResult.yp]
+            } as CanonicalAST);
+        }
+
         steps.push({
-            strategy: 'Cauchy-Euler Second-Order Linear Homogeneous',
+            strategy: isZeroG
+                ? 'Cauchy-Euler Second-Order Linear Homogeneous'
+                : 'Cauchy-Euler Second-Order Linear Nonhomogeneous',
             inputExpression: req.equation,
             transformation: 'Solved characteristic equation Ar^2 + (B-A)r + C = 0',
             resultingExpression: { type: 'Equation', lhs: { type: 'Symbol', name: y }, rhs: finalY }

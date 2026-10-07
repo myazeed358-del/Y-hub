@@ -17,7 +17,7 @@ export interface UserProfile {
 
 export interface SignUpData {
   email: string;
-  password?: string;
+  password: string;
   full_name?: string;
   age?: string | number;
   major?: string;

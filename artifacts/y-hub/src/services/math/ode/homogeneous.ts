@@ -163,7 +163,10 @@ export class HomogeneousODEEngine {
         } as any;
 
         for (const sol of sepRes.solutions) {
-            if (sol.type === 'explicit' || sol.type === 'equilibrium') {
+            if (
+                (sol.type === 'explicit' || sol.type === 'equilibrium') &&
+                sol.equation.type === 'Equation'
+            ) {
                 const implicitEq = { type: 'Equation', lhs: y_over_x, rhs: sol.equation.rhs } as CanonicalAST;
                 
                 const ySols = this.eqEngine.solveEquation(implicitEq, y);

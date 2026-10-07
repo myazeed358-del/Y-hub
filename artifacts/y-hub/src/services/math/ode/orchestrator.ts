@@ -123,11 +123,14 @@ export class ODEOrchestrator {
                     if (req.initialCondition) {
                         const ivpRes = this.ivpEngine.solveIVP(req, result.solutions);
                         ivpValidity = ivpRes.validity;
-                        if (ivpRes.particularSolution) {
+                        if (
+                            ivpRes.particularSolution &&
+                            ivpRes.particularSolution.equation.type === 'Equation'
+                        ) {
                             particularSol = ivpRes.particularSolution;
 
                             let verifiedODE = false;
-                            const y_x = particularSol.equation.rhs;
+                            const y_x = ivpRes.particularSolution.equation.rhs;
                             const y_prime_x = this.simplifier.simplify(this.derivativeEngine.differentiate(y_x, req.independentVariable));
                             const y_double_prime_x = this.simplifier.simplify(this.derivativeEngine.differentiate(y_prime_x, req.independentVariable));
 
@@ -158,10 +161,13 @@ export class ODEOrchestrator {
                         }
                     } else if (req.boundaryConditions && req.boundaryConditions.length > 0) {
                         const bvpRes = this.bvpEngine.solveBVP(req, result.solutions);
-                        if (bvpRes.particularSolution) {
+                        if (
+                            bvpRes.particularSolution &&
+                            bvpRes.particularSolution.equation.type === 'Equation'
+                        ) {
                             particularSol = bvpRes.particularSolution;
 
-                            const y_x = particularSol.equation.rhs;
+                            const y_x = bvpRes.particularSolution.equation.rhs;
                             const eq1 = this.simplifier.simplify(ASTUtils.replaceNode(y_x, { type: 'Symbol', name: req.independentVariable }, req.boundaryConditions[0].x));
                             const eq2 = this.simplifier.simplify(ASTUtils.replaceNode(y_x, { type: 'Symbol', name: req.independentVariable }, req.boundaryConditions[1].x));
 
@@ -405,7 +411,11 @@ export class ODEOrchestrator {
                         ivpValidity = ivpRes.validity;
                         particularSol = ivpRes.particularSolution;
 
-                        if (particularSol && ivpValidity === 'established') {
+                        if (
+                            particularSol &&
+                            ivpValidity === 'established' &&
+                            particularSol.equation.type === 'Equation'
+                        ) {
                             let verifiedODE = false;
 
                             const y_x = particularSol.equation.rhs;

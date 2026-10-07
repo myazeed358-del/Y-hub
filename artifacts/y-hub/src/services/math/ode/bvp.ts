@@ -14,7 +14,7 @@ export class BVPEngine {
         const xVar = req.independentVariable;
         
         for (const sol of solutions) {
-            if (sol.type === 'explicit') {
+            if (sol.type === 'explicit' && sol.equation.type === 'Equation') {
                 const f_x = sol.equation.rhs;
                 
                 const bc1 = req.boundaryConditions[0];
