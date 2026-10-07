@@ -53,6 +53,7 @@ import AIGenerator from '@/pages/AIGenerator';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import Login from '@/pages/Login';
 import GuestLanding from '@/pages/GuestLanding';
+import { canAccessEngineRoute, getAllowedEngineRoutes } from '@/config/majorEngineAccess';
 import ProfilePage from '@/pages/Profile';
 import CalculusSolver from '@/pages/CalculusSolver';
 import MathSolver from '@/pages/MathSolver';
@@ -366,6 +367,23 @@ function Shell({ children }: { children: ReactNode }) {
   const [activeCourseName, setActiveCourseName] = useState<string | null>(null);
 
   const dynamicNavItems = useMemo(() => {
+    const isAdmin =
+      authProfile?.role === 'admin' ||
+      authProfile?.role === 'super_admin';
+
+    const allowedEngineRoutes = new Set(
+      getAllowedEngineRoutes(authProfile?.major)
+    );
+
+    const engineItems = [
+      { href: '/calculus', key: 'calculusPlotter' as UiKey, icon: LineChart },
+      { href: '/math-solver', key: 'calculus3Solver' as UiKey, icon: Box },
+      { href: '/solver', key: 'solver' as UiKey, icon: Calculator },
+      { href: '/lab', key: 'lab' as UiKey, icon: FlaskConical },
+    ].filter(
+      (item) => isAdmin || allowedEngineRoutes.has(item.href)
+    );
+
     return [
       {
         section: 'learningSpace' as UiKey,
@@ -374,17 +392,16 @@ function Shell({ children }: { children: ReactNode }) {
           { href: '/quiz', key: 'quickPractice' as UiKey, icon: BrainCircuit },
         ]
       },
-      {
-        section: 'understandingTools' as UiKey,
-        items: [
-          { href: '/calculus', key: 'calculusPlotter' as UiKey, icon: LineChart },
-          { href: '/math-solver', key: 'calculus3Solver' as UiKey, icon: Box },
-          { href: '/solver', key: 'solver' as UiKey, icon: Calculator },
-          { href: '/lab', key: 'lab' as UiKey, icon: FlaskConical },
-        ]
-      }
+      ...(engineItems.length > 0
+        ? [
+            {
+              section: 'understandingTools' as UiKey,
+              items: engineItems,
+            },
+          ]
+        : []),
     ];
-  }, [authProfile?.role]);
+  }, [authProfile?.major, authProfile?.role]);
 
   useEffect(() => {
     const courseMatch = location.match(/\/course\/([^/]+)/);
@@ -1075,8 +1092,13 @@ function NotFound() {
 
 import StudentDashboard from '@/pages/StudentDashboard';
 
-function ProtectedRoute({ component: Component, roleRequired, ...rest }: any) {
-  const { user, role, loading } = useAuth();
+function ProtectedRoute({
+  component: Component,
+  roleRequired,
+  enginePath,
+  ...rest
+}: any) {
+  const { user, role, profile, loading } = useAuth();
   const { language, setLanguage } = useLanguage();
 
   if (loading) return (
@@ -1093,6 +1115,41 @@ function ProtectedRoute({ component: Component, roleRequired, ...rest }: any) {
           setLanguage(language === 'ar' ? 'en' : 'ar')
         }
       />
+    );
+  }
+
+  const hasAdminBypass =
+    role === 'admin' || role === 'super_admin';
+
+  if (
+    enginePath &&
+    !hasAdminBypass &&
+    !canAccessEngineRoute(profile?.major, enginePath)
+  ) {
+    return (
+      <div className="flex min-h-[70vh] w-full flex-col items-center justify-center space-y-4 px-4 text-center">
+        <XCircle className="h-14 w-14 text-[hsl(var(--destructive))]" />
+
+        <h2 className="text-2xl font-bold">
+          {language === 'ar'
+            ? 'هذا المحرك غير متاح لتخصصك'
+            : 'This engine is not available for your major'}
+        </h2>
+
+        <p className="max-w-md text-sm leading-7 text-[hsl(var(--muted-foreground))]">
+          {language === 'ar'
+            ? 'تظهر لك الأدوات والمحركات الأكاديمية المرتبطة بتخصصك فقط.'
+            : 'Y HUB only shows academic tools and engines associated with your major.'}
+        </p>
+
+        <Link href="/">
+          <Button variant="default">
+            {language === 'ar'
+              ? 'العودة إلى الصفحة الرئيسية'
+              : 'Back to overview'}
+          </Button>
+        </Link>
+      </div>
     );
   }
 
@@ -1158,13 +1215,13 @@ function Router() {
       <Route path="/course/:id/view">{(params) => <ProtectedRoute component={StudentCourseView} params={params} />}</Route>
       <Route path="/course/:id/ai-tutor">{(params) => <ProtectedRoute component={AIGenerator} params={params} />}</Route>
       <Route path="/exam/:id">{(params) => <ProtectedRoute component={ExamRunner} params={params} />}</Route>
-      <Route path="/math-solver">{() => <ProtectedRoute component={MathSolver} />}</Route>
-      <Route path="/solver">{() => <ProtectedRoute component={Solver} />}</Route>
-      <Route path="/calculus">{() => <ProtectedRoute component={CalculusSolver} />}</Route>
+      <Route path="/math-solver">{() => <ProtectedRoute component={MathSolver} enginePath="/math-solver" />}</Route>
+      <Route path="/solver">{() => <ProtectedRoute component={Solver} enginePath="/solver" />}</Route>
+      <Route path="/calculus">{() => <ProtectedRoute component={CalculusSolver} enginePath="/calculus" />}</Route>
       <Route path="/legacy-home">{() => <ProtectedRoute component={Home} />}</Route>
       <Route path="/legacy-course">{() => <ProtectedRoute component={CoursePlan} />}</Route>
       <Route path="/lesson/:slug">{(params) => <ProtectedRoute component={LessonPage} params={params} />}</Route>
-      <Route path="/lab">{() => <ProtectedRoute component={Lab} />}</Route>
+      <Route path="/lab">{() => <ProtectedRoute component={Lab} enginePath="/lab" />}</Route>
       <Route path="/quiz">{() => <ProtectedRoute component={Quiz} />}</Route>
       <Route component={NotFound} />
     </Switch>
@@ -1211,11 +1268,16 @@ import YHubLogo from '@/components/YHubLogo';
 function App() {
   const [language, setLanguage] = useState<Language>(() => {
     if (typeof window === 'undefined') return 'ar';
-    return window.localStorage.getItem('fuzzy-academy-language') === 'en' ? 'en' : 'ar';
+    const storedLanguage =
+      window.localStorage.getItem('yhub-language') ??
+      window.localStorage.getItem('fuzzy-academy-language');
+
+    return storedLanguage === 'en' ? 'en' : 'ar';
   });
 
   useEffect(() => {
-    window.localStorage.setItem('fuzzy-academy-language', language);
+    window.localStorage.setItem('yhub-language', language);
+    window.localStorage.removeItem('fuzzy-academy-language');
     document.documentElement.lang = language;
     document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
   }, [language]);
