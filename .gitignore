@@ -44,7 +44,7 @@ Thumbs.db
 .cursor/rules/nx-rules.mdc
 .github/instructions/nx.instructions.md
 
-# Replit
+# Local development files
 .cache/
 .local/
 
@@ -57,7 +57,7 @@ Thumbs.db
 .env.production
 .env.development
 
-# Replit / platform-specific directories — not source code
+# Platform-specific directories — not source code
 attached_assets/
 .config/
 .conversation/

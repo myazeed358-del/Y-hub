@@ -52,6 +52,8 @@ import CourseManager from '@/pages/CourseManager';
 import AIGenerator from '@/pages/AIGenerator';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import Login from '@/pages/Login';
+import GuestLanding from '@/pages/GuestLanding';
+import { canAccessEngineRoute, getAllowedEngineRoutes } from '@/config/majorEngineAccess';
 import ProfilePage from '@/pages/Profile';
 import CalculusSolver from '@/pages/CalculusSolver';
 import MathSolver from '@/pages/MathSolver';
@@ -128,7 +130,7 @@ export const uiCopy = {
     surfacePlot: 'مولد الرسوم ثلاثية الأبعاد',
     clickToInit: 'انقر لبدء مساحة العمل',
     mathVis: 'تصورات رياضية 3D (تجريبي)',
-    
+
     // New additions for Math Engine
     calculusMasterSolver: 'حاسبة التفاضل والتكامل 2 الشاملة',
     mathEngine: 'المحرك الرياضي',
@@ -352,7 +354,7 @@ function localizeLesson(lesson: CourseLesson, language: Language): CourseLesson 
 function LogoMark() {
   return (
     <div className="relative flex h-11 w-11 items-center justify-center">
-      <img src="/logo.png" alt="Logo" className="h-full w-full object-contain" />
+      <YHubLogo size="sm" showText={false} />
     </div>
   );
 }
@@ -365,6 +367,23 @@ function Shell({ children }: { children: ReactNode }) {
   const [activeCourseName, setActiveCourseName] = useState<string | null>(null);
 
   const dynamicNavItems = useMemo(() => {
+    const isAdmin =
+      authProfile?.role === 'admin' ||
+      authProfile?.role === 'super_admin';
+
+    const allowedEngineRoutes = new Set(
+      getAllowedEngineRoutes(authProfile?.major)
+    );
+
+    const engineItems = [
+      { href: '/calculus', key: 'calculusPlotter' as UiKey, icon: LineChart },
+      { href: '/math-solver', key: 'calculus3Solver' as UiKey, icon: Box },
+      { href: '/solver', key: 'solver' as UiKey, icon: Calculator },
+      { href: '/lab', key: 'lab' as UiKey, icon: FlaskConical },
+    ].filter(
+      (item) => isAdmin || allowedEngineRoutes.has(item.href)
+    );
+
     return [
       {
         section: 'learningSpace' as UiKey,
@@ -373,17 +392,16 @@ function Shell({ children }: { children: ReactNode }) {
           { href: '/quiz', key: 'quickPractice' as UiKey, icon: BrainCircuit },
         ]
       },
-      {
-        section: 'understandingTools' as UiKey,
-        items: [
-          { href: '/calculus', key: 'calculusPlotter' as UiKey, icon: LineChart },
-          { href: '/math-solver', key: 'calculus3Solver' as UiKey, icon: Box },
-          { href: '/solver', key: 'solver' as UiKey, icon: Calculator },
-          { href: '/lab', key: 'lab' as UiKey, icon: FlaskConical },
-        ]
-      }
+      ...(engineItems.length > 0
+        ? [
+            {
+              section: 'understandingTools' as UiKey,
+              items: engineItems,
+            },
+          ]
+        : []),
     ];
-  }, [authProfile?.role]);
+  }, [authProfile?.major, authProfile?.role]);
 
   useEffect(() => {
     const courseMatch = location.match(/\/course\/([^/]+)/);
@@ -458,8 +476,8 @@ function Shell({ children }: { children: ReactNode }) {
                       onClick={() => setMobileNav(false)}
                       data-testid={`link-nav-${item.key}`}
                       className={`group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 border ${
-                        active 
-                          ? 'bg-gradient-to-r from-[hsl(var(--primary))]/20 to-[hsl(var(--accent))]/20 text-[hsl(var(--primary))] border-[hsl(var(--primary))]/30 shadow-[0_0_15px_rgba(0,212,255,0.1)]' 
+                        active
+                          ? 'bg-gradient-to-r from-[hsl(var(--primary))]/20 to-[hsl(var(--accent))]/20 text-[hsl(var(--primary))] border-[hsl(var(--primary))]/30 shadow-[0_0_15px_rgba(0,212,255,0.1)]'
                           : 'border-transparent text-[hsl(var(--sidebar-foreground)/.65)] hover:bg-white/5 hover:text-white'
                       }`}
                     >
@@ -1074,17 +1092,67 @@ function NotFound() {
 
 import StudentDashboard from '@/pages/StudentDashboard';
 
-function ProtectedRoute({ component: Component, roleRequired, ...rest }: any) {
-  const { user, role, loading } = useAuth();
-  
+function ProtectedRoute({
+  component: Component,
+  roleRequired,
+  enginePath,
+  ...rest
+}: any) {
+  const { user, role, profile, loading } = useAuth();
+  const { language, setLanguage } = useLanguage();
+
   if (loading) return (
     <div className="flex h-screen w-full items-center justify-center">
       <div className="text-lg font-semibold text-muted-foreground animate-pulse">جاري التحقق من الصلاحيات...</div>
     </div>
   );
-  
-  if (!user) return <Login />;
-  
+
+  if (!user) {
+    return (
+      <Login
+        language={language}
+        onToggleLanguage={() =>
+          setLanguage(language === 'ar' ? 'en' : 'ar')
+        }
+      />
+    );
+  }
+
+  const hasAdminBypass =
+    role === 'admin' || role === 'super_admin';
+
+  if (
+    enginePath &&
+    !hasAdminBypass &&
+    !canAccessEngineRoute(profile?.major, enginePath)
+  ) {
+    return (
+      <div className="flex min-h-[70vh] w-full flex-col items-center justify-center space-y-4 px-4 text-center">
+        <XCircle className="h-14 w-14 text-[hsl(var(--destructive))]" />
+
+        <h2 className="text-2xl font-bold">
+          {language === 'ar'
+            ? 'هذا المحرك غير متاح لتخصصك'
+            : 'This engine is not available for your major'}
+        </h2>
+
+        <p className="max-w-md text-sm leading-7 text-[hsl(var(--muted-foreground))]">
+          {language === 'ar'
+            ? 'تظهر لك الأدوات والمحركات الأكاديمية المرتبطة بتخصصك فقط.'
+            : 'Y HUB only shows academic tools and engines associated with your major.'}
+        </p>
+
+        <Link href="/">
+          <Button variant="default">
+            {language === 'ar'
+              ? 'العودة إلى الصفحة الرئيسية'
+              : 'Back to overview'}
+          </Button>
+        </Link>
+      </div>
+    );
+  }
+
   // Strict RBAC enforcement with admin bypass
   if (roleRequired && role !== roleRequired && role !== 'super_admin' && role !== 'admin') {
     return (
@@ -1098,14 +1166,14 @@ function ProtectedRoute({ component: Component, roleRequired, ...rest }: any) {
       </div>
     );
   }
-  
+
   return <Component {...rest} />;
 }
 
 function RoleBasedDashboard() {
   const { role, loading } = useAuth();
   if (loading) return <div className="p-10 text-center">Loading Auth...</div>;
-  
+
   if (role === 'instructor' || role === 'admin' || role === 'super_admin') {
     return <Dashboard />;
   }
@@ -1114,26 +1182,47 @@ function RoleBasedDashboard() {
 
 function Router() {
   const { user, loading } = useAuth();
+  const { language, setLanguage } = useLanguage();
   if (loading) return null;
 
   return (
     <Switch>
-      <Route path="/login" component={Login} />
-      <Route path="/" >{() => <ProtectedRoute component={RoleBasedDashboard} />}</Route>
-      <Route path="/dashboard" >{() => <ProtectedRoute component={RoleBasedDashboard} />}</Route>
-      <Route path="/profile" >{() => <ProtectedRoute component={ProfilePage} />}</Route>
-      <Route path="/course/:id" >{(params) => <ProtectedRoute component={CourseManager} roleRequired="instructor" params={params} />}</Route>
-      <Route path="/course/:id/view" >{(params) => <ProtectedRoute component={StudentCourseView} params={params} />}</Route>
-      <Route path="/course/:id/ai-tutor" >{(params) => <ProtectedRoute component={AIGenerator} params={params} />}</Route>
-      <Route path="/exam/:id" >{(params) => <ProtectedRoute component={ExamRunner} params={params} />}</Route>
-      <Route path="/math-solver" component={MathSolver} />
-      <Route path="/solver" component={Solver} />
-      <Route path="/calculus" component={CalculusSolver} />
-      <Route path="/legacy-home" component={Home} />
-      <Route path="/legacy-course" component={CoursePlan} />
-      <Route path="/lesson/:slug" component={LessonPage} />
-      <Route path="/lab" component={Lab} />
-      <Route path="/quiz" component={Quiz} />
+      <Route path="/login">
+        {() => (
+          <Login
+            language={language}
+            onToggleLanguage={() =>
+              setLanguage(language === 'ar' ? 'en' : 'ar')
+            }
+          />
+        )}
+      </Route>
+      <Route path="/">
+        {() =>
+          user
+            ? <ProtectedRoute component={RoleBasedDashboard} />
+            : (
+              <GuestLanding
+                language={language}
+                onToggleLanguage={() => setLanguage(language === 'ar' ? 'en' : 'ar')}
+              />
+            )
+        }
+      </Route>
+      <Route path="/dashboard">{() => <ProtectedRoute component={RoleBasedDashboard} />}</Route>
+      <Route path="/profile">{() => <ProtectedRoute component={ProfilePage} />}</Route>
+      <Route path="/course/:id">{(params) => <ProtectedRoute component={CourseManager} roleRequired="instructor" params={params} />}</Route>
+      <Route path="/course/:id/view">{(params) => <ProtectedRoute component={StudentCourseView} params={params} />}</Route>
+      <Route path="/course/:id/ai-tutor">{(params) => <ProtectedRoute component={AIGenerator} params={params} />}</Route>
+      <Route path="/exam/:id">{(params) => <ProtectedRoute component={ExamRunner} params={params} />}</Route>
+      <Route path="/math-solver">{() => <ProtectedRoute component={MathSolver} enginePath="/math-solver" />}</Route>
+      <Route path="/solver">{() => <ProtectedRoute component={Solver} enginePath="/solver" />}</Route>
+      <Route path="/calculus">{() => <ProtectedRoute component={CalculusSolver} enginePath="/calculus" />}</Route>
+      <Route path="/legacy-home">{() => <ProtectedRoute component={Home} />}</Route>
+      <Route path="/legacy-course">{() => <ProtectedRoute component={CoursePlan} />}</Route>
+      <Route path="/lesson/:slug">{(params) => <ProtectedRoute component={LessonPage} params={params} />}</Route>
+      <Route path="/lab">{() => <ProtectedRoute component={Lab} enginePath="/lab" />}</Route>
+      <Route path="/quiz">{() => <ProtectedRoute component={Quiz} />}</Route>
       <Route component={NotFound} />
     </Switch>
   );
@@ -1144,16 +1233,51 @@ function RoutedErrorBoundary({ children }: { children: ReactNode }) {
   return <ErrorBoundary resetKey={location}>{children}</ErrorBoundary>;
 }
 
+function ApplicationFrame() {
+  const { user, loading } = useAuth();
+  const [location] = useLocation();
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[hsl(var(--background))]">
+        <div className="text-sm font-semibold text-[hsl(var(--muted-foreground))] animate-pulse">
+          جاري تحميل Y HUB...
+        </div>
+      </div>
+    );
+  }
+
+  const routes = (
+    <RoutedErrorBoundary>
+      <Router />
+    </RoutedErrorBoundary>
+  );
+
+  const isLoginRoute = location.startsWith('/login');
+
+  if (!user || isLoginRoute) {
+    return routes;
+  }
+
+  return <Shell>{routes}</Shell>;
+}
+
 import { ThemeProvider } from 'next-themes';
+import YHubLogo from '@/components/YHubLogo';
 
 function App() {
   const [language, setLanguage] = useState<Language>(() => {
     if (typeof window === 'undefined') return 'ar';
-    return window.localStorage.getItem('fuzzy-academy-language') === 'en' ? 'en' : 'ar';
+    const storedLanguage =
+      window.localStorage.getItem('yhub-language') ??
+      window.localStorage.getItem('fuzzy-academy-language');
+
+    return storedLanguage === 'en' ? 'en' : 'ar';
   });
 
   useEffect(() => {
-    window.localStorage.setItem('fuzzy-academy-language', language);
+    window.localStorage.setItem('yhub-language', language);
+    window.localStorage.removeItem('fuzzy-academy-language');
     document.documentElement.lang = language;
     document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
   }, [language]);
@@ -1167,9 +1291,7 @@ function App() {
           <QueryClientProvider client={queryClient}>
             <TooltipProvider>
               <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
-                <Shell>
-                  <RoutedErrorBoundary><Router /></RoutedErrorBoundary>
-                </Shell>
+                <ApplicationFrame />
               </WouterRouter>
               <Toaster position="top-center" dir="rtl" richColors />
             </TooltipProvider>
