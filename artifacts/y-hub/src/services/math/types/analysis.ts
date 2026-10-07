@@ -123,6 +123,13 @@ export interface FunctionAnalysisResult {
   inflectionPoints?: InflectionPoint[];
   
   asymptotes?: Asymptote[];
+
+  // Convenience aliases retained for callers that consume
+  // asymptote categories directly.
+  verticalAsymptotes?: Asymptote[];
+  horizontalAsymptotes?: Asymptote[];
+  slantAsymptotes?: Asymptote[];
+
   infiniteBehavior?: InfiniteBehavior;
   
   graphData?: GraphData;

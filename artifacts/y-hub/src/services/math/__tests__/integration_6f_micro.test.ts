@@ -47,9 +47,20 @@ describe('CORE CALCULUS 6F - CRITICAL MICRO-FIX', () => {
     const ast = func('acsc', sym('x'));
     const dF = derivEngine.differentiate(ast, 'x');
     const expectedDenom = op('*', [abs(sym('x')), sqrt(op('-', [op('^', [sym('x'), num('2')]), num('1')]))]);
-    const expectedNum = op('*', [num('-1'), num('1')]); // -1 * u'
-    const expected = op('/', [expectedNum, expectedDenom]);
-    expect(ASTUtils.structuralEquals(dF, expected)).toBe(true);
+    const expected = op(
+      '/',
+      [
+        num('-1'),
+        expectedDenom
+      ]
+    );
+
+    expect(
+      ASTUtils.structuralEquals(
+        dF,
+        expected
+      )
+    ).toBe(true);
   });
 
   it('D) d/dx tan(asec(x/a))', () => {

@@ -25,6 +25,7 @@ import { ASTUtils } from '../symbolic/utils';
 import { ASTEvaluator } from '../symbolic/evaluator';
 import { DerivativeEngine } from '../symbolic/derivative';
 import { Rat } from '../utils/rational';
+import { PolynomialExtractor } from '../symbolic/polynomial';
 
 export class FunctionAnalyzer {
   private domainAnalyzer = new DomainAnalyzer();
@@ -124,6 +125,21 @@ export class FunctionAnalyzer {
       concaveDownIntervals,
       inflectionPoints,
       asymptotes,
+      verticalAsymptotes:
+        asymptotes.filter(
+          asymptote =>
+            asymptote.type === 'vertical'
+        ),
+      horizontalAsymptotes:
+        asymptotes.filter(
+          asymptote =>
+            asymptote.type === 'horizontal'
+        ),
+      slantAsymptotes:
+        asymptotes.filter(
+          asymptote =>
+            asymptote.type === 'slant'
+        ),
       infiniteBehavior,
       graphData,
       
@@ -830,34 +846,184 @@ export class FunctionAnalyzer {
     } catch { limitAtMinusInfinity = 'unresolved'; }
     
     // Slant asymptotes
-    if (ast.type === 'Operator' && ast.operator === '/') {
-       try {
-         const polyExt = new (require('../symbolic/polynomial').PolynomialExtractor)();
-         const numMap = polyExt.extract(ast.args[0], variable) as Map<number, CanonicalAST[]>;
-         const denMap = polyExt.extract(ast.args[1], variable) as Map<number, CanonicalAST[]>;
-         
-         const maxNum = Math.max(...Array.from(numMap.keys()));
-         const maxDen = Math.max(...Array.from(denMap.keys()));
-         
-         if (maxNum === maxDen + 1) {
-            // we could do long division. Since I don't have direct access here, I will just limit (f(x)/x)
-            const fx_div_x: CanonicalAST = { type: 'Operator', operator: '/', args: [ast, { type: 'Symbol', name: variable }] };
-            const mLimit = this.limitEngine.evaluateLimit({ expression: fx_div_x, variable, approach: '+infinity', direction: 'both' });
-            if (mLimit.type === 'limit' && mLimit.classification === 'finite' && mLimit.value) {
-               const m = mLimit.value;
-               const mx: CanonicalAST = { type: 'Operator', operator: '*', args: [m, { type: 'Symbol', name: variable }] };
-               const f_minus_mx: CanonicalAST = { type: 'Operator', operator: '-', args: [ast, mx] };
-               const bLimit = this.limitEngine.evaluateLimit({ expression: f_minus_mx, variable, approach: '+infinity', direction: 'both' });
-               if (bLimit.type === 'limit' && bLimit.classification === 'finite' && bLimit.value) {
-                  const b = bLimit.value;
-                  const slantRhs = this.simplifier.simplify({ type: 'Operator', operator: '+', args: [mx, b] });
-                  asymptotes.push({ type: 'slant', equation: { type: 'Equation', lhs: { type: 'Symbol', name: 'y' }, rhs: slantRhs } });
-               }
-            }
-         }
-       } catch {}
+    //
+    // For P(x)/Q(x), a linear slant asymptote exists when
+    // deg(P) = deg(Q) + 1.
+    //
+    // Compute the first two quotient coefficients exactly:
+    //
+    //   m = p_n / q_m
+    //   b = (p_(n-1) - m*q_(m-1)) / q_m
+    //
+    // so the asymptote is y = m*x + b.
+    if (
+      ast.type === 'Operator' &&
+      ast.operator === '/'
+    ) {
+      try {
+        const polyExt =
+          new PolynomialExtractor();
+
+        const numMap =
+          polyExt.extract(
+            ast.args[0],
+            variable
+          ) as Map<number, CanonicalAST[]>;
+
+        const denMap =
+          polyExt.extract(
+            ast.args[1],
+            variable
+          ) as Map<number, CanonicalAST[]>;
+
+        const numDegrees =
+          Array.from(numMap.keys());
+
+        const denDegrees =
+          Array.from(denMap.keys());
+
+        const coefficientAt = (
+          map: Map<number, CanonicalAST[]>,
+          degree: number
+        ): CanonicalAST => {
+          const terms =
+            map.get(degree) ?? [];
+
+          if (terms.length === 0) {
+            return {
+              type: 'Number',
+              value: '0'
+            };
+          }
+
+          if (terms.length === 1) {
+            return terms[0];
+          }
+
+          return this.simplifier.simplify({
+            type: 'Operator',
+            operator: '+',
+            args: terms
+          });
+        };
+
+        if (
+          numDegrees.length > 0 &&
+          denDegrees.length > 0
+        ) {
+          const maxNum =
+            Math.max(...numDegrees);
+
+          const maxDen =
+            Math.max(...denDegrees);
+
+          if (maxNum === maxDen + 1) {
+            const pLead =
+              coefficientAt(
+                numMap,
+                maxNum
+              );
+
+            const qLead =
+              coefficientAt(
+                denMap,
+                maxDen
+              );
+
+            const pNext =
+              coefficientAt(
+                numMap,
+                maxNum - 1
+              );
+
+            const qNext =
+              coefficientAt(
+                denMap,
+                maxDen - 1
+              );
+
+            const m =
+              this.simplifier.simplify({
+                type: 'Operator',
+                operator: '/',
+                args: [
+                  pLead,
+                  qLead
+                ]
+              });
+
+            const mTimesQNext =
+              this.simplifier.simplify({
+                type: 'Operator',
+                operator: '*',
+                args: [
+                  m,
+                  qNext
+                ]
+              });
+
+            const bNumerator =
+              this.simplifier.simplify({
+                type: 'Operator',
+                operator: '-',
+                args: [
+                  pNext,
+                  mTimesQNext
+                ]
+              });
+
+            const b =
+              this.simplifier.simplify({
+                type: 'Operator',
+                operator: '/',
+                args: [
+                  bNumerator,
+                  qLead
+                ]
+              });
+
+            const mx =
+              this.simplifier.simplify({
+                type: 'Operator',
+                operator: '*',
+                args: [
+                  m,
+                  {
+                    type: 'Symbol',
+                    name: variable
+                  }
+                ]
+              });
+
+            const slantRhs =
+              this.simplifier.simplify({
+                type: 'Operator',
+                operator: '+',
+                args: [
+                  mx,
+                  b
+                ]
+              });
+
+            asymptotes.push({
+              type: 'slant',
+              equation: {
+                type: 'Equation',
+                lhs: {
+                  type: 'Symbol',
+                  name: 'y'
+                },
+                rhs: slantRhs
+              }
+            });
+          }
+        }
+      } catch {
+        // Non-polynomial rational structure:
+        // no exact slant asymptote is inferred here.
+      }
     }
-    
+
     return { asymptotes, infiniteBehavior: { limitAtPlusInfinity, limitAtMinusInfinity } };
   }
   private generateGraphData(domain: SolutionSet, cps: CriticalPoint[], inc: Interval[], dec: Interval[], up: Interval[], down: Interval[], asymptotes: Asymptote[], intercepts: Endpoint[], extrema: ExtremaPoint[], infs: InflectionPoint[], discontinuities: DiscontinuityPoint[]): GraphData {

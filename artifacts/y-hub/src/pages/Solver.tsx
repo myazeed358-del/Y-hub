@@ -18,6 +18,7 @@ import { Link } from 'wouter';
 import { useLanguage } from '../App';
 
 export default function Solver() {
+  const { t } = useLanguage();
   const [a, setA] = useState<string>('0.5');
   const [b, setB] = useState<string>('0.5');
   const [tnorm, setTnorm] = useState<TNormType>('standard');

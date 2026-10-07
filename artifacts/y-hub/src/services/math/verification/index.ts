@@ -25,19 +25,94 @@ export class MathVerifier {
           const mapMinus = { [variable]: p - h };
           const mapP = { [variable]: p };
 
-          const fPlus = this.evaluator.evaluate(original, mapPlus);
-          const fMinus = this.evaluator.evaluate(original, mapMinus);
-          
-          if (!Number.isFinite(fPlus) || !Number.isFinite(fMinus)) continue;
+          const fPlus =
+            this.evaluator.evaluate(
+              original,
+              mapPlus
+            );
 
-          const approxDeriv = (fPlus - fMinus) / (2 * h);
-          const exactDeriv = this.evaluator.evaluate(resultAST, mapP);
+          const fMinus =
+            this.evaluator.evaluate(
+              original,
+              mapMinus
+            );
+
+          const halfH = h / 2;
+
+          const fPlusHalf =
+            this.evaluator.evaluate(
+              original,
+              {
+                [variable]:
+                  p + halfH
+              }
+            );
+
+          const fMinusHalf =
+            this.evaluator.evaluate(
+              original,
+              {
+                [variable]:
+                  p - halfH
+              }
+            );
+          
+          if (
+            !Number.isFinite(fPlus) ||
+            !Number.isFinite(fMinus) ||
+            !Number.isFinite(fPlusHalf) ||
+            !Number.isFinite(fMinusHalf)
+          ) {
+            continue;
+          }
+
+          const coarseDerivative =
+            (fPlus - fMinus) /
+            (2 * h);
+
+          const fineDerivative =
+            (fPlusHalf - fMinusHalf) /
+            (2 * halfH);
+
+          // Richardson extrapolation cancels the leading O(h²)
+          // central-difference error. This is especially important
+          // for steep but finite derivatives near singularities.
+          const approxDeriv =
+            (
+              4 * fineDerivative -
+              coarseDerivative
+            ) / 3;
+
+          const exactDeriv =
+            this.evaluator.evaluate(
+              resultAST,
+              mapP
+            );
           
           if (!Number.isFinite(exactDeriv)) continue;
 
           attempts++;
           
-          if (Math.abs(approxDeriv - exactDeriv) < 1e-4) {
+          const error =
+            Math.abs(
+              approxDeriv - exactDeriv
+            );
+
+          const scale =
+            Math.max(
+              1,
+              Math.abs(approxDeriv),
+              Math.abs(exactDeriv)
+            );
+
+          // Central differences accumulate floating-point error for
+          // derivatives with large magnitude, e.g. csc/cot near pi.
+          // Require a tight absolute tolerance near zero and a small
+          // relative tolerance for large finite values.
+          const tolerance =
+            1e-4 + 1e-6 * scale;
+
+          if (error <= tolerance) {
             matches++;
           }
         } catch(e) { /* domain issues at p, ignore */ }

@@ -130,9 +130,14 @@ export class LinearAlgebraOrchestrator {
         if (ast.type === 'Number') {
             if (ast.value.includes('/')) {
                 const [n, d] = ast.value.split('/');
-                return Rat.simplify({ num: BigInt(n), den: BigInt(d) });
+
+                return Rat.div(
+                    Rat.fromString(n),
+                    Rat.fromString(d)
+                );
             }
-            return { num: BigInt(ast.value), den: 1n };
+
+            return Rat.fromString(ast.value);
         }
         if (ast.type === 'Operator' && ast.operator === '-' && ast.args.length === 2 && ast.args[0].type === 'Number' && ast.args[0].value === '0') {
             const sub = this.parseRat(ast.args[1]);

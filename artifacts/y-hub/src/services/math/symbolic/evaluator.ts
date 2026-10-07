@@ -42,6 +42,7 @@ export class ASTEvaluator {
         case 'sinh': return Math.sinh(val);
         case 'cosh': return Math.cosh(val);
         case 'tanh': return Math.tanh(val);
+        case 'sech': return 1 / Math.cosh(val);
         case 'exp': return Math.exp(val);
         case 'log': case 'ln': return Math.log(val);
         case 'sqrt': return Math.sqrt(val);

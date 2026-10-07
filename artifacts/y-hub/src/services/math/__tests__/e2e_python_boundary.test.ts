@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { MathOrchestrator } from '../orchestration';
 import { PythonMathAdapter } from '../python/adapter';
 import { MathProblemRequest } from '../types/problem';
@@ -9,11 +10,11 @@ describe('Step E.1 - End-to-End TS -> Python -> TS Pipeline Validation', () => {
 
   beforeEach(() => {
     orchestrator = new MathOrchestrator();
-    adapterSpy = jest.spyOn(PythonMathAdapter.prototype, 'compute');
+    adapterSpy = vi.spyOn(PythonMathAdapter.prototype, 'compute');
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('E2E Case 1: d/dx [sin(x^2)] - Differentiation', async () => {
