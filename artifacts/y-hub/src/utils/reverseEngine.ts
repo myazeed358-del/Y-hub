@@ -110,9 +110,14 @@ export function generateReverseTNormChallenge(operation: TNormType, a: number, b
   };
 }
 
-export function validateReverseChallenge(challenge: ReverseChallenge, userB: number): { isCorrect: boolean; proof: string } {
+export function validateReverseChallenge(
+  challenge: ReverseChallenge,
+  userB: number,
+  language: 'ar' | 'en' = 'en'
+): { isCorrect: boolean; proof: string } {
   let isCorrect = false;
   let proof = '';
+  const isArabic = language === 'ar';
 
   const b = Number(userB.toFixed(2));
   const { a, result, operation, solutionType, exactSolution, minSolution, maxSolution } = challenge;
@@ -128,25 +133,53 @@ export function validateReverseChallenge(challenge: ReverseChallenge, userB: num
     }
   }
 
-  // Generate proof
+  // Generate localized proof without changing validation logic.
   if (isCorrect) {
     if (solutionType === 'exact') {
-      proof = `\\text{Correct! Solving for } b: \\\\ `;
-      if (operation === 'standard') proof += `\\min(${a}, b) = ${result} \\implies b = ${result}`;
-      if (operation === 'algebraic') proof += `${a} \\cdot b = ${result} \\implies b = ${result} / ${a} = ${exactSolution}`;
-      if (operation === 'bounded') proof += `\\max(0, ${a} + b - 1) = ${result} \\implies b = ${result} + 1 - ${a} = ${exactSolution}`;
+      proof = isArabic
+        ? `\\text{إجابة صحيحة. نحل لإيجاد } b: \\\\ `
+        : `\\text{Correct! Solving for } b: \\\\ `;
+
+      if (operation === 'standard') {
+        proof += `\\min(${a}, b) = ${result} \\implies b = ${result}`;
+      }
+
+      if (operation === 'algebraic') {
+        proof += `${a} \\cdot b = ${result} \\implies b = ${result} / ${a} = ${exactSolution}`;
+      }
+
+      if (operation === 'bounded') {
+        proof += `\\max(0, ${a} + b - 1) = ${result} \\implies b = ${result} + 1 - ${a} = ${exactSolution}`;
+      }
+
       if (operation === 'drastic') {
-        if (a === 1) proof += `a = 1 \\implies b = ${result}`;
-        else proof += `a = ${a} \\neq 1 \\text{ and result is non-zero} \\implies b = 1`;
+        if (a === 1) {
+          proof += `a = 1 \\implies b = ${result}`;
+        } else {
+          proof += isArabic
+            ? `a = ${a} \\neq 1 \\text{ والنتيجة غير صفرية} \\implies b = 1`
+            : `a = ${a} \\neq 1 \\text{ and result is non-zero} \\implies b = 1`;
+        }
       }
     } else if (solutionType === 'range') {
-      proof = `\\text{Correct! The valid range for } b \\text{ is } [${minSolution}, ${maxSolution}]. \\\\ `;
-      proof += `\\text{Your answer } ${b} \\text{ is valid.}`;
+      proof = isArabic
+        ? `\\text{إجابة صحيحة. المجال المسموح لـ } b \\text{ هو } [${minSolution}, ${maxSolution}]. \\\\ \\text{إجابتك } ${b} \\text{ صحيحة.}`
+        : `\\text{Correct! The valid range for } b \\text{ is } [${minSolution}, ${maxSolution}]. \\\\ \\text{Your answer } ${b} \\text{ is valid.}`;
     }
   } else {
-    proof = `\\text{Incorrect. Given } a = ${a} \\text{ and result } = ${result}, \\text{ the correct } b `;
-    if (solutionType === 'exact') proof += `is exactly ${exactSolution}.`;
-    else proof += `is in the range [${minSolution}, ${maxSolution}].`;
+    proof = isArabic
+      ? `\\text{إجابة غير صحيحة. عندما } a = ${a} \\text{ والنتيجة } = ${result}, \\text{ فإن } b `
+      : `\\text{Incorrect. Given } a = ${a} \\text{ and result } = ${result}, \\text{ the correct } b `;
+
+    if (solutionType === 'exact') {
+      proof += isArabic
+        ? `\\text{ تساوي بالضبط } ${exactSolution}.`
+        : `\\text{ is exactly } ${exactSolution}.`;
+    } else {
+      proof += isArabic
+        ? `\\text{ تقع ضمن المجال } [${minSolution}, ${maxSolution}].`
+        : `\\text{ is in the range } [${minSolution}, ${maxSolution}].`;
+    }
   }
 
   return { isCorrect, proof };

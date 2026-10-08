@@ -8,6 +8,7 @@ import { mathEngine } from '@/utils/mathEngine';
 import { Calculator, Compass, Box, Activity, TrendingUp, Infinity as LimitIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import Plot from 'react-plotly.js';
+import { useLanguage } from '../App';
 
 interface Step {
   desc: string;
@@ -15,6 +16,111 @@ interface Step {
 }
 
 export default function MathSolver() {
+  const { language } = useLanguage();
+  const isArabic = language === 'ar';
+
+  const copy = isArabic
+    ? {
+        title: 'التفاضل والتكامل 3',
+        subtitle: 'مسائل متعددة المتغيرات، مشتقات جزئية، تدرج، تكاملات ومتجهات بخطوات واضحة.',
+        equationInput: 'إدخال المعادلات',
+        mathFunction: 'الدالة الرياضية (f):',
+        expressionPlaceholder: 'مثال: x^2 + sin(y)',
+        derivatives: 'الاشتقاق',
+        integrals: 'التكامل',
+        limits: 'النهايات',
+        vectors: 'المتجهات',
+        variable: 'المتغير:',
+        partialDerivative: 'مشتقة جزئية (Partial)',
+        gradient: 'الانحدار (Gradient)',
+        indefiniteIntegral: 'تكامل غير محدد',
+        doubleIntegral: 'تكامل مزدوج (dy dx)',
+        approaches: 'يقترب المتغير من:',
+        calculateLimit: 'تطبيق القاعدة وحساب النهاية',
+        lhopitalNote: "ملاحظة: لحساب نهايات الدوال الكسرية باستخدام L'Hôpital، افصل بين البسط والمقام بعلامة /.",
+        vectorsWorkspace: 'مساحة عمل المتجهات (Dot, Cross, Curl, Divergence) جاهزة للربط.',
+        solutionSteps: 'خطوات الحل والنتيجة',
+        finalResult: 'النتيجة النهائية:',
+        visualPreview: 'المعاينة البصرية التفاعلية',
+        surface: 'سطح (Surface)',
+        parametric: 'منحنى بارامتري',
+        vectorField: 'حقل متجه (Vector Field)',
+        surfaceFunction: 'الدالة z = f(x,y):',
+        parametricFunction: 'الدالة البارامترية x(t), y(t), z(t):',
+        vectorFieldFunction: 'الحقل المتجه F = <P, Q, R>:',
+        originalFunction: 'الدالة الأصلية:',
+        partialStep: (v: string) => `الاشتقاق الجزئي بالنسبة لـ ${v}:`,
+        derivativeFailed: 'فشل حساب الاشتقاق.',
+        gradientStep: 'حساب الانحدار (Gradient):',
+        derivativeFor: (v: string) => `المشتقة بالنسبة لـ ${v}:`,
+        gradientFailed: 'فشل حساب الانحدار.',
+        indefiniteStep: 'التكامل غير المحدد:',
+        integralFailed: 'فشل حساب التكامل - تأكد من الصيغة.',
+        preparingDoubleIntegral: 'التجهيز للتكامل المزدوج:',
+        innerIntegral: (v: string) => `التكامل الداخلي بالنسبة لـ ${v}:`,
+        outerIntegral: (v: string) => `التكامل الخارجي بالنسبة لـ ${v}:`,
+        doubleIntegralFailed: 'فشل التكامل المزدوج؛ قد تكون الدالة معقدة للحساب الرمزي.',
+        directSubstitution: 'التعويض المباشر:',
+        originalLimit: 'النهاية الأصلية:',
+        indeterminate: (form: string) =>
+          `حالة عدم تعيين (${form})، تطبيق قاعدة لوبيتال بتفاضل البسط والمقام:`,
+        afterDerivative: (attempt: number) => `بعد الاشتقاق (المحاولة ${attempt}):`,
+        directSubstitutionWorks: 'التعويض المباشر ينجح:',
+        lhopitalStopped: 'تم إيقاف تطبيق لوبيتال بعد 3 محاولات.',
+        limitFailed: 'فشل حساب النهاية.',
+        indeterminateResult: '\\text{غير محددة}',
+      }
+    : {
+        title: 'Calculus III',
+        subtitle: 'Multivariable calculus, partial derivatives, gradients, integrals, and vectors with clear steps.',
+        equationInput: 'Equation Input',
+        mathFunction: 'Mathematical function (f):',
+        expressionPlaceholder: 'Example: x^2 + sin(y)',
+        derivatives: 'Derivatives',
+        integrals: 'Integrals',
+        limits: 'Limits',
+        vectors: 'Vectors',
+        variable: 'Variable:',
+        partialDerivative: 'Partial Derivative',
+        gradient: 'Gradient',
+        indefiniteIntegral: 'Indefinite Integral',
+        doubleIntegral: 'Double Integral (dy dx)',
+        approaches: 'Variable approaches:',
+        calculateLimit: 'Apply Rule & Calculate Limit',
+        lhopitalNote: "Note: For fractional limits using L'Hôpital's Rule, separate the numerator and denominator with /.",
+        vectorsWorkspace: 'Vector workspace (Dot, Cross, Curl, Divergence) is ready for integration.',
+        solutionSteps: 'Solution Steps & Result',
+        finalResult: 'Final Result:',
+        visualPreview: 'Interactive Visualization',
+        surface: 'Surface',
+        parametric: 'Parametric Curve',
+        vectorField: 'Vector Field',
+        surfaceFunction: 'Function z = f(x,y):',
+        parametricFunction: 'Parametric function x(t), y(t), z(t):',
+        vectorFieldFunction: 'Vector field F = <P, Q, R>:',
+        originalFunction: 'Original function:',
+        partialStep: (v: string) => `Partial derivative with respect to ${v}:`,
+        derivativeFailed: 'Failed to calculate the derivative.',
+        gradientStep: 'Calculate the gradient:',
+        derivativeFor: (v: string) => `Derivative with respect to ${v}:`,
+        gradientFailed: 'Failed to calculate the gradient.',
+        indefiniteStep: 'Indefinite integral:',
+        integralFailed: 'Failed to calculate the integral. Check the expression.',
+        preparingDoubleIntegral: 'Preparing the double integral:',
+        innerIntegral: (v: string) => `Inner integral with respect to ${v}:`,
+        outerIntegral: (v: string) => `Outer integral with respect to ${v}:`,
+        doubleIntegralFailed: 'Failed to calculate the double integral; the expression may be too complex.',
+        directSubstitution: 'Direct substitution:',
+        originalLimit: 'Original limit:',
+        indeterminate: (form: string) =>
+          `Indeterminate form (${form}); applying L'Hôpital's Rule to numerator and denominator:`,
+        afterDerivative: (attempt: number) => `After differentiation (attempt ${attempt}):`,
+        directSubstitutionWorks: 'Direct substitution succeeds:',
+        lhopitalStopped: "L'Hôpital's Rule stopped after 3 attempts.",
+        limitFailed: 'Failed to calculate the limit.',
+        indeterminateResult: '\\text{Indeterminate}',
+      };
+
   const [expr, setExpr] = useState('x^2 + y^2 + z^2');
   const [variable, setVariable] = useState('x');
   const [loading, setLoading] = useState(false);
@@ -104,12 +210,12 @@ export default function MathSolver() {
       const derivedTex = await mathEngine.toTex(derived);
       
       setSteps([
-        { desc: 'الدالة الأصلية:', math: `f(${variable}) = ${exprTex}` },
-        { desc: `الاشتقاق الجزئي بالنسبة لـ ${variable}:`, math: `\\frac{\\partial}{\\partial ${variable}} (${exprTex})` }
+        { desc: copy.originalFunction, math: `f(${variable}) = ${exprTex}` },
+        { desc: copy.partialStep(variable), math: `\\frac{\\partial}{\\partial ${variable}} (${exprTex})` }
       ]);
       setResult(derivedTex);
     } catch (e: any) {
-      toast.error(e.message || 'فشل حساب الاشتقاق');
+      toast.error(copy.derivativeFailed);
     }
     setLoading(false);
   };
@@ -117,7 +223,7 @@ export default function MathSolver() {
   const solveGradient = async () => {
     setLoading(true); setSteps([]); setResult(null);
     try {
-      setSteps([{ desc: 'حساب الانحدار (Gradient):', math: `\\nabla f = \\langle f_x, f_y, f_z \\rangle` }]);
+      setSteps([{ desc: copy.gradientStep, math: `\\nabla f = \\langle f_x, f_y, f_z \\rangle` }]);
       const fx = await mathEngine.derivePartial(expr, 'x');
       const fy = await mathEngine.derivePartial(expr, 'y');
       const fz = await mathEngine.derivePartial(expr, 'z');
@@ -128,13 +234,13 @@ export default function MathSolver() {
 
       setSteps(prev => [
         ...prev,
-        { desc: 'المشتقة بالنسبة لـ x:', math: `f_x = ${fxTex}` },
-        { desc: 'المشتقة بالنسبة لـ y:', math: `f_y = ${fyTex}` },
-        { desc: 'المشتقة بالنسبة لـ z:', math: `f_z = ${fzTex}` }
+        { desc: copy.derivativeFor('x'), math: `f_x = ${fxTex}` },
+        { desc: copy.derivativeFor('y'), math: `f_y = ${fyTex}` },
+        { desc: copy.derivativeFor('z'), math: `f_z = ${fzTex}` }
       ]);
       setResult(`\\langle ${fxTex}, \\quad ${fyTex}, \\quad ${fzTex} \\rangle`);
     } catch (e: any) {
-      toast.error('فشل حساب الانحدار');
+      toast.error(copy.gradientFailed);
     }
     setLoading(false);
   };
@@ -145,10 +251,10 @@ export default function MathSolver() {
       const exprTex = await mathEngine.toTex(expr);
       const integrated = await mathEngine.integratePartial(expr, variable as any);
       const intTex = await mathEngine.toTex(integrated);
-      setSteps([{ desc: 'التكامل غير المحدد:', math: `\\int (${exprTex}) \\, d${variable}` }]);
+      setSteps([{ desc: copy.indefiniteStep, math: `\\int (${exprTex}) \\, d${variable}` }]);
       setResult(`${intTex} + C`);
     } catch (e: any) {
-      toast.error('فشل حساب التكامل - تأكد من الصيغة.');
+      toast.error(copy.integralFailed);
     }
     setLoading(false);
   };
@@ -159,19 +265,19 @@ export default function MathSolver() {
     const outer = 'x';
     try {
       const exprTex = await mathEngine.toTex(expr);
-      setSteps(prev => [...prev, { desc: `التجهيز للتكامل المزدوج:`, math: `\\iint (${exprTex}) \\, d${inner} \\, d${outer}` }]);
+      setSteps(prev => [...prev, { desc: copy.preparingDoubleIntegral, math: `\\iint (${exprTex}) \\, d${inner} \\, d${outer}` }]);
       
       const innerInt = await mathEngine.integratePartial(expr, inner);
       const innerIntTex = await mathEngine.toTex(innerInt);
-      setSteps(prev => [...prev, { desc: `التكامل الداخلي بالنسبة لـ ${inner}:`, math: `\\int (${innerIntTex}) \\, d${outer}` }]);
+      setSteps(prev => [...prev, { desc: copy.innerIntegral(inner), math: `\\int (${innerIntTex}) \\, d${outer}` }]);
 
       const outerInt = await mathEngine.integratePartial(innerInt, outer);
       const outerIntTex = await mathEngine.toTex(outerInt);
-      setSteps(prev => [...prev, { desc: `التكامل الخارجي بالنسبة لـ ${outer}:`, math: outerIntTex }]);
+      setSteps(prev => [...prev, { desc: copy.outerIntegral(outer), math: outerIntTex }]);
 
       setResult(`${outerIntTex} + C(x,y)`);
     } catch (e: any) {
-      toast.error('فشل التكامل المزدوج (قد تكون الدالة معقدة جداً للمحرك الرمزي).');
+      toast.error(copy.doubleIntegralFailed);
     }
     setLoading(false);
   };
@@ -186,7 +292,7 @@ export default function MathSolver() {
         const pt = limitPoint === 'inf' ? 10000 : parseFloat(limitPoint);
         const val = mathEngine.evaluateNumerically(expr, { [variable]: pt });
         const exprTex = await mathEngine.toTex(expr);
-        setSteps([{ desc: 'التعويض المباشر:', math: `\\lim_{${variable} \\to ${limitPoint}} (${exprTex}) = ${val}` }]);
+        setSteps([{ desc: copy.directSubstitution, math: `\\lim_{${variable} \\to ${limitPoint}} (${exprTex}) = ${val}` }]);
         setResult(val.toString());
       } else {
         let num = parts[0];
@@ -197,22 +303,22 @@ export default function MathSolver() {
         
         const pt = limitPoint === 'inf' ? 10000 : parseFloat(limitPoint);
 
-        setSteps([{ desc: 'النهاية الأصلية:', math: `\\lim_{${variable} \\to ${limitPoint}} \\frac{${await mathEngine.toTex(num)}}{${await mathEngine.toTex(den)}}` }]);
+        setSteps([{ desc: copy.originalLimit, math: `\\lim_{${variable} \\to ${limitPoint}} \\frac{${await mathEngine.toTex(num)}}{${await mathEngine.toTex(den)}}` }]);
 
         for (let i = 1; i <= 3; i++) {
           const numVal = mathEngine.evaluateNumerically(currentNum, { [variable]: pt });
           const denVal = mathEngine.evaluateNumerically(currentDen, { [variable]: pt });
 
           if ((Math.abs(numVal) < 1e-5 && Math.abs(denVal) < 1e-5) || (Math.abs(numVal) > 1000 && Math.abs(denVal) > 1000)) {
-            setSteps(prev => [...prev, { desc: `حالة عدم تعيين (${numVal < 1e-5 ? '0/0' : '∞/∞'})، تطبيق قاعدة لوبيتال (تفاضل البسط والمقام):` }]);
+            setSteps(prev => [...prev, { desc: copy.indeterminate(numVal < 1e-5 ? '0/0' : '∞/∞') }]);
             currentNum = await mathEngine.derivePartial(currentNum, variable as any);
             currentDen = await mathEngine.derivePartial(currentDen, variable as any);
             const numTex = await mathEngine.toTex(currentNum);
             const denTex = await mathEngine.toTex(currentDen);
-            setSteps(prev => [...prev, { desc: `بعد الاشتقاق (المحاولة ${i}):`, math: `\\lim_{${variable} \\to ${limitPoint}} \\frac{${numTex}}{${denTex}}` }]);
+            setSteps(prev => [...prev, { desc: copy.afterDerivative(i), math: `\\lim_{${variable} \\to ${limitPoint}} \\frac{${numTex}}{${denTex}}` }]);
           } else {
             const finalVal = numVal / denVal;
-            setSteps(prev => [...prev, { desc: 'التعويض المباشر ينجح:', math: `\\frac{${numVal.toFixed(4)}}{${denVal.toFixed(4)}} = ${finalVal.toFixed(4)}` }]);
+            setSteps(prev => [...prev, { desc: copy.directSubstitutionWorks, math: `\\frac{${numVal.toFixed(4)}}{${denVal.toFixed(4)}} = ${finalVal.toFixed(4)}` }]);
             setResult(finalVal.toFixed(4));
             limitResolved = true;
             break;
@@ -220,26 +326,29 @@ export default function MathSolver() {
         }
         
         if (!limitResolved) {
-          toast.warning('تم إيقاف تطبيق لوبيتال بعد 3 محاولات.');
-          setResult('\\text{Indeterminate}');
+          toast.warning(copy.lhopitalStopped);
+          setResult(copy.indeterminateResult);
         }
       }
     } catch (e: any) {
-      toast.error('فشل حساب النهاية.');
+      toast.error(copy.limitFailed);
     }
     setLoading(false);
   };
 
   return (
-    <div className="mx-auto max-w-6xl p-4 md:p-6" dir="rtl">
+    <div
+      className="mx-auto max-w-6xl p-4 md:p-6"
+      dir={isArabic ? 'rtl' : 'ltr'}
+    >
       <div className="mb-8 flex items-center gap-3">
         <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary shrink-0">
           <Box size={24} />
         </div>
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">محرك الرياضيات المتقدم</h1>
+          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">{copy.title}</h1>
           <p className="text-sm md:text-base text-muted-foreground mt-1">
-            (Calculus 3 Math Engine) - معالجة رياضية آمنة خالية من ثغرات eval.
+            {copy.subtitle}
           </p>
         </div>
       </div>
@@ -250,36 +359,36 @@ export default function MathSolver() {
           <Card className="shadow-lg border-2 border-primary/10">
             <CardHeader className="bg-primary/5 border-b border-primary/10">
               <CardTitle className="text-xl flex items-center gap-2">
-                <Calculator size={20} /> إدخال المعادلات
+                <Calculator size={20} /> {copy.equationInput}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4 md:p-6 space-y-6">
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="math-expr" className="text-sm font-bold mb-2 block">الدالة الرياضية (f):</label>
+                  <label htmlFor="math-expr" className="text-sm font-bold mb-2 block">{copy.mathFunction}</label>
                   <Input 
                     id="math-expr"
                     value={expr} 
                     onChange={e => setExpr(e.target.value)} 
                     dir="ltr" 
                     className="font-mono text-lg h-14"
-                    placeholder="مثال: x^2 + sin(y)"
+                    placeholder={copy.expressionPlaceholder}
                   />
                 </div>
               </div>
 
               <Tabs defaultValue="derivatives" className="w-full">
                 <TabsList className="grid grid-cols-2 md:grid-cols-4 h-auto md:h-12 mb-6 gap-2 bg-transparent">
-                  <TabsTrigger value="derivatives" className="bg-muted h-10 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">الاشتقاق</TabsTrigger>
-                  <TabsTrigger value="integrals" className="bg-muted h-10 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">التكامل</TabsTrigger>
-                  <TabsTrigger value="limits" className="bg-muted h-10 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">النهايات</TabsTrigger>
-                  <TabsTrigger value="vectors" className="bg-muted h-10 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">المتجهات</TabsTrigger>
+                  <TabsTrigger value="derivatives" className="bg-muted h-10 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">{copy.derivatives}</TabsTrigger>
+                  <TabsTrigger value="integrals" className="bg-muted h-10 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">{copy.integrals}</TabsTrigger>
+                  <TabsTrigger value="limits" className="bg-muted h-10 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">{copy.limits}</TabsTrigger>
+                  <TabsTrigger value="vectors" className="bg-muted h-10 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">{copy.vectors}</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="derivatives" className="space-y-4">
                   <div className="flex gap-4">
                     <div className="flex-1">
-                      <label className="text-sm font-bold mb-2 block">المتغير:</label>
+                      <label className="text-sm font-bold mb-2 block">{copy.variable}</label>
                       <select 
                         value={variable} 
                         onChange={e => setVariable(e.target.value)}
@@ -291,8 +400,8 @@ export default function MathSolver() {
                       </select>
                     </div>
                     <div className="flex-[2] flex items-end gap-2">
-                      <Button onClick={solveDerivative} disabled={loading} className="w-full h-12">مشتقة جزئية (Partial)</Button>
-                      <Button onClick={solveGradient} variant="secondary" disabled={loading} className="w-full h-12">الانحدار (Gradient)</Button>
+                      <Button onClick={solveDerivative} disabled={loading} className="w-full h-12">{copy.partialDerivative}</Button>
+                      <Button onClick={solveGradient} variant="secondary" disabled={loading} className="w-full h-12">{copy.gradient}</Button>
                     </div>
                   </div>
                 </TabsContent>
@@ -300,7 +409,7 @@ export default function MathSolver() {
                 <TabsContent value="integrals" className="space-y-4">
                    <div className="flex gap-4">
                     <div className="flex-1">
-                      <label className="text-sm font-bold mb-2 block">المتغير:</label>
+                      <label className="text-sm font-bold mb-2 block">{copy.variable}</label>
                       <select 
                         value={variable} 
                         onChange={e => setVariable(e.target.value)}
@@ -312,8 +421,8 @@ export default function MathSolver() {
                       </select>
                     </div>
                     <div className="flex-[2] flex items-end gap-2">
-                      <Button onClick={solveIntegral} disabled={loading} className="w-full h-12">تكامل غير محدد</Button>
-                      <Button onClick={solveDoubleIntegral} variant="secondary" disabled={loading} className="w-full h-12">تكامل مزدوج (dy dx)</Button>
+                      <Button onClick={solveIntegral} disabled={loading} className="w-full h-12">{copy.indefiniteIntegral}</Button>
+                      <Button onClick={solveDoubleIntegral} variant="secondary" disabled={loading} className="w-full h-12">{copy.doubleIntegral}</Button>
                     </div>
                    </div>
                 </TabsContent>
@@ -321,7 +430,7 @@ export default function MathSolver() {
                 <TabsContent value="limits" className="space-y-4 p-4 border rounded-xl bg-background/50">
                   <div className="flex gap-4">
                     <div className="flex-1">
-                      <label className="text-sm font-bold mb-2 block">يقترب المتغير ({variable}) من:</label>
+                      <label className="text-sm font-bold mb-2 block">{copy.approaches} ({variable})</label>
                       <Input 
                         value={limitPoint} 
                         onChange={e => setLimitPoint(e.target.value)}
@@ -331,17 +440,17 @@ export default function MathSolver() {
                     </div>
                     <div className="flex-1 flex items-end">
                       <Button onClick={solveLimit} disabled={loading} className="w-full h-12 text-lg font-bold">
-                        تطبيق القاعدة وحساب النهاية
+                        {copy.calculateLimit}
                       </Button>
                     </div>
                   </div>
                   <p className="text-xs text-muted-foreground mt-4 text-center">
-                    ملاحظة: لحساب نهايات الدوال الكسرية باستخدام L'Hôpital، افصل بين البسط والمقام بعلامة /.
+                    {copy.lhopitalNote}
                   </p>
                 </TabsContent>
                 
                 <TabsContent value="vectors" className="space-y-4 text-center p-4">
-                   <p className="text-muted-foreground text-sm">مساحة عمل المتجهات (Dot, Cross, Curl, Divergence) جاهزة للربط.</p>
+                   <p className="text-muted-foreground text-sm">{copy.vectorsWorkspace}</p>
                 </TabsContent>
 
               </Tabs>
@@ -352,7 +461,7 @@ export default function MathSolver() {
           {(steps.length > 0 || result) && (
             <Card className="shadow-lg border-2 border-primary/20">
               <CardHeader className="bg-primary/5 border-b border-primary/10">
-                <CardTitle className="text-xl text-primary">خطوات الحل والنتيجة</CardTitle>
+                <CardTitle className="text-xl text-primary">{copy.solutionSteps}</CardTitle>
               </CardHeader>
               <CardContent className="p-6 space-y-6">
                 <div className="space-y-4">
@@ -366,7 +475,7 @@ export default function MathSolver() {
                 
                 {result && (
                   <div className="mt-8 p-6 rounded-2xl bg-primary/10 border-2 border-primary/30 text-center">
-                    <h3 className="text-sm font-bold text-primary mb-4">النتيجة النهائية:</h3>
+                    <h3 className="text-sm font-bold text-primary mb-4">{copy.finalResult}</h3>
                     <div className="text-2xl font-bold overflow-x-auto overflow-y-hidden text-primary" dir="ltr">
                       <BlockMath math={result} />
                     </div>
@@ -381,7 +490,7 @@ export default function MathSolver() {
         <div>
           <Card className="shadow-lg border-2 bg-card h-full flex flex-col">
             <CardHeader className="bg-muted/30 border-b">
-              <CardTitle className="text-xl flex items-center gap-2"><Activity size={20}/> المعاينة البصرية التفاعلية</CardTitle>
+              <CardTitle className="text-xl flex items-center gap-2"><Activity size={20}/> {copy.visualPreview}</CardTitle>
             </CardHeader>
             <CardContent className="p-6 flex-1 flex flex-col space-y-4">
               <div className="flex gap-2 flex-wrap">
@@ -390,27 +499,27 @@ export default function MathSolver() {
                   onClick={() => { setPlotMode('surface'); setPlotExpr('x^2 - y^2'); }}
                   className="flex-1 min-w-[120px]"
                 >
-                  سطح (Surface)
+                  {copy.surface}
                 </Button>
                 <Button 
                   variant={plotMode === 'parametric' ? 'default' : 'outline'} 
                   onClick={() => { setPlotMode('parametric'); setPlotExpr('cos(t), sin(t), t'); }}
                   className="flex-1 min-w-[120px]"
                 >
-                  منحنى بارامتري
+                  {copy.parametric}
                 </Button>
                 <Button 
                   variant={plotMode === 'vector' ? 'default' : 'outline'} 
                   onClick={() => { setPlotMode('vector'); setPlotExpr('-y, x, z'); }}
                   className="flex-1 min-w-[120px]"
                 >
-                  حقل متجه (Vector Field)
+                  {copy.vectorField}
                 </Button>
               </div>
 
               <div>
                 <label className="text-sm font-bold mb-2 block">
-                  {plotMode === 'surface' ? 'الدالة z = f(x,y):' : plotMode === 'parametric' ? 'الدالة البارامترية x(t), y(t), z(t):' : 'الحقل المتجه F = <P, Q, R>:'}
+                  {plotMode === 'surface' ? copy.surfaceFunction : plotMode === 'parametric' ? copy.parametricFunction : copy.vectorFieldFunction}
                 </label>
                 <Input 
                   value={plotExpr} 

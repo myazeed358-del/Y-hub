@@ -7,12 +7,20 @@ type Role = 'student' | 'instructor' | 'admin' | 'super_admin';
 export type AuthStatus = 'loading' | 'unauthenticated' | 'authenticated' | 'profile_missing' | 'profile_error';
 
 export interface UserProfile {
+  email?: string;
   full_name?: string;
   age?: number;
   major?: string;
   study_year?: string;
   phone?: string;
   role?: Role;
+  created_at?: string;
+}
+
+export interface ProfileUpdates {
+  age?: number | null;
+  study_year?: string | null;
+  phone?: string | null;
 }
 
 export interface SignUpData {
@@ -35,7 +43,8 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (data: SignUpData) => Promise<void>;
   signOut: () => Promise<void>;
-  updateMajor: (newMajor: string) => Promise<void>;
+  updateProfile: (updates: ProfileUpdates) => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -48,7 +57,8 @@ const AuthContext = createContext<AuthContextType>({
   signIn: async () => {},
   signUp: async () => {},
   signOut: async () => {},
-  updateMajor: async () => {}
+  updateProfile: async () => {},
+  refreshProfile: async () => {}
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -69,6 +79,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (_event === 'PASSWORD_RECOVERY') {
+        sessionStorage.setItem('yhub_password_recovery', '1');
+      }
       setUser(session?.user ?? null);
       if (session?.user) {
         setStatus('loading');
@@ -114,24 +127,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const updateMajor = async (newMajor: string) => {
+  const refreshProfile = async () => {
     if (!user) return;
-    try {
-      // Use the secure RPC instead of direct table update
-      const { error } = await supabase.rpc('update_own_profile', {
-        p_updates: { major: newMajor }
-      });
-      
-      if (!error) {
-        setMajor(newMajor);
-        setProfile(prev => prev ? { ...prev, major: newMajor } : null);
-      } else {
-        throw error;
-      }
-    } catch (err) {
-      console.error("Failed to update major:", err);
-      throw err;
+    await fetchUserProfile(user.id);
+  };
+
+  const updateProfile = async (updates: ProfileUpdates) => {
+    if (!user) {
+      throw new Error('Not authenticated');
     }
+
+    const { error } = await supabase.rpc('update_own_profile', {
+      p_updates: updates
+    });
+
+    if (error) {
+      console.error('Failed to update profile:', error);
+      throw error;
+    }
+
+    await fetchUserProfile(user.id);
   };
 
   const signIn = async (email: string, password: string) => {
@@ -168,7 +183,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loading = status === 'loading';
 
   return (
-    <AuthContext.Provider value={{ user, role, major, profile, status, loading, signIn, signUp, signOut, updateMajor }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        role,
+        major,
+        profile,
+        status,
+        loading,
+        signIn,
+        signUp,
+        signOut,
+        updateProfile,
+        refreshProfile
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

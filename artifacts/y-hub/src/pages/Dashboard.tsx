@@ -1,250 +1,630 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import type { ChangeEvent } from 'react';
 import { Link } from 'wouter';
-import { supabase } from '@/utils/supabaseClient';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@workspace/y-hub-ds/components/ui/card';
-import { Button } from '@workspace/y-hub-ds/components/ui/button';
-import { Input } from '@workspace/y-hub-ds/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@workspace/y-hub-ds/components/ui/dialog';
-import { BookOpen, Plus, Trash2, ArrowRight, Eye, EyeOff, Loader2, BookMarked, Globe, FileEdit, Settings2 } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import {
+  ArrowUpRight,
+  BookMarked,
+  BookOpen,
+  Eye,
+  EyeOff,
+  FileEdit,
+  Globe2,
+  GraduationCap,
+  Loader2,
+  Plus,
+  Settings2,
+  ShieldCheck,
+  Sparkles,
+  Trash2,
+} from 'lucide-react';
 import { toast } from 'sonner';
 
-function StatCard({ title, value, icon: Icon, description }: any) {
-  return (
-    <Card className="bg-[hsl(var(--card))] border-[hsl(var(--border))] shadow-sm hover:shadow-md transition-shadow">
-      <CardContent className="p-6">
-        <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[hsl(var(--primary)/.1)] text-[hsl(var(--primary))]">
-            <Icon size={24} />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-[hsl(var(--muted-foreground))]">{title}</p>
-            <h4 className="text-2xl font-bold text-[hsl(var(--foreground))] mt-1">{value}</h4>
-            {description && <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1">{description}</p>}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
+import { supabase } from '@/utils/supabaseClient';
+import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '../App';
+
+import { Button } from '@workspace/y-hub-ds/components/ui/button';
+import { Input } from '@workspace/y-hub-ds/components/ui/input';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@workspace/y-hub-ds/components/ui/dialog';
+
+interface Course {
+  id: string;
+  title: string;
+  description?: string | null;
+  course_code?: string | null;
+  instructor_id?: string | null;
+  is_published: boolean;
+  created_at?: string | null;
 }
 
 export default function Dashboard() {
-  const [courses, setCourses] = useState<any[]>([]);
+  const { user, profile, role } = useAuth();
+  const { language } = useLanguage();
+  const isArabic = language === 'ar';
+
+  const [courses, setCourses] = useState<Course[]>([]);
   const [newTitle, setNewTitle] = useState('');
   const [newDesc, setNewDesc] = useState('');
   const [newCode, setNewCode] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const { user, profile } = useAuth();
+
+  const copy = isArabic
+    ? {
+        workspace: 'مساحة المدرّس',
+        welcome: 'أهلاً بك،',
+        subtitle:
+          'ابنِ مساقاتك الأكاديمية وأدر محتواها ونشرها من مساحة واحدة متناسقة داخل Y HUB.',
+        newCourse: 'مساق جديد',
+        createCourse: 'إنشاء مساق أكاديمي جديد',
+        courseTitle: 'عنوان المساق',
+        courseTitlePlaceholder: 'مثال: الجبر الخطي المتقدم',
+        courseCode: 'رمز المساق',
+        courseCodePlaceholder: 'مثال: MATH301',
+        courseDescription: 'وصف المساق',
+        courseDescriptionPlaceholder: 'وصف مختصر لأهداف ومحتوى المساق...',
+        saveCourse: 'حفظ المساق',
+        totalCourses: 'إجمالي المساقات',
+        totalDescription: 'كل المساقات التي تديرها',
+        published: 'المساقات المنشورة',
+        publishedDescription: 'متاحة للطلاب حالياً',
+        drafts: 'المسودات',
+        draftsDescription: 'قيد التحضير والإعداد',
+        courseManagement: 'إدارة المساقات',
+        courseManagementSubtitle:
+          'راجع المساقات، غيّر حالة النشر أو ادخل إلى مساحة إدارة المحتوى.',
+        noCourses: 'لا توجد مساقات بعد',
+        noCoursesText:
+          'ابدأ بإنشاء أول مساق أكاديمي. سيظهر هنا فور حفظه.',
+        publishedBadge: 'منشور',
+        draftBadge: 'مسودة',
+        noDescription: 'لم تتم إضافة وصف لهذا المساق بعد.',
+        manage: 'إدارة المساق',
+        publish: 'نشر المساق',
+        unpublish: 'إلغاء النشر',
+        delete: 'حذف المساق',
+        loading: 'جاري تحميل المساقات...',
+        titleRequired: 'يرجى إدخال عنوان المساق',
+        createSuccess: 'تم إنشاء المساق بنجاح',
+        createError: 'تعذر إنشاء المساق',
+        deleteConfirm: 'هل أنت متأكد من حذف هذا المساق نهائياً؟',
+        deleteSuccess: 'تم حذف المساق',
+        deleteError: 'تعذر حذف المساق',
+        publishSuccess: 'تم نشر المساق',
+        unpublishSuccess: 'تم إلغاء نشر المساق',
+        statusError: 'تعذر تحديث حالة المساق',
+        academicControl: 'إدارة أكاديمية موحدة',
+        sync: 'متصل بقاعدة البيانات',
+        roleInstructor: 'مدرّس',
+        roleAdmin: 'مدير',
+        roleSuperAdmin: 'مدير رئيسي',
+      }
+    : {
+        workspace: 'Instructor workspace',
+        welcome: 'Welcome,',
+        subtitle:
+          'Build, organize and publish your academic courses from one consistent Y HUB workspace.',
+        newCourse: 'New course',
+        createCourse: 'Create a new academic course',
+        courseTitle: 'Course title',
+        courseTitlePlaceholder: 'Example: Advanced Linear Algebra',
+        courseCode: 'Course code',
+        courseCodePlaceholder: 'Example: MATH301',
+        courseDescription: 'Course description',
+        courseDescriptionPlaceholder:
+          'A short description of the course goals and content...',
+        saveCourse: 'Save course',
+        totalCourses: 'Total courses',
+        totalDescription: 'All courses you manage',
+        published: 'Published courses',
+        publishedDescription: 'Currently available to students',
+        drafts: 'Draft courses',
+        draftsDescription: 'Still being prepared',
+        courseManagement: 'Course management',
+        courseManagementSubtitle:
+          'Review courses, control publishing, or open the content workspace.',
+        noCourses: 'No courses yet',
+        noCoursesText:
+          'Create your first academic course. It will appear here immediately.',
+        publishedBadge: 'Published',
+        draftBadge: 'Draft',
+        noDescription: 'No description has been added to this course yet.',
+        manage: 'Manage course',
+        publish: 'Publish course',
+        unpublish: 'Unpublish course',
+        delete: 'Delete course',
+        loading: 'Loading courses...',
+        titleRequired: 'Please enter a course title',
+        createSuccess: 'Course created successfully',
+        createError: 'Could not create the course',
+        deleteConfirm: 'Are you sure you want to permanently delete this course?',
+        deleteSuccess: 'Course deleted',
+        deleteError: 'Could not delete the course',
+        publishSuccess: 'Course published',
+        unpublishSuccess: 'Course unpublished',
+        statusError: 'Could not update the course status',
+        academicControl: 'Unified academic management',
+        sync: 'Database connected',
+        roleInstructor: 'Instructor',
+        roleAdmin: 'Admin',
+        roleSuperAdmin: 'Super Admin',
+      };
 
   const loadCourses = async () => {
-    if (!user) return;
+    if (!user) {
+      setCourses([]);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
+
     const { data, error } = await supabase
       .from('courses')
       .select('*')
       .eq('instructor_id', user.id)
       .order('created_at', { ascending: false });
-      
-    if (!error && data) {
-      setCourses(data);
+
+    if (error) {
+      console.error('Failed to load instructor courses:', error);
+      setCourses([]);
+    } else {
+      setCourses((data ?? []) as Course[]);
     }
+
     setLoading(false);
   };
 
   useEffect(() => {
-    loadCourses();
+    void loadCourses();
   }, [user]);
 
+  const resetCourseForm = () => {
+    setNewTitle('');
+    setNewDesc('');
+    setNewCode('');
+  };
+
   const handleCreateCourse = async () => {
-    if (!newTitle) {
-      toast.error('يرجى إدخال عنوان المساق');
+    if (!newTitle.trim()) {
+      toast.error(copy.titleRequired);
       return;
     }
-    
+
+    if (!user) return;
+
     const { error } = await supabase.from('courses').insert({
-      title: newTitle,
-      description: newDesc,
-      course_code: newCode,
-      instructor_id: user?.id,
-      is_published: false
+      title: newTitle.trim(),
+      description: newDesc.trim() || null,
+      course_code: newCode.trim() || null,
+      instructor_id: user.id,
+      is_published: false,
     });
-    
+
     if (error) {
-      toast.error('فشل إنشاء المساق');
-      console.error(error);
-    } else {
-      toast.success('تم إنشاء المساق بنجاح');
-      setNewTitle('');
-      setNewDesc('');
-      setNewCode('');
-      setIsOpen(false);
-      loadCourses();
+      console.error('Failed to create course:', error);
+      toast.error(copy.createError);
+      return;
     }
+
+    toast.success(copy.createSuccess);
+    resetCourseForm();
+    setIsOpen(false);
+    await loadCourses();
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('هل أنت متأكد من حذف هذا المساق نهائياً؟')) {
-      const { error } = await supabase.from('courses').delete().eq('id', id);
-      if (error) toast.error('فشل حذف المساق');
-      else {
-        toast.success('تم حذف المساق');
-        loadCourses();
-      }
+    if (!window.confirm(copy.deleteConfirm)) return;
+
+    const { error } = await supabase
+      .from('courses')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Failed to delete course:', error);
+      toast.error(copy.deleteError);
+      return;
     }
+
+    toast.success(copy.deleteSuccess);
+    await loadCourses();
   };
 
-  const handleToggleStatus = async (course: any) => {
+  const handleToggleStatus = async (course: Course) => {
     const { error } = await supabase
       .from('courses')
       .update({ is_published: !course.is_published })
       .eq('id', course.id);
-      
-    if (error) toast.error('فشل تحديث حالة المساق');
-    else {
-      toast.success(course.is_published ? 'تم إلغاء نشر المساق' : 'تم نشر المساق');
-      loadCourses();
+
+    if (error) {
+      console.error('Failed to update course status:', error);
+      toast.error(copy.statusError);
+      return;
     }
+
+    toast.success(
+      course.is_published
+        ? copy.unpublishSuccess
+        : copy.publishSuccess
+    );
+
+    await loadCourses();
   };
 
-  const firstName = profile?.full_name?.split(' ')[0] || 'أستاذ';
-  const publishedCount = courses.filter(c => c.is_published).length;
+  const accountName =
+    profile?.full_name?.trim() ||
+    user?.email?.split('@')[0] ||
+    (isArabic ? 'مستخدم Y HUB' : 'Y HUB User');
+
+  const firstName = accountName.split(/\s+/)[0] || accountName;
+
+  const publishedCount = courses.filter(
+    (course) => course.is_published
+  ).length;
+
   const draftCount = courses.length - publishedCount;
 
+  const roleLabel =
+    role === 'super_admin'
+      ? copy.roleSuperAdmin
+      : role === 'admin'
+        ? copy.roleAdmin
+        : copy.roleInstructor;
+
   return (
-    <div className="mx-auto max-w-6xl space-y-8 animate-in fade-in duration-500" dir="rtl">
-      
-      {/* HERO SECTION */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[hsl(var(--card))] to-[hsl(var(--background))] border border-[hsl(var(--border))] p-8 md:p-12 shadow-sm">
-        <div className="absolute top-0 right-0 -mt-16 -mr-16 h-64 w-64 rounded-full bg-[hsl(var(--primary)/.05)] blur-3xl pointer-events-none"></div>
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div
+      dir={isArabic ? 'rtl' : 'ltr'}
+      className="mx-auto w-full max-w-[1320px] space-y-7 animate-in fade-in duration-500"
+    >
+      <section className="relative overflow-hidden rounded-[2rem] border border-slate-800/80 bg-[#0b1220]/90 p-6 shadow-[0_24px_70px_rgba(0,0,0,0.24)] sm:p-8 lg:p-10">
+        <div className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-cyan-400/[0.09] blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-28 left-1/3 h-64 w-64 rounded-full bg-violet-500/[0.08] blur-3xl" />
+
+        <div className="relative grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
           <div>
-            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-[hsl(var(--foreground))]">
-              أهلاً بك، {firstName}
+            <div className="mb-5 flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-2 rounded-full border border-cyan-400/15 bg-cyan-400/[0.06] px-3 py-1.5 text-[11px] font-black text-cyan-300">
+                <GraduationCap size={14} />
+                {copy.workspace}
+              </span>
+
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/[0.06] bg-white/[0.025] px-3 py-1.5 text-[11px] font-semibold text-slate-500">
+                <ShieldCheck size={13} />
+                {roleLabel}
+              </span>
+            </div>
+
+            <h1 className="max-w-3xl text-3xl font-black tracking-tight text-white sm:text-4xl lg:text-5xl">
+              {copy.welcome}{' '}
+              <span className="bg-gradient-to-r from-cyan-300 to-violet-400 bg-clip-text text-transparent">
+                {firstName}
+              </span>
             </h1>
-            <p className="mt-2 text-[hsl(var(--muted-foreground))] max-w-xl leading-relaxed">
-              مركز إدارة التعليم الأكاديمي. قم ببناء وإدارة مساقاتك، وتتبع تقدم الطلاب من خلال واجهة موحدة واحترافية.
+
+            <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-400 sm:text-base">
+              {copy.subtitle}
             </p>
+
+            <div className="mt-6 flex flex-wrap items-center gap-4 text-[11px] text-slate-600">
+              <span className="inline-flex items-center gap-2">
+                <Sparkles size={13} className="text-violet-400" />
+                {copy.academicControl}
+              </span>
+
+              <span className="inline-flex items-center gap-2">
+                <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,.9)]" />
+                {copy.sync}
+              </span>
+            </div>
           </div>
-          <div className="flex gap-3">
-            <Dialog open={isOpen} onOpenChange={setIsOpen}>
-              <DialogTrigger asChild>
-                <Button size="lg" className="gap-2 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary)/.9)] rounded-xl shadow-lg shadow-[hsl(var(--primary)/.2)]">
-                  <Plus size={18} /> مساق جديد
-                </Button>
-              </DialogTrigger>
-              <DialogContent dir="rtl" className="sm:max-w-md">
-                <DialogHeader>
-                  <DialogTitle className="text-xl">إنشاء مساق أكاديمي جديد</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 pt-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold text-[hsl(var(--foreground))]">عنوان المساق</label>
-                    <Input value={newTitle} onChange={(e: ChangeEvent<HTMLInputElement>) => setNewTitle(e.target.value)} placeholder="مثال: الجبر الخطي المتقدم" className="bg-[hsl(var(--background))]" />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold text-[hsl(var(--foreground))]">رمز المساق (Code)</label>
-                    <Input value={newCode} onChange={(e: ChangeEvent<HTMLInputElement>) => setNewCode(e.target.value)} placeholder="مثال: MATH301" className="bg-[hsl(var(--background))]" />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold text-[hsl(var(--foreground))]">وصف المساق</label>
-                    <Input value={newDesc} onChange={(e: ChangeEvent<HTMLInputElement>) => setNewDesc(e.target.value)} placeholder="وصف قصير لأهداف المساق..." className="bg-[hsl(var(--background))]" />
-                  </div>
-                  <Button className="w-full mt-2" onClick={handleCreateCourse}>حفظ المساق</Button>
+
+          <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild>
+              <Button className="h-12 gap-2 rounded-2xl bg-cyan-400 px-5 font-black text-slate-950 shadow-[0_12px_30px_rgba(34,211,238,.18)] hover:bg-cyan-300">
+                <Plus size={18} />
+                {copy.newCourse}
+              </Button>
+            </DialogTrigger>
+
+            <DialogContent
+              dir={isArabic ? 'rtl' : 'ltr'}
+              className="border-slate-800 bg-[#0b1220] text-slate-100 sm:max-w-lg"
+            >
+              <DialogHeader>
+                <DialogTitle className="text-xl font-black">
+                  {copy.createCourse}
+                </DialogTitle>
+              </DialogHeader>
+
+              <div className="space-y-5 pt-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-slate-300">
+                    {copy.courseTitle}
+                  </label>
+
+                  <Input
+                    value={newTitle}
+                    onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                      setNewTitle(event.target.value)
+                    }
+                    placeholder={copy.courseTitlePlaceholder}
+                    className="h-12 border-slate-800 bg-slate-950/50"
+                  />
                 </div>
-              </DialogContent>
-            </Dialog>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-slate-300">
+                    {copy.courseCode}
+                  </label>
+
+                  <Input
+                    value={newCode}
+                    onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                      setNewCode(event.target.value)
+                    }
+                    placeholder={copy.courseCodePlaceholder}
+                    className="h-12 border-slate-800 bg-slate-950/50"
+                    dir="ltr"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-slate-300">
+                    {copy.courseDescription}
+                  </label>
+
+                  <Input
+                    value={newDesc}
+                    onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                      setNewDesc(event.target.value)
+                    }
+                    placeholder={copy.courseDescriptionPlaceholder}
+                    className="h-12 border-slate-800 bg-slate-950/50"
+                  />
+                </div>
+
+                <Button
+                  onClick={handleCreateCourse}
+                  className="mt-2 h-12 w-full rounded-xl bg-cyan-400 font-black text-slate-950 hover:bg-cyan-300"
+                >
+                  {copy.saveCourse}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-3">
+        <StatCard
+          title={copy.totalCourses}
+          value={loading ? '—' : courses.length.toString()}
+          description={copy.totalDescription}
+          icon={BookMarked}
+          tone="cyan"
+        />
+
+        <StatCard
+          title={copy.published}
+          value={loading ? '—' : publishedCount.toString()}
+          description={copy.publishedDescription}
+          icon={Globe2}
+          tone="violet"
+        />
+
+        <StatCard
+          title={copy.drafts}
+          value={loading ? '—' : draftCount.toString()}
+          description={copy.draftsDescription}
+          icon={FileEdit}
+          tone="slate"
+        />
+      </section>
+
+      <section className="rounded-[2rem] border border-slate-800/80 bg-[#0b1220]/65 p-5 sm:p-7">
+        <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="mb-2 text-[10px] font-black uppercase tracking-[0.22em] text-cyan-400">
+              Y HUB
+            </p>
+
+            <h2 className="text-xl font-black text-white sm:text-2xl">
+              {copy.courseManagement}
+            </h2>
+
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+              {copy.courseManagementSubtitle}
+            </p>
           </div>
         </div>
-      </section>
 
-      {/* OVERVIEW STATS */}
-      <section className="grid gap-4 md:grid-cols-3">
-        <StatCard 
-          title="إجمالي المساقات" 
-          value={loading ? '-' : courses.length.toString()} 
-          icon={BookMarked} 
-          description="المساقات التي تديرها" 
-        />
-        <StatCard 
-          title="المساقات المنشورة" 
-          value={loading ? '-' : publishedCount.toString()} 
-          icon={Globe} 
-          description="متاحة للطلاب حالياً" 
-        />
-        <StatCard 
-          title="مسودات" 
-          value={loading ? '-' : draftCount.toString()} 
-          icon={FileEdit} 
-          description="قيد التحضير والإعداد" 
-        />
-      </section>
-
-      {/* COURSES CATALOG */}
-      <section>
-        <div className="flex items-center justify-between mb-6 px-1">
-          <h2 className="text-xl font-bold text-[hsl(var(--foreground))]">إدارة المساقات</h2>
-        </div>
-        
         {loading ? (
-          <div className="flex justify-center py-20"><Loader2 className="animate-spin text-[hsl(var(--primary))]" size={40} /></div>
-        ) : courses.length === 0 ? (
-          <div className="text-center py-24 bg-[hsl(var(--card)/.5)] rounded-3xl border border-dashed border-[hsl(var(--border))]">
-            <BookOpen className="mx-auto text-[hsl(var(--muted-foreground)/.5)] mb-4" size={48} />
-            <h3 className="text-lg font-bold text-[hsl(var(--foreground))]">لا يوجد مساقات بعد</h3>
-            <p className="text-[hsl(var(--muted-foreground))] mt-2 max-w-sm mx-auto">
-              ابدأ بإنشاء أول مساق أكاديمي لتقديم المحتوى للطلاب.
+          <div className="flex min-h-[260px] flex-col items-center justify-center gap-4">
+            <Loader2
+              className="animate-spin text-cyan-400"
+              size={34}
+            />
+            <p className="text-sm text-slate-500">
+              {copy.loading}
             </p>
+          </div>
+        ) : courses.length === 0 ? (
+          <div className="flex min-h-[290px] flex-col items-center justify-center rounded-[1.5rem] border border-dashed border-slate-800 bg-slate-950/25 px-6 text-center">
+            <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-cyan-400/10 bg-cyan-400/[0.05]">
+              <BookOpen
+                className="text-slate-600"
+                size={30}
+              />
+            </div>
+
+            <h3 className="text-lg font-black text-slate-200">
+              {copy.noCourses}
+            </h3>
+
+            <p className="mt-2 max-w-md text-sm leading-7 text-slate-500">
+              {copy.noCoursesText}
+            </p>
+
+            <Button
+              onClick={() => setIsOpen(true)}
+              className="mt-6 gap-2 rounded-xl bg-cyan-400 font-black text-slate-950 hover:bg-cyan-300"
+            >
+              <Plus size={16} />
+              {copy.newCourse}
+            </Button>
           </div>
         ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {courses.map(course => (
-              <Card key={course.id} className={`flex flex-col relative group transition-all duration-300 hover:shadow-lg hover:-translate-y-1 ${course.is_published ? 'bg-[hsl(var(--card))] border-[hsl(var(--border))] hover:border-[hsl(var(--primary)/.5)]' : 'bg-[hsl(var(--card)/.6)] border-[hsl(var(--border))] border-dashed hover:border-[hsl(var(--muted-foreground)/.5)]'}`}>
-                
-                <div className="absolute top-4 left-4 z-10">
-                  <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${course.is_published ? 'bg-[hsl(var(--primary)/.1)] text-[hsl(var(--primary))] border border-[hsl(var(--primary)/.2)]' : 'bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] border border-[hsl(var(--border))]'}`}>
-                    {course.is_published ? 'منشور' : 'مسودة'}
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {courses.map((course) => (
+              <article
+                key={course.id}
+                className="group relative flex min-h-[280px] flex-col overflow-hidden rounded-[1.5rem] border border-slate-800 bg-slate-950/35 p-5 transition-all duration-300 hover:-translate-y-1 hover:border-cyan-400/20 hover:bg-slate-950/55 hover:shadow-[0_20px_45px_rgba(0,0,0,.18)]"
+              >
+                <div className="pointer-events-none absolute right-0 top-0 h-28 w-28 rounded-full bg-cyan-400/[0.04] blur-3xl transition-opacity group-hover:bg-cyan-400/[0.08]" />
+
+                <div className="relative flex items-start justify-between gap-3">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/[0.05] bg-white/[0.025] text-cyan-400">
+                    <BookOpen size={20} />
+                  </div>
+
+                  <span
+                    className={`rounded-full border px-2.5 py-1 text-[10px] font-black ${
+                      course.is_published
+                        ? 'border-cyan-400/15 bg-cyan-400/[0.06] text-cyan-300'
+                        : 'border-violet-400/15 bg-violet-400/[0.06] text-violet-300'
+                    }`}
+                  >
+                    {course.is_published
+                      ? copy.publishedBadge
+                      : copy.draftBadge}
                   </span>
                 </div>
 
-                <CardHeader className="pb-4 pt-5 pl-20">
-                  <div className="flex items-center mb-2">
-                    {course.course_code && (
-                      <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-md bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] border border-[hsl(var(--border))]">
-                        {course.course_code}
-                      </span>
-                    )}
-                  </div>
-                  <CardTitle className="text-lg leading-tight">{course.title}</CardTitle>
-                  <CardDescription className="line-clamp-2 text-xs mt-2 leading-relaxed text-[hsl(var(--muted-foreground))]">
-                    {course.description || 'لا يوجد وصف مقدّم.'}
-                  </CardDescription>
-                </CardHeader>
-                
-                <CardContent className="flex-1">
-                </CardContent>
-                
-                <CardFooter className="pt-4 border-t border-[hsl(var(--border)/.5)] flex justify-between gap-2">
-                  <div className="flex gap-1.5">
-                    <Button variant="ghost" size="icon" onClick={() => handleDelete(course.id)} className="h-9 w-9 text-[hsl(var(--destructive)/.8)] hover:text-[hsl(var(--destructive))] hover:bg-[hsl(var(--destructive)/.1)] rounded-lg">
+                <div className="relative mt-5 flex-1">
+                  {course.course_code && (
+                    <div className="mb-2 font-mono text-[10px] font-black uppercase tracking-[0.18em] text-slate-600">
+                      {course.course_code}
+                    </div>
+                  )}
+
+                  <h3 className="line-clamp-2 text-lg font-black leading-7 text-slate-100">
+                    {course.title}
+                  </h3>
+
+                  <p className="mt-3 line-clamp-3 text-xs leading-6 text-slate-500">
+                    {course.description || copy.noDescription}
+                  </p>
+                </div>
+
+                <div className="relative mt-6 border-t border-slate-800/80 pt-4">
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      title={copy.delete}
+                      onClick={() => handleDelete(course.id)}
+                      className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-800 text-slate-500 transition-colors hover:border-red-400/20 hover:bg-red-500/[0.07] hover:text-red-400"
+                    >
                       <Trash2 size={16} />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleToggleStatus(course)} className="h-9 w-9 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:bg-[hsl(var(--secondary))] rounded-lg">
-                      {course.is_published ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </Button>
+                    </button>
+
+                    <button
+                      type="button"
+                      title={
+                        course.is_published
+                          ? copy.unpublish
+                          : copy.publish
+                      }
+                      onClick={() => handleToggleStatus(course)}
+                      className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-800 text-slate-500 transition-colors hover:border-violet-400/20 hover:bg-violet-500/[0.07] hover:text-violet-300"
+                    >
+                      {course.is_published ? (
+                        <EyeOff size={16} />
+                      ) : (
+                        <Eye size={16} />
+                      )}
+                    </button>
+
+                    <Link
+                      href={`/course/${course.id}`}
+                      className="min-w-0 flex-1"
+                    >
+                      <Button className="h-10 w-full gap-2 rounded-xl border border-cyan-400/15 bg-cyan-400/[0.07] font-bold text-cyan-300 hover:bg-cyan-400/[0.12] hover:text-cyan-200">
+                        <Settings2 size={15} />
+                        {copy.manage}
+                        <ArrowUpRight size={14} />
+                      </Button>
+                    </Link>
                   </div>
-                  <Link href={`/course/${course.id}`} className="flex-1">
-                    <Button className="w-full gap-2 rounded-lg bg-[hsl(var(--background))] text-[hsl(var(--foreground))] border border-[hsl(var(--border))] hover:bg-[hsl(var(--primary))] hover:text-[hsl(var(--primary-foreground))] hover:border-[hsl(var(--primary))] transition-all">
-                      <Settings2 size={16} /> إدارة 
-                    </Button>
-                  </Link>
-                </CardFooter>
-              </Card>
+                </div>
+              </article>
             ))}
           </div>
         )}
       </section>
+    </div>
+  );
+}
+
+function StatCard({
+  title,
+  value,
+  description,
+  icon: Icon,
+  tone,
+}: {
+  title: string;
+  value: string;
+  description: string;
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  tone: 'cyan' | 'violet' | 'slate';
+}) {
+  const toneClasses = {
+    cyan: {
+      wrapper: 'border-cyan-400/10 bg-cyan-400/[0.035]',
+      icon: 'border-cyan-400/10 bg-cyan-400/[0.07] text-cyan-300',
+    },
+    violet: {
+      wrapper: 'border-violet-400/10 bg-violet-400/[0.035]',
+      icon: 'border-violet-400/10 bg-violet-400/[0.07] text-violet-300',
+    },
+    slate: {
+      wrapper: 'border-slate-800 bg-white/[0.02]',
+      icon: 'border-white/[0.05] bg-white/[0.025] text-slate-400',
+    },
+  }[tone];
+
+  return (
+    <div
+      className={`rounded-[1.5rem] border p-5 transition-transform duration-200 hover:-translate-y-0.5 ${toneClasses.wrapper}`}
+    >
+      <div className="flex items-center gap-4">
+        <div
+          className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border ${toneClasses.icon}`}
+        >
+          <Icon size={21} />
+        </div>
+
+        <div className="min-w-0">
+          <p className="text-xs font-semibold text-slate-500">
+            {title}
+          </p>
+
+          <div className="mt-1 text-2xl font-black text-white">
+            {value}
+          </div>
+
+          <p className="mt-1 truncate text-[10px] text-slate-600">
+            {description}
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

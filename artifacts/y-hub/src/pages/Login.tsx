@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/utils/supabaseClient';
 import YHubLogo from '@/components/YHubLogo';
 import ScientificBackdrop from '@/components/ScientificBackdrop';
 
@@ -95,6 +96,13 @@ const loginCopy = {
 
     email: 'البريد الإلكتروني',
     password: 'كلمة المرور',
+    forgotLink: 'نسيت كلمة المرور؟',
+    forgotTitle: 'استعادة كلمة المرور',
+    forgotDescription: 'أدخل بريدك الإلكتروني لإرسال رابط استعادة كلمة المرور.',
+    forgotAction: 'إرسال رابط الاستعادة',
+    forgotSent: 'إذا كان البريد مرتبطًا بحساب، ستصلك رسالة تحتوي على رابط استعادة كلمة المرور.',
+    forgotFailed: 'تعذّر إرسال طلب الاستعادة. حاول مرة أخرى لاحقًا.',
+    backToLogin: 'العودة إلى تسجيل الدخول',
 
     loading: 'جاري التحميل...',
     createAction: 'إنشاء الحساب',
@@ -198,6 +206,13 @@ const loginCopy = {
 
     email: 'Email address',
     password: 'Password',
+    forgotLink: 'Forgot password?',
+    forgotTitle: 'Reset your password',
+    forgotDescription: 'Enter your email address to receive a password recovery link.',
+    forgotAction: 'Send recovery link',
+    forgotSent: 'If this email belongs to an account, you will receive a password recovery link.',
+    forgotFailed: 'Unable to process the recovery request. Please try again later.',
+    backToLogin: 'Back to sign in',
 
     loading: 'Loading...',
     createAction: 'Create account',
@@ -242,6 +257,7 @@ export default function Login({
     return new URLSearchParams(window.location.search).get('mode') === 'signup';
   });
 
+  const [isRecoveryRequest, setIsRecoveryRequest] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
 
@@ -273,6 +289,7 @@ export default function Login({
   };
 
   const switchMode = () => {
+    setIsRecoveryRequest(false);
     setMessage({ text: '', type: '' });
     setIsSignUp((current) => !current);
   };
@@ -284,7 +301,22 @@ export default function Login({
     setMessage({ text: '', type: '' });
 
     try {
-      if (isSignUp) {
+      if (isRecoveryRequest) {
+        const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
+        const redirectTo = `${window.location.origin}${basePath}/reset-password`;
+
+        const { error } = await supabase.auth.resetPasswordForEmail(
+          formData.email.trim(),
+          { redirectTo }
+        );
+
+        if (error) throw error;
+
+        setMessage({
+          text: copy.forgotSent,
+          type: 'success',
+        });
+      } else if (isSignUp) {
         const nameRegex = /^[\p{L}\s]+$/u;
 
         if (!nameRegex.test(formData.full_name)) {
@@ -309,7 +341,7 @@ export default function Login({
       }
     } catch (error: any) {
       setMessage({
-        text: error.message || copy.unexpectedError,
+        text: isRecoveryRequest ? copy.forgotFailed : (error.message || copy.unexpectedError),
         type: 'error',
       });
     } finally {
@@ -455,13 +487,15 @@ export default function Login({
                 </div>
 
                 <h1 className="text-3xl font-black sm:text-4xl">
-                  {isSignUp ? copy.createTitle : copy.loginTitle}
+                  {isRecoveryRequest ? copy.forgotTitle : isSignUp ? copy.createTitle : copy.loginTitle}
                 </h1>
 
                 <p className="mt-3 leading-7 text-slate-400">
-                  {isSignUp
-                    ? copy.createDescription
-                    : copy.loginDescription}
+                  {isRecoveryRequest
+                      ? copy.forgotDescription
+                      : isSignUp
+                        ? copy.createDescription
+                        : copy.loginDescription}
                 </p>
               </div>
 
@@ -706,6 +740,7 @@ export default function Login({
                   </div>
                 </div>
 
+                {!isRecoveryRequest && (
                 <div className="space-y-2">
                   <label
                     htmlFor="password"
@@ -730,6 +765,22 @@ export default function Login({
                     />
                   </div>
                 </div>
+                )}
+
+                {!isSignUp && !isRecoveryRequest && (
+                  <div className="text-end">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsRecoveryRequest(true);
+                        setMessage({ text: '', type: '' });
+                      }}
+                      className="text-sm font-semibold text-cyan-400 transition hover:text-cyan-300"
+                    >
+                      {copy.forgotLink}
+                    </button>
+                  </div>
+                )}
 
                 {message.text && (
                   <div
@@ -750,11 +801,15 @@ export default function Login({
                 >
                   {loading
                     ? copy.loading
-                    : isSignUp
-                      ? copy.createAction
-                      : copy.loginAction}
+                    : isRecoveryRequest
+                      ? copy.forgotAction
+                      : isSignUp
+                        ? copy.createAction
+                        : copy.loginAction}
                 </Button>
 
+                {!isRecoveryRequest ? (
+                  <>
                 <div className="relative py-2">
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-white/[0.07]" />
@@ -780,6 +835,21 @@ export default function Login({
                     {isSignUp ? copy.goLogin : copy.goCreate}
                   </button>
                 </div>
+                  </>
+                ) : (
+                  <div className="text-center">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsRecoveryRequest(false);
+                        setMessage({ text: '', type: '' });
+                      }}
+                      className="text-sm font-bold text-cyan-400 transition hover:text-cyan-300"
+                    >
+                      {copy.backToLogin}
+                    </button>
+                  </div>
+                )}
 
                 {isSignUp && (
                   <div className="flex items-start gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 text-xs leading-6 text-slate-500">

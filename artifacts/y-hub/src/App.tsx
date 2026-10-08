@@ -1,4 +1,5 @@
 import { createContext, type ReactNode, useContext, useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { Toaster } from 'sonner';
@@ -32,6 +33,7 @@ import {
   Network,
   LineChart,
   Box,
+  Search,
 } from 'lucide-react';
 import { Link, Route, Switch, useLocation, useParams, Router as WouterRouter } from 'wouter';
 import { Avatar, AvatarFallback, AvatarImage } from '@workspace/y-hub-ds/components/ui/avatar';
@@ -52,8 +54,14 @@ import CourseManager from '@/pages/CourseManager';
 import AIGenerator from '@/pages/AIGenerator';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import Login from '@/pages/Login';
+import ResetPassword from '@/pages/ResetPassword';
 import GuestLanding from '@/pages/GuestLanding';
-import { canAccessEngineRoute, getAllowedEngineRoutes } from '@/config/majorEngineAccess';
+import {
+  canRoleAccessEngineRoute,
+  ENGINE_CATALOG,
+  getSidebarEngineRoutes,
+  searchEngines,
+} from '@/config/majorEngineAccess';
 import ProfilePage from '@/pages/Profile';
 import CalculusSolver from '@/pages/CalculusSolver';
 import MathSolver from '@/pages/MathSolver';
@@ -75,9 +83,9 @@ export const uiCopy = {
     learningSpace: 'مساحة التعلم',
     overview: 'نظرة عامة',
     coursePlan: 'خطة المساق',
-    lab: 'مختبر العضوية',
+    lab: 'مختبر المنطق الضبابي',
     quickPractice: 'تدريب سريع',
-    solver: 'آلة الحل الرياضية',
+    solver: 'المنطق الضبابي',
     courseMap: 'خريطة المساق',
     library: 'مكتبتي',
     lessonPath: 'مسار الدرس',
@@ -99,8 +107,8 @@ export const uiCopy = {
     dontMemorize: 'لا تكتفِ بالحفظ',
     everyToolLinked: 'كل أداة مرتبطة بفكرة من المسار',
     membershipLab: 'مختبر العضوية',
-    mathSolverTitle: 'آلة الحل الرياضية',
-    mathSolverDesc: 'أدخل أي معادلة، وسنقوم بحلها خطوة بخطوة',
+    mathSolverTitle: 'التفاضل والتكامل 3',
+    mathSolverDesc: 'حل مسائل متعددة المتغيرات والتفاضل والتكامل 3 خطوة بخطوة',
 
     // New additions for Dashboard
     welcomeBack: 'مرحباً بك،',
@@ -132,15 +140,15 @@ export const uiCopy = {
     mathVis: 'تصورات رياضية 3D (تجريبي)',
 
     // New additions for Math Engine
-    calculusMasterSolver: 'حاسبة التفاضل والتكامل 2 الشاملة',
-    mathEngine: 'المحرك الرياضي',
+    calculusMasterSolver: 'التفاضل والتكامل 2',
+    mathEngine: 'أدوات الرياضيات',
     forwardCalc: 'الحساب المباشر',
     reverseChallenge: 'تحدي العكس',
     inputParams: 'مدخلات النظام',
     membershipValueA: 'قيمة العضوية أ (μ_A)',
     membershipValueB: 'قيمة العضوية ب (μ_B)',
     tnormOp: 'عملية التقاطع (T-norm)',
-    proofEngine: 'محرك الإثبات',
+    proofEngine: 'التحقق والبرهان',
     exportPdf: 'تصدير PDF',
     finalResult: 'النتيجة النهائية',
     algebraicStep: 'الخطوات الجبرية',
@@ -193,7 +201,7 @@ export const uiCopy = {
     weeks: 'أسبوعًا',
     unitsCompleted: 'وحدات مكتملة',
     deepTopics: 'محاور عميقة',
-    courseDescription: 'خطة من ١٥ أسبوعًا تغطي نظرية المجموعات الضبابية وعملياتها وعلاقاتها ومنطقها ومحركات الاستدلال، مع شرح عميق وأمثلة قابلة للحساب.',
+    courseDescription: 'خطة من ١٥ أسبوعًا تغطي نظرية المجموعات الضبابية وعملياتها وعلاقاتها ومنطقها وأنظمة الاستدلال، مع شرح عميق وأمثلة قابلة للحساب.',
     stages: 'مراحل: الأساسيات، العلاقات، المنطق، الاستدلال',
     examplesAndFormulas: 'أمثلة وصيغ ومفاهيم للمراجعة المتعمقة',
     stagesLabel: 'مراحل',
@@ -205,8 +213,8 @@ export const uiCopy = {
     medicalSim: 'مراجع ومحاكاة طبية',
     matrixCalc: 'حاسبة المصفوفات',
     simplexSolver: 'محلل السمبلكس',
-    calculusPlotter: 'حاسبة التفاضل والتكامل 2',
-    calculus3Solver: 'محرك التفاضل والتكامل 3',
+    calculusPlotter: 'التفاضل والتكامل 2',
+    calculus3Solver: 'التفاضل والتكامل 3',
   },
   en: {
     appName: 'Y HUB',
@@ -214,9 +222,9 @@ export const uiCopy = {
     learningSpace: 'Learning space',
     overview: 'Overview',
     coursePlan: 'Course plan',
-    lab: 'Membership lab',
+    lab: 'Fuzzy Logic Lab',
     quickPractice: 'Quick practice',
-    solver: 'Math Solver',
+    solver: 'Fuzzy Logic',
     courseMap: 'Course map',
     library: 'My Library',
     lessonPath: 'Lesson path',
@@ -310,11 +318,11 @@ export const uiCopy = {
     membershipValueA: 'Membership value A (μ_A)',
     membershipValueB: 'Membership value B (μ_B)',
     tnormOp: 'Intersection operation (T-norm)',
-    proofEngine: 'Proof engine',
+    proofEngine: 'Proof & validation',
     exportPdf: 'Export PDF',
     finalResult: 'Final result',
     algebraicStep: 'Algebraic steps',
-    calculateOperations: 'Calculate operations or challenge yourself with the reverse solver.',
+    calculateOperations: 'Calculate fuzzy operations or challenge yourself with a reverse problem.',
     weeks: 'weeks',
     unitsCompleted: 'units complete',
     deepTopics: 'deep topics',
@@ -330,8 +338,8 @@ export const uiCopy = {
     medicalSim: 'Medical Simulation',
     matrixCalc: 'Matrix Calculator',
     simplexSolver: 'Simplex Solver',
-    calculusPlotter: 'Calculus II Solver',
-    calculus3Solver: 'Calculus III Solver',
+    calculusPlotter: 'Calculus II',
+    calculus3Solver: 'Calculus III',
   },
 } as const;
 
@@ -363,16 +371,25 @@ function Shell({ children }: { children: ReactNode }) {
   const [location] = useLocation();
   const [mobileNav, setMobileNav] = useState(false);
   const { language, setLanguage, t } = useLanguage();
-  const { profile: authProfile } = useAuth();
+  const {
+    profile: authProfile,
+    user,
+    signOut,
+  } = useAuth();
   const [activeCourseName, setActiveCourseName] = useState<string | null>(null);
+  const [engineSearch, setEngineSearch] = useState('');
+  const [engineInfoTooltip, setEngineInfoTooltip] = useState<{
+    engineId: string;
+    top: number;
+    anchorX: number;
+  } | null>(null);
 
   const dynamicNavItems = useMemo(() => {
-    const isAdmin =
-      authProfile?.role === 'admin' ||
-      authProfile?.role === 'super_admin';
-
-    const allowedEngineRoutes = new Set(
-      getAllowedEngineRoutes(authProfile?.major)
+    const sidebarEngineRoutes = new Set(
+      getSidebarEngineRoutes(
+        authProfile?.role,
+        authProfile?.major
+      )
     );
 
     const engineItems = [
@@ -380,17 +397,27 @@ function Shell({ children }: { children: ReactNode }) {
       { href: '/math-solver', key: 'calculus3Solver' as UiKey, icon: Box },
       { href: '/solver', key: 'solver' as UiKey, icon: Calculator },
       { href: '/lab', key: 'lab' as UiKey, icon: FlaskConical },
-    ].filter(
-      (item) => isAdmin || allowedEngineRoutes.has(item.href)
-    );
+    ].filter((item) => sidebarEngineRoutes.has(item.href));
 
     return [
       {
         section: 'learningSpace' as UiKey,
         items: [
           { href: '/', key: 'overview' as UiKey, icon: HomeIcon },
-          { href: '/quiz', key: 'quickPractice' as UiKey, icon: BrainCircuit },
-        ]
+          ...(
+            authProfile?.role === 'student' ||
+            authProfile?.role === 'admin' ||
+            authProfile?.role === 'super_admin'
+              ? [
+                  {
+                    href: '/quiz',
+                    key: 'quickPractice' as UiKey,
+                    icon: BrainCircuit,
+                  },
+                ]
+              : []
+          ),
+        ],
       },
       ...(engineItems.length > 0
         ? [
@@ -405,134 +432,597 @@ function Shell({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const courseMatch = location.match(/\/course\/([^/]+)/);
+
     if (courseMatch && courseMatch[1]) {
-      getCourses().then(courses => {
-        const c = courses.find(c => c.id === courseMatch[1]);
-        setActiveCourseName(c ? c.title : null);
-      }).catch(() => setActiveCourseName(null));
+      getCourses()
+        .then((courses) => {
+          const course = courses.find((item) => item.id === courseMatch[1]);
+          setActiveCourseName(course ? course.title : null);
+        })
+        .catch(() => setActiveCourseName(null));
     } else if (location.startsWith('/lesson/')) {
-      setActiveCourseName(language === 'ar' ? 'المجموعات الضبابية' : 'Fuzzy Sets');
-    } else if (['/lab', '/matrix-calc', '/simplex', '/calculus', '/solver', '/sandbox', '/med-sim'].includes(location)) {
-      // Keep activeCourseName when the user navigates into one of the contextual tools
+      setActiveCourseName(
+        language === 'ar' ? 'المجموعات الضبابية' : 'Fuzzy Sets'
+      );
+    } else if (
+      [
+        '/lab',
+        '/matrix-calc',
+        '/simplex',
+        '/calculus',
+        '/solver',
+        '/sandbox',
+        '/med-sim',
+      ].includes(location)
+    ) {
+      // Keep the active course context when moving into a related tool.
     } else {
       setActiveCourseName(null);
     }
   }, [location, language]);
 
-    const currentTitle =
-      location === '/' || location === '/dashboard'
-        ? t('overview')
+  const currentTitle =
+    location === '/' || location === '/dashboard'
+      ? t('overview')
+      : location === '/profile'
+        ? language === 'ar'
+          ? 'الملف الشخصي'
+          : 'Profile'
         : location === '/lab'
           ? t('lab')
           : location === '/solver'
             ? t('solver')
-            : location === '/course'
+            : location.startsWith('/course')
               ? t('coursePlan')
-            : location === '/quiz'
-              ? t('quickPractice')
-              : location === '/calculus'
-                ? t('calculusPlotter')
-              : location === '/math-solver'
-                ? t('calculus3Solver')
-              : t('lessonPath');
+              : location === '/quiz'
+                ? t('quickPractice')
+                : location === '/calculus'
+                  ? t('calculusPlotter')
+                  : location === '/math-solver'
+                    ? t('calculus3Solver')
+                    : t('lessonPath');
+
+  const majorLabels: Record<string, { ar: string; en: string }> = {
+    mathematics: { ar: 'الرياضيات', en: 'Mathematics' },
+    medicine: { ar: 'الطب والصيدلة', en: 'Medicine & Pharmacy' },
+    engineering: { ar: 'الهندسة', en: 'Engineering' },
+    humanities: { ar: 'العلوم الإنسانية', en: 'Humanities' },
+    cs: { ar: 'علوم الحاسوب', en: 'Computer Science' },
+    general: { ar: 'عام', en: 'General' },
+    business_administration: {
+      ar: 'إدارة الأعمال',
+      en: 'Business Administration',
+    },
+    finance: { ar: 'التمويل', en: 'Finance' },
+    accounting: { ar: 'المحاسبة', en: 'Accounting' },
+    hotel_management: { ar: 'إدارة الفنادق', en: 'Hotel Management' },
+    tourism_management: {
+      ar: 'الإدارة السياحية',
+      en: 'Tourism Management',
+    },
+    law: { ar: 'الحقوق', en: 'Law' },
+    nursing: { ar: 'التمريض', en: 'Nursing' },
+    biological_sciences: {
+      ar: 'العلوم الحياتية',
+      en: 'Biological Sciences',
+    },
+    applied_english: {
+      ar: 'اللغة الإنجليزية التطبيقية',
+      en: 'Applied English',
+    },
+    english_language_literature: {
+      ar: 'اللغة الإنجليزية وآدابها',
+      en: 'English Language & Literature',
+    },
+    arabic_language_literature: {
+      ar: 'اللغة العربية وآدابها',
+      en: 'Arabic Language & Literature',
+    },
+    french_language_literature: {
+      ar: 'اللغة الفرنسية وآدابها',
+      en: 'French Language & Literature',
+    },
+    computer_information_systems: {
+      ar: 'نظم المعلومات الحاسوبية',
+      en: 'Computer Information Systems',
+    },
+    business_information_technology: {
+      ar: 'تكنولوجيا معلومات الأعمال',
+      en: 'Business Information Technology',
+    },
+    cybersecurity: {
+      ar: 'الأمن السيبراني',
+      en: 'Cybersecurity',
+    },
+  };
+
+  const roleLabels: Record<string, { ar: string; en: string }> = {
+    student: { ar: 'طالب', en: 'Student' },
+    instructor: { ar: 'مدرّس', en: 'Instructor' },
+    admin: { ar: 'مدير', en: 'Admin' },
+    super_admin: { ar: 'مدير رئيسي', en: 'Super Admin' },
+  };
+
+  const accountName =
+    authProfile?.full_name?.trim() ||
+    user?.email?.split('@')[0] ||
+    (language === 'ar' ? 'مستخدم Y HUB' : 'Y HUB User');
+
+  const firstName = accountName.split(/\s+/)[0] || accountName;
+  const avatarInitial = accountName.charAt(0).toUpperCase() || '•';
+
+  const majorLabel = authProfile?.major
+    ? majorLabels[authProfile.major]?.[language] ??
+      authProfile.major.replaceAll('_', ' ')
+    : null;
+
+  const studyYearLabel =
+    authProfile?.role === 'student' && authProfile?.study_year
+      ? language === 'ar'
+        ? `السنة ${authProfile.study_year}`
+        : `Year ${authProfile.study_year}`
+      : null;
+
+  const roleLabel = authProfile?.role
+    ? roleLabels[authProfile.role]?.[language] ?? authProfile.role
+    : language === 'ar'
+      ? 'حساب أكاديمي'
+      : 'Academic account';
+
+  const academicMeta =
+    [majorLabel, studyYearLabel].filter(Boolean).join(' · ') || roleLabel;
+
+  const handleSignOut = async () => {
+    await signOut();
+    window.location.href = '/login';
+  };
+
+  const instructorSearchResults =
+    authProfile?.role === 'instructor'
+      ? searchEngines(engineSearch, language).slice(0, 6)
+      : [];
+
+  const normalizedEngineSearch = engineSearch.trim().toLowerCase();
+
+  const quickPracticeSearchMatch =
+    authProfile?.role === 'instructor' &&
+    normalizedEngineSearch.length > 0 &&
+    [
+      'quick practice',
+      'practice',
+      'quiz',
+      'quick',
+      'تدريب سريع',
+      'تدريب',
+      'تمرين',
+      'أسئلة',
+      'اختبار',
+    ].some((term) =>
+      term.includes(normalizedEngineSearch) ||
+      normalizedEngineSearch.includes(term)
+    );
 
   return (
-    <div dir={language === 'ar' ? 'rtl' : 'ltr'} className="min-h-[100dvh] bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
+    <div
+      dir={language === 'ar' ? 'rtl' : 'ltr'}
+      className="dark min-h-[100dvh] bg-[#070b14] text-slate-100"
+      style={{
+        backgroundImage:
+          'radial-gradient(circle at 85% 0%, rgba(34,211,238,0.07), transparent 30%), radial-gradient(circle at 15% 100%, rgba(139,92,246,0.07), transparent 32%)',
+      }}
+    >
+      {engineInfoTooltip &&
+        typeof document !== 'undefined' &&
+        (() => {
+          const engine = ENGINE_CATALOG.find(
+            (item) => item.id === engineInfoTooltip.engineId
+          );
+
+          if (!engine) return null;
+
+          return createPortal(
+            <div
+              role="tooltip"
+              dir={language === 'ar' ? 'rtl' : 'ltr'}
+              className="pointer-events-none fixed z-[9999] w-72 -translate-y-1/2 rounded-2xl border border-slate-700/80 bg-[#0b1220]/98 p-4 text-start shadow-[0_20px_60px_rgba(0,0,0,0.55)] backdrop-blur-xl"
+              style={{
+                top: engineInfoTooltip.top,
+                ...(language === 'ar'
+                  ? {
+                      right:
+                        window.innerWidth -
+                        engineInfoTooltip.anchorX +
+                        12,
+                    }
+                  : {
+                      left: engineInfoTooltip.anchorX + 12,
+                    }),
+              }}
+            >
+              <div className="text-sm font-bold text-slate-100">
+                {engine.title[language]}
+              </div>
+
+              <p className="mt-2 text-xs font-normal leading-6 text-slate-400">
+                {engine.description[language]}
+              </p>
+            </div>,
+            document.body
+          );
+        })()}
+
       <aside
-        className={`fixed inset-y-0 z-40 flex w-[274px] flex-col bg-[hsl(var(--sidebar))] px-5 py-6 text-[hsl(var(--sidebar-foreground))] transition-transform duration-300 md:translate-x-0 ${language === 'ar' ? 'right-0 border-l border-[hsl(var(--sidebar-border))]' : 'left-0 border-r border-[hsl(var(--sidebar-border))]'} ${mobileNav ? 'translate-x-0' : language === 'ar' ? 'translate-x-full' : '-translate-x-full'}`}
+        className={`fixed inset-y-0 z-40 flex w-[288px] flex-col border-slate-800/80 bg-[#050914]/95 px-4 py-5 text-slate-100 shadow-2xl shadow-black/20 backdrop-blur-2xl transition-transform duration-300 md:translate-x-0 ${
+          language === 'ar'
+            ? 'right-0 border-l'
+            : 'left-0 border-r'
+        } ${
+          mobileNav
+            ? 'translate-x-0'
+            : language === 'ar'
+              ? 'translate-x-full'
+              : '-translate-x-full'
+        }`}
       >
-        <div className="mb-12 flex items-center gap-3 px-2">
-          <LogoMark />
-          <div>
-            <div className="font-bold tracking-tight">Y HUB</div>
-            {activeCourseName && (
-              <div className="text-sm text-[hsl(var(--sidebar-foreground)/.62)]">{activeCourseName}</div>
-            )}
+        <div className="mb-7 flex items-center gap-3 px-2">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-cyan-400/15 bg-cyan-400/[0.06] shadow-[0_0_28px_rgba(34,211,238,0.08)]">
+            <LogoMark />
           </div>
+
+          <div className="min-w-0 flex-1">
+            <div className="yhub-display text-sm font-black tracking-[0.18em] text-white">
+              Y HUB
+            </div>
+
+            <div className="mt-1 truncate text-[11px] font-medium text-slate-500">
+              {activeCourseName ||
+                (language === 'ar'
+                  ? 'المنصة الأكاديمية الذكية'
+                  : 'Academic Intelligence Platform')}
+            </div>
+          </div>
+
           <button
             onClick={() => setMobileNav(false)}
             aria-label={t('closeMenu')}
             data-testid="button-close-mobile-nav"
-            className="mr-auto rounded-xl p-2 text-[hsl(var(--sidebar-foreground)/.65)] hover:bg-[hsl(var(--sidebar-accent))] md:hidden"
+            className="rounded-xl border border-white/[0.06] p-2 text-slate-400 transition-colors hover:bg-white/[0.05] hover:text-white md:hidden"
           >
             <X size={18} />
           </button>
         </div>
 
-        <nav className="space-y-6">
+        <div className="mb-6 h-px bg-gradient-to-r from-transparent via-slate-800 to-transparent" />
+
+        {authProfile?.role === 'instructor' && (
+          <div className="relative mb-6 px-1">
+            <div className="relative">
+              <Search
+                size={16}
+                className={`absolute top-1/2 -translate-y-1/2 text-slate-600 ${
+                  language === 'ar' ? 'right-3.5' : 'left-3.5'
+                }`}
+              />
+
+              <input
+                type="search"
+                value={engineSearch}
+                onChange={(event) => setEngineSearch(event.target.value)}
+                placeholder={
+                  language === 'ar'
+                    ? 'ابحث في الأدوات الأكاديمية...'
+                    : 'Search academic tools...'
+                }
+                className={`h-11 w-full rounded-xl border border-slate-800 bg-slate-950/55 text-xs text-slate-200 outline-none transition-all placeholder:text-slate-700 focus:border-cyan-400/25 focus:ring-2 focus:ring-cyan-400/[0.06] ${
+                  language === 'ar'
+                    ? 'pr-10 pl-3'
+                    : 'pl-10 pr-3'
+                }`}
+              />
+            </div>
+
+            {engineSearch.trim() && (
+              <div className="mt-2 overflow-hidden rounded-2xl border border-slate-800 bg-[#080d18] shadow-2xl shadow-black/30">
+                {instructorSearchResults.length > 0 ||
+                quickPracticeSearchMatch ? (
+                  <div className="max-h-[320px] overflow-y-auto p-2">
+                    {quickPracticeSearchMatch && (
+                      <Link
+                        href="/quiz"
+                        onClick={() => {
+                          setEngineSearch('');
+                          setMobileNav(false);
+                        }}
+                        className="group flex items-start gap-3 rounded-xl p-3 transition-colors hover:bg-cyan-400/[0.05]"
+                      >
+                        <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-violet-400/10 bg-violet-400/[0.05] text-violet-300">
+                          <BrainCircuit size={16} />
+                        </div>
+
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate text-xs font-bold text-slate-200 group-hover:text-cyan-200">
+                            {language === 'ar'
+                              ? 'تدريب سريع'
+                              : 'Quick Practice'}
+                          </div>
+
+                          <div className="mt-1 truncate text-[10px] text-slate-600">
+                            {language === 'ar'
+                              ? 'أداة تدريب حسب المساق'
+                              : 'Course-based practice tool'}
+                          </div>
+                        </div>
+
+                        <ArrowRight
+                          size={14}
+                          className={`mt-2 shrink-0 text-slate-700 group-hover:text-cyan-400 ${
+                            language === 'ar' ? 'rotate-180' : ''
+                          }`}
+                        />
+                      </Link>
+                    )}
+
+                    {instructorSearchResults.map((engine) => {
+                      const engineMajor =
+                        engine.majors[0] &&
+                        majorLabels[engine.majors[0]]
+                          ? majorLabels[engine.majors[0]][language]
+                          : engine.majors[0] || '';
+
+                      return (
+                        <Link
+                          key={engine.id}
+                          href={engine.route}
+                          onClick={() => {
+                            setEngineSearch('');
+                            setMobileNav(false);
+                          }}
+                          className="group flex items-start gap-3 rounded-xl p-3 transition-colors hover:bg-cyan-400/[0.05]"
+                        >
+                          <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-cyan-400/10 bg-cyan-400/[0.05] text-cyan-400">
+                            <Calculator size={16} />
+                          </div>
+
+                          <div className="min-w-0 flex-1">
+                            <div className="truncate text-xs font-bold text-slate-200 group-hover:text-cyan-200">
+                              {engine.title[language]}
+                            </div>
+
+                            <div className="mt-1 truncate text-[10px] text-slate-600">
+                              {engineMajor}
+                            </div>
+                          </div>
+
+                          <ArrowRight
+                            size={14}
+                            className={`mt-2 shrink-0 text-slate-700 group-hover:text-cyan-400 ${
+                              language === 'ar' ? 'rotate-180' : ''
+                            }`}
+                          />
+                        </Link>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="px-4 py-5 text-center text-[11px] text-slate-600">
+                    {language === 'ar'
+                      ? 'لا توجد أدوات مطابقة للبحث.'
+                      : 'No tools match your search.'}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        <nav className="min-h-0 flex-1 space-y-7 overflow-y-auto pr-1">
           {dynamicNavItems.map((group, gIndex) => (
             <div key={gIndex}>
-              <div className="mb-3 px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-[hsl(var(--sidebar-foreground)/.42)]">
+              <div className="mb-2.5 px-3 text-[10px] font-black uppercase tracking-[0.22em] text-slate-600">
                 {t(group.section)}
               </div>
+
               <div className="space-y-1.5">
                 {group.items.map((item) => {
-                  const active = item.href === location;
+                  if (
+                    authProfile?.role === 'instructor' &&
+                    item.key === 'quickPractice'
+                  ) {
+                    return null;
+                  }
+
+                  const active =
+                    item.href === location ||
+                    (item.href === '/' && location === '/dashboard');
+
                   const Icon = item.icon;
+                  const engineMeta = ENGINE_CATALOG.find(
+                    (engine) => engine.route === item.href
+                  );
+
                   return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setMobileNav(false)}
-                      data-testid={`link-nav-${item.key}`}
-                      className={`group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 border ${
-                        active
-                          ? 'bg-gradient-to-r from-[hsl(var(--primary))]/20 to-[hsl(var(--accent))]/20 text-[hsl(var(--primary))] border-[hsl(var(--primary))]/30 shadow-[0_0_15px_rgba(0,212,255,0.1)]'
-                          : 'border-transparent text-[hsl(var(--sidebar-foreground)/.65)] hover:bg-white/5 hover:text-white'
-                      }`}
-                    >
-                      <Icon size={20} strokeWidth={active ? 2.5 : 2} className={active ? 'text-[hsl(var(--primary))]' : 'text-[hsl(var(--sidebar-foreground)/.5)] group-hover:text-white'} />
-                      <span className="font-medium">{t(item.key)}</span>
-                    </Link>
+                    <div key={item.href} className="relative">
+                      <Link
+                        href={item.href}
+                        onClick={() => setMobileNav(false)}
+                        data-testid={`link-nav-${item.key}`}
+                        className={`group relative flex items-center gap-3 overflow-hidden rounded-2xl border px-3.5 py-3 pe-12 text-sm font-semibold transition-all duration-200 ${
+                          active
+                            ? 'border-cyan-400/20 bg-gradient-to-r from-cyan-400/[0.12] to-violet-500/[0.08] text-white shadow-[0_10px_30px_rgba(0,0,0,0.18)]'
+                            : 'border-transparent text-slate-400 hover:border-white/[0.05] hover:bg-white/[0.035] hover:text-slate-100'
+                        }`}
+                      >
+                        {active && (
+                          <span
+                            className={`absolute inset-y-3 w-[2px] rounded-full bg-cyan-300 shadow-[0_0_12px_rgba(34,211,238,0.8)] ${
+                              language === 'ar' ? 'right-0' : 'left-0'
+                            }`}
+                          />
+                        )}
+
+                        <span
+                          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border transition-colors ${
+                            active
+                              ? 'border-cyan-400/15 bg-cyan-400/[0.08] text-cyan-300'
+                              : 'border-white/[0.04] bg-white/[0.025] text-slate-500 group-hover:text-slate-200'
+                          }`}
+                        >
+                          <Icon size={18} strokeWidth={active ? 2.35 : 2} />
+                        </span>
+
+                        <span className="min-w-0 flex-1 truncate">
+                          {t(item.key)}
+                        </span>
+                      </Link>
+
+                      {engineMeta && (
+                        <div
+                          className={`absolute top-1/2 z-30 -translate-y-1/2 ${
+                            language === 'ar' ? 'left-3' : 'right-3'
+                          }`}
+                        >
+                          <button
+                            type="button"
+                            aria-label={
+                              language === 'ar'
+                                ? `نبذة عن ${engineMeta.title.ar}`
+                                : `About ${engineMeta.title.en}`
+                            }
+                            onMouseEnter={(event) => {
+                              const rect =
+                                event.currentTarget.getBoundingClientRect();
+
+                              setEngineInfoTooltip({
+                                engineId: engineMeta.id,
+                                top: rect.top + rect.height / 2,
+                                anchorX:
+                                  language === 'ar'
+                                    ? rect.left
+                                    : rect.right,
+                              });
+                            }}
+                            onMouseLeave={() => setEngineInfoTooltip(null)}
+                            onFocus={(event) => {
+                              const rect =
+                                event.currentTarget.getBoundingClientRect();
+
+                              setEngineInfoTooltip({
+                                engineId: engineMeta.id,
+                                top: rect.top + rect.height / 2,
+                                anchorX:
+                                  language === 'ar'
+                                    ? rect.left
+                                    : rect.right,
+                              });
+                            }}
+                            onBlur={() => setEngineInfoTooltip(null)}
+                            className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-600 transition-all hover:bg-cyan-400/[0.08] hover:text-cyan-300 focus:bg-cyan-400/[0.08] focus:text-cyan-300 focus:outline-none focus:ring-1 focus:ring-cyan-400/30"
+                          >
+                            <Info size={15} />
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   );
                 })}
               </div>
             </div>
           ))}
+
+          {(location.startsWith('/lesson') ||
+            location.startsWith('/course')) && (
+            <div>
+              <div className="my-6 h-px bg-gradient-to-r from-transparent via-slate-800 to-transparent" />
+
+              <div className="mb-3 px-3 text-[10px] font-black uppercase tracking-[0.22em] text-slate-600">
+                {t('lessonPath') || 'خريطة المسار'}
+              </div>
+
+              <div className="space-y-1">
+                {lessons.slice(0, 5).map((lesson, index) => {
+                  const localizedLesson = localizeLesson(lesson, language);
+
+                  return (
+                    <Link
+                      key={lesson.slug}
+                      href={`/lesson/${lesson.slug}`}
+                      onClick={() => setMobileNav(false)}
+                      data-testid={`link-sidebar-lesson-${index + 1}`}
+                      className="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs text-slate-500 transition-colors hover:bg-white/[0.035] hover:text-slate-200"
+                    >
+                      {lesson.progress === 100 ? (
+                        <CheckCircle2
+                          size={15}
+                          className="text-cyan-400"
+                        />
+                      ) : (
+                        <Circle
+                          size={15}
+                          className={
+                            lesson.progress > 0
+                              ? 'text-violet-400'
+                              : 'text-slate-700'
+                          }
+                        />
+                      )}
+
+                      <span className="truncate">
+                        {localizedLesson.title}
+                      </span>
+
+                      <span className="mr-auto font-mono text-[10px] opacity-40">
+                        {lesson.number}
+                      </span>
+                    </Link>
+                  );
+                })}
+              </div>
+
+              <div className="mt-5 rounded-2xl border border-white/[0.06] bg-white/[0.025] p-4">
+                <div className="mb-2 flex items-center justify-between text-xs">
+                  <span className="text-slate-500">
+                    {t('overallProgress')}
+                  </span>
+                  <span className="font-mono font-bold text-cyan-300">
+                    ٣٧٪
+                  </span>
+                </div>
+
+                <div className="h-1.5 overflow-hidden rounded-full bg-slate-900">
+                  <div className="h-full w-[37%] rounded-full bg-gradient-to-r from-cyan-400 to-violet-500" />
+                </div>
+
+                <p className="mt-3 text-[11px] leading-5 text-slate-600">
+                  {t('progressMessage')}
+                </p>
+              </div>
+            </div>
+          )}
         </nav>
 
-        {/* Conditionally show Lesson Path and Progress only if inside a course or lesson */}
-        {(location.startsWith('/lesson') || location.startsWith('/course')) && (
-          <>
-            <div className="my-8 h-px bg-[hsl(var(--sidebar-border))]" />
-            <div className="mb-4 px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-[hsl(var(--sidebar-foreground)/.42)]">
-              {t('lessonPath') || 'خريطة المسار'}
-            </div>
-            <div className="space-y-1">
-              {lessons.slice(0, 5).map((lesson, index) => {
-                const localizedLesson = localizeLesson(lesson, language);
-                return (
-                <Link
-                  key={lesson.slug}
-                  href={`/lesson/${lesson.slug}`}
-                  onClick={() => setMobileNav(false)}
-                  data-testid={`link-sidebar-lesson-${index + 1}`}
-                  className="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs text-[hsl(var(--sidebar-foreground)/.57)] transition-colors hover:bg-[hsl(var(--sidebar-accent)/.7)] hover:text-[hsl(var(--sidebar-foreground))]"
-                >
-                  {lesson.progress === 100 ? (
-                    <CheckCircle2 size={15} className="text-[hsl(var(--sidebar-primary))]" />
-                  ) : (
-                    <Circle size={15} className={lesson.progress > 0 ? 'text-[hsl(var(--accent))]' : 'text-[hsl(var(--sidebar-foreground)/.35)]'} />
-                  )}
-                  <span className="truncate">{localizedLesson.title}</span>
-                  <span className="mr-auto font-mono text-[10px] opacity-50">{lesson.number}</span>
-                </Link>
-                );
-              })}
-            </div>
+        <Link
+          href="/profile"
+          onClick={() => setMobileNav(false)}
+          className="mt-5 flex items-center gap-3 rounded-2xl border border-white/[0.06] bg-white/[0.025] p-3 transition-all hover:border-cyan-400/15 hover:bg-cyan-400/[0.04]"
+        >
+          <Avatar className="h-10 w-10 rounded-xl border border-cyan-400/15">
+            <AvatarImage src={undefined} alt={accountName} />
+            <AvatarFallback className="rounded-xl bg-cyan-400/[0.08] font-black text-cyan-300">
+              {avatarInitial}
+            </AvatarFallback>
+          </Avatar>
 
-            <div className="mt-auto rounded-2xl border border-[hsl(var(--sidebar-border))] bg-[hsl(var(--sidebar-accent)/.55)] p-4">
-              <div className="mb-2 flex items-center justify-between text-xs">
-                <span className="text-[hsl(var(--sidebar-foreground)/.58)]">{t('overallProgress')}</span>
-                <span className="font-mono text-[hsl(var(--accent))]">٣٧٪</span>
-              </div>
-              <div className="h-1.5 overflow-hidden rounded-full bg-[hsl(var(--sidebar)/.8)]">
-                <div className="h-full w-[37%] rounded-full bg-[hsl(var(--accent))]" />
-              </div>
-              <p className="mt-3 text-[11px] leading-5 text-[hsl(var(--sidebar-foreground)/.48)]">{t('progressMessage')}</p>
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-xs font-bold text-slate-200">
+              {accountName}
             </div>
-          </>
-        )}
+            <div className="mt-1 truncate text-[10px] text-slate-600">
+              {academicMeta}
+            </div>
+          </div>
+
+          <UserRound size={16} className="shrink-0 text-slate-600" />
+        </Link>
       </aside>
 
       {mobileNav && (
@@ -540,61 +1030,141 @@ function Shell({ children }: { children: ReactNode }) {
           aria-label={t('closeMenu')}
           data-testid="button-mobile-nav-backdrop"
           onClick={() => setMobileNav(false)}
-          className="fixed inset-0 z-30 bg-[hsl(var(--foreground)/.3)] backdrop-blur-sm md:hidden"
+          className="fixed inset-0 z-30 bg-black/70 backdrop-blur-sm md:hidden"
         />
       )}
 
-       <div className={`min-h-[100dvh] ${language === 'ar' ? 'md:mr-[274px]' : 'md:ml-[274px]'}`}>
-        <header className="sticky top-0 z-20 flex h-[76px] items-center justify-between border-b border-[hsl(var(--border)/.75)] bg-[hsl(var(--background)/.86)] px-5 backdrop-blur-xl md:px-10">
-          <div className="flex items-center gap-3">
+      <div
+        className={`relative min-h-[100dvh] ${
+          language === 'ar'
+            ? 'md:mr-[288px]'
+            : 'md:ml-[288px]'
+        }`}
+      >
+        <header className="sticky top-0 z-20 flex h-[72px] items-center justify-between border-b border-slate-800/70 bg-[#070b14]/80 px-4 backdrop-blur-2xl sm:px-6 lg:px-10">
+          <div className="flex min-w-0 items-center gap-3">
             <button
-               onClick={() => setMobileNav(true)}
-               aria-label={t('openMenu')}
+              onClick={() => setMobileNav(true)}
+              aria-label={t('openMenu')}
               data-testid="button-open-mobile-nav"
-              className="rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2.5 text-[hsl(var(--foreground))] md:hidden"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-800 bg-slate-950/60 text-slate-300 transition-colors hover:border-cyan-400/20 hover:text-cyan-300 md:hidden"
             >
-              <Menu size={19} />
+              <Menu size={18} />
             </button>
-            <div className="hidden items-center gap-2 text-sm text-[hsl(var(--muted-foreground))] sm:flex">
-               <span>{t('academy')}</span>
-              <ChevronLeft size={14} />
-              <span className="font-semibold text-[hsl(var(--foreground))]">{currentTitle}</span>
+
+            <div className="min-w-0">
+              <div className="hidden items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600 sm:flex">
+                <span>Y HUB</span>
+                <ChevronLeft
+                  size={13}
+                  className={language === 'en' ? 'rotate-180' : ''}
+                />
+                <span className="truncate text-slate-400">
+                  {t('academy')}
+                </span>
+              </div>
+
+              <div className="truncate text-sm font-black text-slate-100 sm:mt-1 sm:text-base">
+                {currentTitle}
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="hidden text-left sm:block">
-              <div className="text-sm font-bold">{language === 'ar' ? `مرحباً ${authProfile?.full_name?.split(' ')[0] || 'Yazeed'}` : `Welcome, ${authProfile?.full_name?.split(' ')[0] || 'Yazeed'}`}</div>
-              <div className="text-[11px] text-[hsl(var(--muted-foreground))]">{authProfile ? `${authProfile.major} · السنة ${authProfile.study_year}` : t('studentLevel')}</div>
+
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="hidden text-left lg:block">
+              <div className="text-xs font-bold text-slate-200">
+                {language === 'ar'
+                  ? `مرحباً، ${firstName}`
+                  : `Welcome, ${firstName}`}
+              </div>
+
+              <div className="mt-1 max-w-[220px] truncate text-[10px] text-slate-600">
+                {academicMeta}
+              </div>
             </div>
-            <button onClick={() => setLanguage(language === 'ar' ? 'en' : 'ar')} className="rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-3 py-2 text-xs font-bold text-[hsl(var(--primary))] transition-colors hover:bg-[hsl(var(--primary)/.07)]" aria-label={t('language')} data-testid="button-language-toggle">{t('language')}</button>
+
+            <button
+              onClick={() =>
+                setLanguage(language === 'ar' ? 'en' : 'ar')
+              }
+              className="h-9 rounded-xl border border-slate-800 bg-slate-950/60 px-3 text-[11px] font-black tracking-wide text-cyan-300 transition-all hover:border-cyan-400/20 hover:bg-cyan-400/[0.05]"
+              aria-label={t('language')}
+              data-testid="button-language-toggle"
+            >
+              {language === 'ar' ? 'EN' : 'AR'}
+            </button>
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button aria-label={language === 'ar' ? 'فتح القائمة' : 'Open menu'} className="rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))]">
+                <button
+                  aria-label={
+                    language === 'ar' ? 'فتح قائمة الحساب' : 'Open account menu'
+                  }
+                  className="rounded-xl border border-transparent p-0.5 transition-colors hover:border-cyan-400/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/40"
+                >
                   <Avatar className="h-10 w-10 rounded-xl">
-                    <AvatarImage src={undefined} alt={authProfile?.full_name || 'Yazeed'} />
-                    <AvatarFallback className="rounded-xl bg-[hsl(var(--accent)/.3)] text-[hsl(var(--accent-foreground))]">{(authProfile?.full_name || 'Yazeed').slice(0, 1)}</AvatarFallback>
+                    <AvatarImage src={undefined} alt={accountName} />
+                    <AvatarFallback className="rounded-xl border border-cyan-400/15 bg-gradient-to-br from-cyan-400/[0.12] to-violet-500/[0.12] font-black text-cyan-200">
+                      {avatarInitial}
+                    </AvatarFallback>
                   </Avatar>
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>حسابي (My Account)</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/profile" className="w-full cursor-pointer">الملف الشخصي (Profile)</Link>
+
+              <DropdownMenuContent
+                align="end"
+                className="w-64 border-slate-800 bg-[#0b1220] p-2 text-slate-100 shadow-2xl shadow-black/40"
+              >
+                <DropdownMenuLabel className="px-3 py-3">
+                  <div className="truncate text-sm font-black text-white">
+                    {accountName}
+                  </div>
+
+                  <div className="mt-1 truncate text-[11px] font-normal text-slate-500">
+                    {user?.email || academicMeta}
+                  </div>
+
+                  <div className="mt-2 inline-flex rounded-full border border-cyan-400/15 bg-cyan-400/[0.06] px-2.5 py-1 text-[10px] font-bold text-cyan-300">
+                    {roleLabel}
+                  </div>
+                </DropdownMenuLabel>
+
+                <DropdownMenuSeparator className="bg-slate-800" />
+
+                <DropdownMenuItem
+                  asChild
+                  className="cursor-pointer rounded-xl text-slate-300 focus:bg-cyan-400/[0.07] focus:text-cyan-200"
+                >
+                  <Link
+                    href="/profile"
+                    className="flex w-full items-center gap-2.5"
+                  >
+                    <UserRound size={16} />
+                    {language === 'ar'
+                      ? 'الملف الشخصي'
+                      : 'Profile'}
+                  </Link>
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-destructive focus:bg-destructive/10 cursor-pointer" onClick={async () => {
-                  const { supabase } = await import('@/utils/supabaseClient');
-                  await supabase.auth.signOut();
-                  window.location.href = '/login';
-                }}>
-                  تسجيل الخروج (Logout)
+
+                <DropdownMenuSeparator className="bg-slate-800" />
+
+                <DropdownMenuItem
+                  className="cursor-pointer rounded-xl text-red-400 focus:bg-red-500/10 focus:text-red-300"
+                  onClick={handleSignOut}
+                >
+                  <ArrowRight size={16} />
+                  {language === 'ar'
+                    ? 'تسجيل الخروج'
+                    : 'Log out'}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         </header>
-        <main className="mx-auto max-w-[1400px] px-5 py-8 md:px-10 md:py-10">{children}</main>
+
+        <main className="mx-auto max-w-[1480px] px-4 py-6 sm:px-6 md:py-8 lg:px-10 lg:py-10">
+          {children}
+        </main>
       </div>
     </div>
   );
@@ -744,11 +1314,11 @@ function CoursePlan() {
   const { language, t } = useLanguage();
   const completed = lessons.filter((lesson) => lesson.progress === 100).length;
   return (
-    <div className="mx-auto max-w-6xl">
+    <div className="mx-auto max-w-6xl" dir={language === 'ar' ? 'rtl' : 'ltr'}>
       <div className="mb-9 flex flex-wrap items-end justify-between gap-5">
         <div>
           <SectionKicker>{t('courseMap')}</SectionKicker>
-          <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl">{language === 'ar' ? 'من الأساس إلى محرك الاستدلال' : 'From foundations to inference engines'}</h1>
+          <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl">{language === 'ar' ? 'من الأساس إلى أنظمة الاستدلال' : 'From foundations to inference systems'}</h1>
           <p className="mt-3 max-w-2xl text-sm leading-8 text-[hsl(var(--muted-foreground))]">{t('courseDescription')}</p>
         </div>
         <div className="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-5 py-4 text-center">
@@ -990,6 +1560,10 @@ const labCopy = {
 function Lab() {
   const { language } = useLanguage();
   const copy = labCopy[language];
+  const isArabic = language === 'ar';
+  const axisLabels = isArabic
+    ? { zero: '٠', fifty: '٥٠', hundred: '١٠٠', one: '١' }
+    : { zero: '0', fifty: '50', hundred: '100', one: '1' };
   const [functionType, setFunctionType] = useState<FunctionType>('triangle');
   const [params, setParams] = useState({ a: 20, b: 45, c: 72, d: 88, center: 55, spread: 16, x: 58 });
   const update = (key: keyof typeof params, value: number) => setParams((current) => ({ ...current, [key]: value }));
@@ -1006,7 +1580,7 @@ function Lab() {
     gaussian: copy.gaussian,
   };
   return (
-    <div className="mx-auto max-w-6xl">
+    <div className="mx-auto max-w-6xl" dir={isArabic ? 'rtl' : 'ltr'}>
       <div className="mb-9 flex flex-wrap items-end justify-between gap-5"><div><SectionKicker>{copy.kicker}</SectionKicker><h1 className="text-4xl font-extrabold tracking-tight md:text-5xl">{copy.title}</h1><p className="mt-3 max-w-xl text-sm leading-7 text-[hsl(var(--muted-foreground))]">{copy.description}</p></div><div className="flex items-center gap-2 rounded-xl bg-[hsl(var(--primary)/.1)] px-3 py-2 text-xs font-bold text-[hsl(var(--primary))]"><FlaskConical size={16} /> {copy.trial}</div></div>
       <div className="grid gap-6 lg:grid-cols-[1fr_330px]">
         <div className="order-2 rounded-[1.75rem] border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5 md:p-8 lg:order-1">
@@ -1019,11 +1593,11 @@ function Lab() {
               <path d={curvePath} fill="none" stroke="hsl(var(--primary))" strokeWidth="4" strokeLinecap="round" />
               <path d={`M ${params.x * 3.9 + 10} 194 V ${194 - membership * 160}`} stroke="hsl(var(--accent))" strokeWidth="1.5" strokeDasharray="5 5" />
               <circle cx={params.x * 3.9 + 10} cy={194 - membership * 160} r="6" fill="hsl(var(--accent))" stroke="hsl(var(--card))" strokeWidth="3" />
-              <text x="10" y="211" fill="hsl(var(--muted-foreground))" fontSize="9">٠</text><text x="200" y="211" fill="hsl(var(--muted-foreground))" fontSize="9">٥٠</text><text x="390" y="211" fill="hsl(var(--muted-foreground))" fontSize="9">١٠٠</text>
-              <text x="2" y="17" fill="hsl(var(--muted-foreground))" fontSize="9">١</text><text x="2" y="198" fill="hsl(var(--muted-foreground))" fontSize="9">٠</text>
+              <text x="10" y="211" fill="hsl(var(--muted-foreground))" fontSize="9">{axisLabels.zero}</text><text x="200" y="211" fill="hsl(var(--muted-foreground))" fontSize="9">{axisLabels.fifty}</text><text x="390" y="211" fill="hsl(var(--muted-foreground))" fontSize="9">{axisLabels.hundred}</text>
+              <text x="2" y="17" fill="hsl(var(--muted-foreground))" fontSize="9">{axisLabels.one}</text><text x="2" y="198" fill="hsl(var(--muted-foreground))" fontSize="9">{axisLabels.zero}</text>
             </svg>
           </div>
-           <div className="mt-6 rounded-2xl border border-dashed border-[hsl(var(--primary)/.3)] bg-[hsl(var(--primary)/.05)] p-4 text-sm leading-7"><span className="font-bold text-[hsl(var(--primary))]">{copy.note}: </span>{copy.at} = {params.x} {copy.membershipIs} <span className="font-mono font-bold">{membership.toFixed(2)}</span>؛ {copy.meaning} «{functionNames[functionType]}» {copy.degree}</div>
+           <div className="mt-6 rounded-2xl border border-dashed border-[hsl(var(--primary)/.3)] bg-[hsl(var(--primary)/.05)] p-4 text-sm leading-7"><span className="font-bold text-[hsl(var(--primary))]">{copy.note}: </span>{copy.at} = {params.x} {copy.membershipIs} <span className="font-mono font-bold">{membership.toFixed(2)}</span>{isArabic ? '؛' : ';'} {copy.meaning} «{functionNames[functionType]}» {copy.degree}</div>
         </div>
         <div className="order-1 space-y-4 lg:order-2">
           <div className="rounded-[1.75rem] border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5">
@@ -1118,13 +1692,9 @@ function ProtectedRoute({
     );
   }
 
-  const hasAdminBypass =
-    role === 'admin' || role === 'super_admin';
-
   if (
     enginePath &&
-    !hasAdminBypass &&
-    !canAccessEngineRoute(profile?.major, enginePath)
+    !canRoleAccessEngineRoute(role, profile?.major, enginePath)
   ) {
     return (
       <div className="flex min-h-[70vh] w-full flex-col items-center justify-center space-y-4 px-4 text-center">
@@ -1132,14 +1702,14 @@ function ProtectedRoute({
 
         <h2 className="text-2xl font-bold">
           {language === 'ar'
-            ? 'هذا المحرك غير متاح لتخصصك'
-            : 'This engine is not available for your major'}
+            ? 'هذه الأداة غير متاحة لحسابك'
+            : 'This tool is not available for your account'}
         </h2>
 
         <p className="max-w-md text-sm leading-7 text-[hsl(var(--muted-foreground))]">
           {language === 'ar'
-            ? 'تظهر لك الأدوات والمحركات الأكاديمية المرتبطة بتخصصك فقط.'
-            : 'Y HUB only shows academic tools and engines associated with your major.'}
+            ? 'يستطيع الطالب استخدام الأدوات المرتبطة بتخصصه الأكاديمي فقط.'
+            : 'Students can use only the academic engines associated with their major.'}
         </p>
 
         <Link href="/">
@@ -1187,6 +1757,16 @@ function Router() {
 
   return (
     <Switch>
+      <Route path="/reset-password">
+        {() => (
+          <ResetPassword
+            language={language}
+            onToggleLanguage={() =>
+              setLanguage(language === 'ar' ? 'en' : 'ar')
+            }
+          />
+        )}
+      </Route>
       <Route path="/login">
         {() => (
           <Login
@@ -1253,9 +1833,11 @@ function ApplicationFrame() {
     </RoutedErrorBoundary>
   );
 
-  const isLoginRoute = location.startsWith('/login');
+  const isAuthRoute =
+    location.startsWith('/login') ||
+    location.startsWith('/reset-password');
 
-  if (!user || isLoginRoute) {
+  if (!user || isAuthRoute) {
     return routes;
   }
 
