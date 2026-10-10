@@ -1,3 +1,8 @@
+import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
+import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+
+GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
+
 import type { SemanticChunk, DocumentAnalysisResult } from '@/features/ai-generator/document-analysis/document.types';
 export type { SemanticChunk, DocumentAnalysisResult } from '@/features/ai-generator/document-analysis/document.types';
 export { searchChunks } from '@/features/ai-generator/document-search/searchChunks';
@@ -29,49 +34,71 @@ export interface ChatMessage {
  * @param onProgress Optional callback to track extraction progress
  */
 export async function analyzeDocument(
-  file: CourseFile, 
+  file: CourseFile,
   onProgress?: (current: number, total: number) => void
 ): Promise<DocumentAnalysisResult> {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const arrayBuffer = await file.data.arrayBuffer();
-      
-      // Spawn the web worker
-      const worker = new Worker(new URL('./pdfWorker.ts', import.meta.url), { type: 'module' });
-      
-      worker.onmessage = (e) => {
-        const data = e.data;
-        if (data.type === 'progress' && onProgress) {
-          onProgress(data.currentPage, data.totalPages);
-        } else if (data.type === 'complete') {
-          worker.terminate();
-          try {
-            const chunks: SemanticChunk[] = JSON.parse(data.text);
-            resolve({ chunks, rawText: data.rawText });
-          } catch (err) {
-            resolve({ chunks: [{ text: data.rawText, source: 'Page 1' }], rawText: data.rawText });
-          }
-        } else if (data.type === 'error') {
-          worker.terminate();
-          console.error('Worker error:', data.error);
-          resolve({ chunks: [], rawText: `[Fallback] Error: ${data.error}` });
+  let loadingTask: ReturnType<typeof getDocument> | undefined;
+
+  try {
+    const arrayBuffer = await file.data.arrayBuffer();
+
+    loadingTask = getDocument({
+      data: new Uint8Array(arrayBuffer),
+    });
+
+    const pdf = await loadingTask.promise;
+    const chunks: SemanticChunk[] = [];
+    const pages: string[] = [];
+
+    for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
+      const page = await pdf.getPage(pageNumber);
+      const textContent = await page.getTextContent();
+
+      const pageText = textContent.items
+        .map(item => ('str' in item ? item.str : ''))
+        .join(' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      pages.push(`--- PAGE ${pageNumber} ---\n${pageText}`);
+
+      // Preserve page attribution for all extracted chunks.
+      const chunkSize = 1500;
+
+      for (let start = 0; start < pageText.length; start += chunkSize) {
+        const text = pageText.slice(start, start + chunkSize).trim();
+
+        if (text) {
+          chunks.push({
+            text,
+            source: `Page ${pageNumber}`,
+          });
         }
-      };
+      }
 
-      worker.onerror = (err) => {
-        worker.terminate();
-        console.error('Worker fatal error:', err);
-        resolve({ chunks: [], rawText: `[Fallback] Fatal error` });
-      };
-
-      // Transfer the buffer to the worker (zero-copy for performance)
-      worker.postMessage({ arrayBuffer }, [arrayBuffer]);
-
-    } catch (error) {
-      console.error('PDF initialization error:', error);
-      resolve({ chunks: [], rawText: `[Fallback] Extracted pseudo-content from ${file.name} due to initialization error.` });
+      onProgress?.(pageNumber, pdf.numPages);
     }
-  });
+
+    return {
+      chunks,
+      rawText: pages.join('\n'),
+    };
+  } catch (error) {
+    console.error('PDF extraction failed:', error);
+
+    return {
+      chunks: [],
+      rawText: '[Fallback] PDF extraction failed.',
+    };
+  } finally {
+    if (loadingTask) {
+      try {
+        await loadingTask.destroy();
+      } catch (error) {
+        console.warn('PDF cleanup failed:', error);
+      }
+    }
+  }
 }
 
 /**
