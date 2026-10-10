@@ -9,7 +9,7 @@ import { Input } from '@workspace/y-hub-ds/components/ui/input';
 import { ArrowLeft, BrainCircuit, Loader2, Send, User, BookOpen, GraduationCap, BookmarkPlus, Check, PenTool } from 'lucide-react';
 import 'katex/dist/katex.min.css';
 import { BlockMath, InlineMath } from 'react-katex';
-import { QuizComponent } from '@/components/QuizComponent';
+import { QuizComponent } from '@/features/ai-generator/quiz/QuizComponent';
 import { Scratchpad } from '@/features/ai-generator/scratchpad/Scratchpad';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Sheet, SheetContent } from '@workspace/y-hub-ds/components/ui/sheet';
