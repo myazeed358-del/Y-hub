@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '@workspace/y-hub-ds/components/ui/button';
 import { Card, CardContent } from '@workspace/y-hub-ds/components/ui/card';
 import { CheckCircle2, XCircle } from 'lucide-react';
-import type { QuizQuestion } from '@/utils/pdfEngine';
+import type { QuizQuestion } from './quiz.types';
 import { BlockMath, InlineMath } from 'react-katex';
 
 interface QuizComponentProps {
