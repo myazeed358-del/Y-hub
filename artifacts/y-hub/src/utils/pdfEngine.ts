@@ -1,3 +1,6 @@
+import type { SemanticChunk, DocumentAnalysisResult } from '@/features/ai-generator/document-analysis/document.types';
+export type { SemanticChunk, DocumentAnalysisResult } from '@/features/ai-generator/document-analysis/document.types';
+export { searchChunks } from '@/features/ai-generator/document-search/searchChunks';
 import type { QuizQuestion } from '@/features/ai-generator/quiz/quiz.types';
 export type { QuizQuestion } from '@/features/ai-generator/quiz/quiz.types';
 export { generateQuiz } from '@/features/ai-generator/quiz/generation/generateQuiz';
@@ -9,16 +12,6 @@ export interface AIExplanation {
   explanation: string;
   keyConcepts: string[];
   latexFormula?: string;
-}
-
-export interface SemanticChunk {
-  text: string;
-  source: string;
-}
-
-export interface DocumentAnalysisResult {
-  chunks: SemanticChunk[];
-  rawText: string;
 }
 
 export interface ChatMessage {
@@ -79,29 +72,6 @@ export async function analyzeDocument(
       resolve({ chunks: [], rawText: `[Fallback] Extracted pseudo-content from ${file.name} due to initialization error.` });
     }
   });
-}
-
-/**
- * Searches the semantic chunks for keywords from the query. (Local Vector DB Mock)
- */
-export function searchChunks(query: string, chunks: SemanticChunk[], topK: number = 3): SemanticChunk[] {
-  const keywords = query.toLowerCase().split(/\s+/).filter(w => w.length > 3);
-  if (keywords.length === 0) return chunks.slice(0, topK);
-
-  const scoredChunks = chunks.map(chunk => {
-    const textLower = chunk.text.toLowerCase();
-    let score = 0;
-    for (const kw of keywords) {
-      if (textLower.includes(kw)) score += 1;
-    }
-    return { chunk, score };
-  });
-
-  return scoredChunks
-    .filter(sc => sc.score > 0)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, topK)
-    .map(sc => sc.chunk);
 }
 
 /**
