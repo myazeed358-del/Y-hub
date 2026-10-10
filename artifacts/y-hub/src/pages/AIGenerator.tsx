@@ -10,7 +10,7 @@ import { ArrowLeft, BrainCircuit, Loader2, Send, User, BookOpen, GraduationCap, 
 import 'katex/dist/katex.min.css';
 import { BlockMath, InlineMath } from 'react-katex';
 import { QuizComponent } from '@/components/QuizComponent';
-import { Scratchpad } from '@/components/Scratchpad';
+import { Scratchpad } from '@/features/ai-generator/scratchpad/Scratchpad';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Sheet, SheetContent } from '@workspace/y-hub-ds/components/ui/sheet';
 
