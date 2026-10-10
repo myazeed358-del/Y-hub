@@ -211,6 +211,12 @@ export default function CourseManager() {
           <h1 className="text-3xl font-bold">{course?.title}</h1>
           <p className="text-muted-foreground mt-1">إدارة مسار التعليم والاختبارات</p>
         </div>
+        <Link href={`/course/${courseId}/ai-tutor`} className="mr-auto">
+          <Button variant="outline" className="gap-2">
+            <BrainCircuit size={18} />
+            تجربة المعلم الذكي
+          </Button>
+        </Link>
       </div>
 
       <Tabs defaultValue="materials" className="w-full">

@@ -48,28 +48,42 @@ export default function AIGenerator() {
       try {
         if (!courseId || !user) throw new Error("Invalid course or session");
         
-        // Enrollment gate — must be checked before fetching any protected content
-        const { data: enrollment } = await supabase
-          .from('course_enrollments')
-          .select('id')
-          .eq('course_id', courseId)
-          .eq('student_id', user.id)
-          .eq('status', 'active')
-          .maybeSingle();
+        // Load course metadata before authorizing protected content.
+        const { data: courseData, error: courseError } = await supabase
+          .from('courses')
+          .select('*')
+          .eq('id', courseId)
+          .single();
 
-        if (!enrollment) {
-          setIsEnrolled(false);
-          setIsLoading(false);
-          return;
-        }
-        setIsEnrolled(true);
-
-        const { data: courseData, error: courseError } = await supabase.from('courses').select('*').eq('id', courseId).single();
         if (courseError || !courseData) {
           setErrorState("Course not found or Supabase error.");
           setIsLoading(false);
           return;
         }
+
+        // The course owner can preview AI Tutor without student enrollment.
+        // Other users must have an active enrollment.
+        const isCourseInstructor = courseData.instructor_id === user.id;
+
+        if (!isCourseInstructor) {
+          const { data: enrollment, error: enrollmentError } = await supabase
+            .from('course_enrollments')
+            .select('id')
+            .eq('course_id', courseId)
+            .eq('student_id', user.id)
+            .eq('status', 'active')
+            .maybeSingle();
+
+          if (enrollmentError) throw enrollmentError;
+
+          if (!enrollment) {
+            setIsEnrolled(false);
+            setIsLoading(false);
+            return;
+          }
+        }
+
+        setIsEnrolled(true);
         setCourse(courseData);
 
         const { data: files } = await supabase.from('course_materials')
