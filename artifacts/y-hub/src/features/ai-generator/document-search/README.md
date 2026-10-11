@@ -32,7 +32,7 @@ An array of matching SemanticChunk objects.
 1. No results: inspect keyword filtering.
 2. Incorrect ranking: inspect score calculation.
 3. Missing document text: inspect PDF extraction
-   in utils/pdfEngine.ts and utils/pdfWorker.ts.
+   in ../document-analysis/analyzeDocument.ts.
 4. Results not displayed: inspect AIGenerator.tsx.
 
 ## Verification
