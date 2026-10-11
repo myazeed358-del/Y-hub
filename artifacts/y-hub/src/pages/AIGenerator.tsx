@@ -12,8 +12,7 @@ import { Card, CardContent } from '@workspace/y-hub-ds/components/ui/card';
 import { Button } from '@workspace/y-hub-ds/components/ui/button';
 import { Input } from '@workspace/y-hub-ds/components/ui/input';
 import { ArrowLeft, BrainCircuit, Loader2, Send, User, BookOpen, GraduationCap, BookmarkPlus, Check, PenTool } from 'lucide-react';
-import 'katex/dist/katex.min.css';
-import { BlockMath, InlineMath } from 'react-katex';
+import { ChatMessageContent } from '@/features/ai-generator/ai-chat/ChatMessageContent';
 import { QuizComponent } from '@/features/ai-generator/quiz/QuizComponent';
 import { Scratchpad } from '@/features/ai-generator/scratchpad/Scratchpad';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -207,18 +206,6 @@ export default function AIGenerator() {
     }
   };
 
-  const renderTextWithMath = (text: string) => {
-    const parts = text.split(/(\$\$.+?\$\$|\$.+?\$)/g);
-    return parts.map((part, i) => {
-      if (part.startsWith('$$') && part.endsWith('$$')) {
-        return <BlockMath key={i} math={part.slice(2, -2)} />;
-      } else if (part.startsWith('$') && part.endsWith('$')) {
-        return <InlineMath key={i} math={part.slice(1, -1)} />;
-      }
-      return <span key={i}>{part}</span>;
-    });
-  };
-
   if (isLoading) return <div className="flex flex-col items-center justify-center min-h-[50vh]"><Loader2 className="animate-spin text-primary mb-4" size={48} /><p>Loading course data...</p></div>;
   if (errorState) return <div className="flex flex-col items-center justify-center min-h-[50vh]"><div className="text-destructive mb-4 font-bold text-xl">Error Loading Course</div><p className="text-muted-foreground">{errorState}</p><Link href="/dashboard"><Button className="mt-6">Return to Dashboard</Button></Link></div>;
   if (!isEnrolled) return <div className="flex flex-col items-center justify-center min-h-[50vh] text-center"><div className="font-bold text-xl mb-3">التسجيل مطلوب</div><p className="text-muted-foreground mb-6 max-w-sm">يجب أن تكون مسجّلاً في هذا المساق للوصول إلى المعلم الذكي.</p><Link href="/dashboard"><Button>العودة للوحة القيادة</Button></Link></div>;
@@ -272,16 +259,14 @@ export default function AIGenerator() {
         <Card className="flex-1 flex flex-col overflow-hidden bg-[hsl(var(--background))] border border-[hsl(var(--border))]">
           <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-6">
             {messages.map((msg, index) => (
-              <div key={msg.id} className={`flex gap-4 max-w-[85%] ${msg.role === 'user' ? 'ml-auto flex-row-reverse' : 'mr-auto'}`}>
+              <div key={msg.id} className={`flex gap-4 min-w-0 max-w-[85%] ${msg.role === 'user' ? 'ml-auto flex-row-reverse' : 'mr-auto'}`}>
                 <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${msg.role === 'user' ? 'bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]' : 'bg-[hsl(var(--sidebar))] text-[hsl(var(--sidebar-foreground))]'}`}>
                   {msg.role === 'user' ? <User size={16} /> : <BrainCircuit size={16} />}
                 </div>
                 
-                <div className={`flex flex-col gap-2 ${msg.role === 'user' ? 'items-end' : 'items-start'} w-full`}>
-                  <div className={`px-4 py-3 rounded-2xl ${msg.role === 'user' ? 'bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-tr-sm' : 'bg-[hsl(var(--muted)/.5)] border border-[hsl(var(--border))] rounded-tl-sm w-full'}`}>
-                    <div className="prose prose-sm dark:prose-invert max-w-none break-words overflow-x-auto">
-                      {renderTextWithMath(msg.content)}
-                    </div>
+                <div className={`flex flex-col gap-2 ${msg.role === 'user' ? 'items-end' : 'items-start'} w-full min-w-0`}>
+                  <div className={`min-w-0 px-4 py-3 rounded-2xl ${msg.role === 'user' ? 'bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-tr-sm' : 'bg-[hsl(var(--muted)/.5)] border border-[hsl(var(--border))] rounded-tl-sm w-full'}`}>
+                    <ChatMessageContent content={msg.content} />
                     
                     {msg.quiz && (
                       <div className="mt-4">
@@ -294,7 +279,7 @@ export default function AIGenerator() {
                     <div className="flex flex-wrap gap-2 mt-1">
                       {msg.citations.map((citation, i) => (
                         <span key={i} className="text-[10px] font-mono px-2 py-1 rounded bg-[hsl(var(--accent)/.1)] text-[hsl(var(--accent-foreground))] border border-[hsl(var(--accent)/.2)]">
-                          Source: {citation}
+                          Retrieved context: {citation}
                         </span>
                       ))}
                     </div>

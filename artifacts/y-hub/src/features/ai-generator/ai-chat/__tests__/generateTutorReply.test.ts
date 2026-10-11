@@ -75,6 +75,29 @@ describe('AI Tutor reply service', () => {
     expect(mocks.askAiTutor).toHaveBeenCalledTimes(1);
   });
 
+  it.each([
+    "I'm sorry, but the provided excerpts do not contain any information about Newton's Second Law.",
+    'There is insufficient information in the provided excerpts to answer this question.',
+    'I cannot answer this question based on the provided material.',
+    'لا تحتوي المقاطع المقدمة على معلومات عن قانون نيوتن.',
+  ])('hides unsupported answer metadata: %s', async (answer) => {
+    mocks.askAiTutor.mockResolvedValue(answer);
+
+    const result = await generateTutorReply(
+      courseId,
+      'Explain Newton law',
+      [{
+        text: 'Newton appears in an unrelated reference.',
+        source: 'Page 20',
+      }]
+    );
+
+    expect(mocks.askAiTutor).toHaveBeenCalledTimes(1);
+    expect(result.content).toBe(answer);
+    expect(result.citations).toEqual([]);
+    expect(result.canTestKnowledge).toBe(false);
+  });
+
   it('propagates API failures without fabricating answers', async () => {
     mocks.askAiTutor.mockRejectedValue(
       new Error('AI Tutor rate limit reached.')
