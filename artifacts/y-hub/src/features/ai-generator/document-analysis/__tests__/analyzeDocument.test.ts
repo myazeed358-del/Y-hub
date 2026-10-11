@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Blob as NodeBlob } from 'node:buffer';
-import { analyzeDocument } from '@/utils/pdfEngine';
+import { analyzeDocument } from '../analyzeDocument';
+import { analyzeDocument as legacyAnalyzeDocument } from '@/utils/pdfEngine';
 import type { CourseFile } from '@/utils/courseStorage';
 
 const mocked = vi.hoisted(() => ({
@@ -29,6 +30,10 @@ afterEach(() => {
 });
 
 describe('Document Analysis', () => {
+  it('preserves the legacy export', () => {
+    expect(legacyAnalyzeDocument).toBe(analyzeDocument);
+  });
+
   it('extracts text with correct page sources and progress', async () => {
     const destroy = vi.fn().mockResolvedValue(undefined);
     const progress = vi.fn();
