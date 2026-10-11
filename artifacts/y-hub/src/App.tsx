@@ -605,7 +605,7 @@ function Shell({ children }: { children: ReactNode }) {
   return (
     <div
       dir={language === 'ar' ? 'rtl' : 'ltr'}
-      className="dark min-h-[100dvh] bg-[#070b14] text-slate-100"
+      className="min-h-[100dvh] bg-background text-foreground"
       style={{
         backgroundImage:
           'radial-gradient(circle at 85% 0%, rgba(34,211,238,0.07), transparent 30%), radial-gradient(circle at 15% 100%, rgba(139,92,246,0.07), transparent 32%)',
@@ -652,7 +652,7 @@ function Shell({ children }: { children: ReactNode }) {
         })()}
 
       <aside
-        className={`fixed inset-y-0 z-40 flex w-[288px] flex-col border-slate-800/80 bg-[#050914]/95 px-4 py-5 text-slate-100 shadow-2xl shadow-black/20 backdrop-blur-2xl transition-transform duration-300 md:translate-x-0 ${
+        className={`fixed inset-y-0 z-40 flex w-[288px] flex-col border-sidebar-border bg-sidebar/95 px-4 py-5 text-sidebar-foreground shadow-2xl shadow-black/20 backdrop-blur-2xl transition-transform duration-300 md:translate-x-0 ${
           language === 'ar'
             ? 'right-0 border-l'
             : 'left-0 border-r'
@@ -1041,7 +1041,7 @@ function Shell({ children }: { children: ReactNode }) {
             : 'md:ml-[288px]'
         }`}
       >
-        <header className="sticky top-0 z-20 flex h-[72px] items-center justify-between border-b border-slate-800/70 bg-[#070b14]/80 px-4 backdrop-blur-2xl sm:px-6 lg:px-10">
+        <header className="sticky top-0 z-20 flex h-[72px] items-center justify-between border-b border-border bg-background/80 px-4 backdrop-blur-2xl sm:px-6 lg:px-10">
           <div className="flex min-w-0 items-center gap-3">
             <button
               onClick={() => setMobileNav(true)}
@@ -1064,7 +1064,7 @@ function Shell({ children }: { children: ReactNode }) {
                 </span>
               </div>
 
-              <div className="truncate text-sm font-black text-slate-100 sm:mt-1 sm:text-base">
+              <div className="truncate text-sm font-black text-foreground sm:mt-1 sm:text-base">
                 {currentTitle}
               </div>
             </div>
@@ -1072,13 +1072,13 @@ function Shell({ children }: { children: ReactNode }) {
 
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="hidden text-left lg:block">
-              <div className="text-xs font-bold text-slate-200">
+              <div className="text-xs font-bold text-foreground">
                 {language === 'ar'
                   ? `مرحباً، ${firstName}`
                   : `Welcome, ${firstName}`}
               </div>
 
-              <div className="mt-1 max-w-[220px] truncate text-[10px] text-slate-600">
+              <div className="mt-1 max-w-[220px] truncate text-[10px] text-muted-foreground">
                 {academicMeta}
               </div>
             </div>
@@ -1087,12 +1087,14 @@ function Shell({ children }: { children: ReactNode }) {
               onClick={() =>
                 setLanguage(language === 'ar' ? 'en' : 'ar')
               }
-              className="h-9 rounded-xl border border-slate-800 bg-slate-950/60 px-3 text-[11px] font-black tracking-wide text-cyan-300 transition-all hover:border-cyan-400/20 hover:bg-cyan-400/[0.05]"
+              className="h-9 rounded-xl border border-border bg-card px-3 text-[11px] font-black tracking-wide text-primary transition-all hover:bg-accent/10"
               aria-label={t('language')}
               data-testid="button-language-toggle"
             >
               {language === 'ar' ? 'EN' : 'AR'}
             </button>
+
+            <ThemeToggle />
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -1113,14 +1115,14 @@ function Shell({ children }: { children: ReactNode }) {
 
               <DropdownMenuContent
                 align="end"
-                className="w-64 border-slate-800 bg-[#0b1220] p-2 text-slate-100 shadow-2xl shadow-black/40"
+                className="w-64 border-border bg-popover p-2 text-popover-foreground shadow-2xl"
               >
                 <DropdownMenuLabel className="px-3 py-3">
-                  <div className="truncate text-sm font-black text-white">
+                  <div className="truncate text-sm font-black text-popover-foreground">
                     {accountName}
                   </div>
 
-                  <div className="mt-1 truncate text-[11px] font-normal text-slate-500">
+                  <div className="mt-1 truncate text-[11px] font-normal text-muted-foreground">
                     {user?.email || academicMeta}
                   </div>
 
@@ -1129,11 +1131,11 @@ function Shell({ children }: { children: ReactNode }) {
                   </div>
                 </DropdownMenuLabel>
 
-                <DropdownMenuSeparator className="bg-slate-800" />
+                <DropdownMenuSeparator className="bg-border" />
 
                 <DropdownMenuItem
                   asChild
-                  className="cursor-pointer rounded-xl text-slate-300 focus:bg-cyan-400/[0.07] focus:text-cyan-200"
+                  className="cursor-pointer rounded-xl text-popover-foreground focus:bg-accent/10 focus:text-accent-foreground"
                 >
                   <Link
                     href="/profile"
@@ -1146,7 +1148,7 @@ function Shell({ children }: { children: ReactNode }) {
                   </Link>
                 </DropdownMenuItem>
 
-                <DropdownMenuSeparator className="bg-slate-800" />
+                <DropdownMenuSeparator className="bg-border" />
 
                 <DropdownMenuItem
                   className="cursor-pointer rounded-xl text-red-400 focus:bg-red-500/10 focus:text-red-300"
@@ -1846,6 +1848,7 @@ function ApplicationFrame() {
 
 import { ThemeProvider } from 'next-themes';
 import YHubLogo from '@/components/YHubLogo';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 function App() {
   const [language, setLanguage] = useState<Language>(() => {
