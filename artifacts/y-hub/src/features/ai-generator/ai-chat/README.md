@@ -34,3 +34,14 @@ Client-provided excerpts are not server-verified sources.
 pnpm --filter y-hub typecheck
 pnpm --filter y-hub exec vitest run
 pnpm --filter y-hub build
+
+## AI Tutor API client
+- aiTutorClient.ts: Typed Supabase Edge Function client.
+- __tests__/aiTutorClient.test.ts: API client unit tests.
+
+The API client validates requests and normalizes common errors.
+It uses the existing authenticated Supabase client.
+
+The UI still uses mockChatResponse.ts.
+The real API client is not wired into AIGenerator.tsx yet.
+No live API call is made by the unit tests.
