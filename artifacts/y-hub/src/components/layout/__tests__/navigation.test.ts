@@ -1,0 +1,106 @@
+import { describe, expect, it } from 'vitest';
+import { buildNavigationGroups } from '../navigation';
+import {
+  canRoleAccessEngineRoute,
+  type EngineAccessRole,
+} from '@/config/majorEngineAccess';
+
+const mathEngines = [
+  '/calculus',
+  '/math-solver',
+  '/solver',
+  '/lab',
+];
+
+function visibleRoutes(
+  role: EngineAccessRole | null | undefined,
+  major?: string | null
+): string[] {
+  return buildNavigationGroups(role, major)
+    .flatMap((group) => group.items.map((item) => item.href));
+}
+
+describe('Y-Hub navigation', () => {
+  it('shows mathematics engines to mathematics students', () => {
+    expect(visibleRoutes('student', 'mathematics')).toEqual([
+      '/',
+      '/quiz',
+      ...mathEngines,
+    ]);
+  });
+
+  it('hides unrelated engines from students', () => {
+    expect(visibleRoutes('student', 'medicine')).toEqual([
+      '/',
+      '/quiz',
+    ]);
+  });
+
+  it('shows no engines for a student without a major', () => {
+    expect(visibleRoutes('student', null)).toEqual([
+      '/',
+      '/quiz',
+    ]);
+  });
+
+  it('shows instructor engines without student quiz navigation', () => {
+    expect(visibleRoutes('instructor', 'mathematics')).toEqual([
+      '/',
+      ...mathEngines,
+    ]);
+  });
+
+  it('limits instructor sidebar to their teaching major', () => {
+    expect(visibleRoutes('instructor', 'medicine')).toEqual([
+      '/',
+    ]);
+  });
+
+  it.each(['admin', 'super_admin'] as const)(
+    'shows all engines to %s',
+    (role) => {
+      expect(visibleRoutes(role, null)).toEqual([
+        '/',
+        '/quiz',
+        ...mathEngines,
+      ]);
+    }
+  );
+
+  it('shows only overview without role or major', () => {
+    expect(visibleRoutes(null, null)).toEqual(['/']);
+  });
+
+  it('does not generate duplicate navigation routes', () => {
+    for (const role of [
+      'student',
+      'instructor',
+      'admin',
+      'super_admin',
+    ] as const) {
+      const routes = visibleRoutes(role, 'mathematics');
+      expect(new Set(routes).size).toBe(routes.length);
+    }
+  });
+
+  it('never shows an unauthorized engine route', () => {
+    for (const role of [
+      'student',
+      'instructor',
+      'admin',
+      'super_admin',
+    ] as const) {
+      for (const major of ['mathematics', 'medicine', null]) {
+        const routes = visibleRoutes(role, major);
+
+        for (const route of routes.filter((r) =>
+          mathEngines.includes(r)
+        )) {
+          expect(
+            canRoleAccessEngineRoute(role, major, route)
+          ).toBe(true);
+        }
+      }
+    }
+  });
+});
