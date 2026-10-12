@@ -15,7 +15,7 @@ import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/utils/supabaseClient';
 import { createClient } from '@supabase/supabase-js';
-import { useLanguage } from '../App';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 import { Button } from '@workspace/y-hub-ds/components/ui/button';
 import { Input } from '@workspace/y-hub-ds/components/ui/input';

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useLanguage } from '../App';
+import { useLanguage } from '@/i18n/LanguageContext';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@workspace/y-hub-ds/components/ui/card';
 import { Button } from '@workspace/y-hub-ds/components/ui/button';
 import { Input } from '@workspace/y-hub-ds/components/ui/input';

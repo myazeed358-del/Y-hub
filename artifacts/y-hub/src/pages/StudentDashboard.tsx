@@ -4,7 +4,7 @@ import { supabase } from '@/utils/supabaseClient';
 import { useAuth } from '@/contexts/AuthContext';
 import { LayoutDashboard, BookOpen, Calculator, Settings, PlayCircle, Book, Calendar, FunctionSquare, LineChart, Activity, Clock, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
-import { useLanguage } from '../App';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 // Progress Components inline to avoid extra files
 function CircularProgress({ progress, size = 120, strokeWidth = 10, label, sublabel }: any) {

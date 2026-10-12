@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@workspace/y-hub-ds/co
 import { Button } from '@workspace/y-hub-ds/components/ui/button';
 import { ArrowLeft, BrainCircuit, RefreshCw, CheckCircle2, XCircle, Download } from 'lucide-react';
 import { Link } from 'wouter';
-import { useLanguage } from '../App';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 export default function Solver() {
   const { t, language } = useLanguage();
