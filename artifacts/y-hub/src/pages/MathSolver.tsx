@@ -8,7 +8,7 @@ import { mathEngine } from '@/utils/mathEngine';
 import { Calculator, Compass, Box, Activity, TrendingUp, Infinity as LimitIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import Plot from 'react-plotly.js';
-import { useLanguage } from '../App';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 interface Step {
   desc: string;
