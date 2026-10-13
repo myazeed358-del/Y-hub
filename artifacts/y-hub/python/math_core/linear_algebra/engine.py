@@ -103,6 +103,7 @@ def handle_linear_algebra(req):
     return {
         'operation': op,
         'phase': '10',
+        'status': status,
         'mode': mode,
         'input': data,
         'normalized_input': data,

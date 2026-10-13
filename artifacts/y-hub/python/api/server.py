@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 from typing import List, Dict, Any, Optional
 import sympy as sp
 import numpy as np
@@ -54,6 +54,32 @@ class MathRequest(BaseModel):
     input: Any
     assumptions: Optional[Dict[str, Any]] = None
 
+def _json_safe_math_result(value):
+    """Convert mathematical values into JSON-compatible data."""
+    if isinstance(value, sp.Integer):
+        return int(value)
+    if isinstance(value, sp.Rational):
+        return str(value)
+    if isinstance(value, sp.Float):
+        return float(value)
+    if isinstance(value, sp.MatrixBase):
+        return _json_safe_math_result(value.tolist())
+    if isinstance(value, sp.Basic):
+        return str(value)
+    if isinstance(value, np.ndarray):
+        return _json_safe_math_result(value.tolist())
+    if isinstance(value, np.generic):
+        return _json_safe_math_result(value.item())
+    if isinstance(value, dict):
+        return {
+            str(k): _json_safe_math_result(v)
+            for k, v in value.items()
+        }
+    if isinstance(value, (list, tuple)):
+        return [_json_safe_math_result(v) for v in value]
+    return value
+
+
 class MathResponse(BaseModel):
     operation: str
     phase: str
@@ -71,6 +97,51 @@ class MathResponse(BaseModel):
     numerical_evidence: Any
     warnings: List[str]
     errors: List[str]
+    status: str
+    classification: Optional[str] = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_contract(cls, values):
+        if not isinstance(values, dict):
+            return values
+
+        data = dict(values)
+        data["result"] = _json_safe_math_result(
+            data.get("result")
+        )
+
+        if "status" not in data:
+            result = data["result"]
+            nested = (
+                result.get("status")
+                if isinstance(result, dict) else None
+            )
+
+            failure_states = {
+                "invalid_domain",
+                "outside_domain",
+                "zero_area",
+                "invalid_configuration",
+                "verification_failed",
+                "unsupported",
+            }
+
+            if data.get("errors"):
+                status = "invalid_input"
+            elif data.get("operation") == "fuzzy_inference":
+                status = "unsupported"
+            elif nested in failure_states:
+                status = nested
+            elif result is None:
+                status = "no_solution"
+            else:
+                status = "solved"
+
+            data["status"] = status
+
+        return data
+
 
 @app.post('/api/v1/math/compute', response_model=MathResponse)
 def compute(req: MathRequest):
@@ -85,25 +156,13 @@ def compute(req: MathRequest):
             return handle_fuzzy(req)
         else:
             raise HTTPException(status_code=400, detail='Unsupported phase')
+    except HTTPException:
+        raise
     except Exception as e:
-        return MathResponse(
-            operation=req.operation,
-            phase=req.phase,
-            mode=req.mode,
-            input=req.input,
-            normalized_input=None,
-            result=None,
-            steps=[],
-            assumptions=req.assumptions,
-            conditions=[],
-            domain=None,
-            verification=None,
-            verification_status='verification_failed',
-            exactness='exact_symbolic',
-            numerical_evidence=None,
-            warnings=[],
-            errors=[str(e)]
-        )
+        raise HTTPException(
+            status_code=500,
+            detail='Internal math computation error'
+        ) from e
 
 if __name__ == '__main__':
     import uvicorn

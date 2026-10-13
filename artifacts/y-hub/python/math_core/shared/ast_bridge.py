@@ -93,7 +93,7 @@ class ASTBridge:
             var = ASTBridge.to_sympy(ast_node.get('variable'))
             order = int(ast_node.get('order', 1))
             return sp.Derivative(expr, var, order)
-                elif t == 'Limit':
+        elif t == 'Limit':
             expr = ASTBridge.to_sympy(ast_node.get('expression'))
             var = ASTBridge.to_sympy(ast_node.get('variable'))
             target = ASTBridge.to_sympy(ast_node.get('target'))
@@ -165,13 +165,13 @@ class ASTBridge:
                 'variable': ASTBridge.to_ast(sympy_expr.variables[0], simplify=False),
                 'order': len(sympy_expr.variables)
             }
-                if isinstance(sympy_expr, sp.Limit):
+        if isinstance(sympy_expr, sp.Limit):
             return {
                 'type': 'Limit',
                 'expression': ASTBridge.to_ast(sympy_expr.args[0], simplify=False),
                 'variable': ASTBridge.to_ast(sympy_expr.args[1], simplify=False),
                 'target': ASTBridge.to_ast(sympy_expr.args[2], simplify=False),
-                'direction': sympy_expr.args[3] if len(sympy_expr.args) > 3 else '+'
+                'direction': str(sympy_expr.args[3]) if len(sympy_expr.args) > 3 else '+'
             }
         if isinstance(sympy_expr, sp.Integral):
             var = sympy_expr.limits[0][0]

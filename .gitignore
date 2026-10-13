@@ -61,3 +61,7 @@ Thumbs.db
 attached_assets/
 .config/
 .conversation/
+
+# Python generated artifacts
+__pycache__/
+*.py[cod]
