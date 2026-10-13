@@ -109,6 +109,7 @@ def handle_calculus(req):
     return {
         'operation': op,
         'phase': '6',
+        'status': status,
         'mode': mode,
         'input': data,
         'normalized_input': data,

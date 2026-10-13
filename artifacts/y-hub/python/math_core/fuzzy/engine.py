@@ -10,7 +10,7 @@ def handle_fuzzy(req):
     try:
         import numpy as np
         
-                if op == 'fuzzy_arithmetic':
+        if op == 'fuzzy_arithmetic':
             from .arithmetic import fuzzy_arithmetic_py
             from .numbers import AlphaCut
             
@@ -22,7 +22,7 @@ def handle_fuzzy(req):
             c1_list = [AlphaCut(c['alpha'], c['lower'], c['upper']) for c in c1_data]
             c2_list = [AlphaCut(c['alpha'], c['lower'], c['upper']) for c in c2_data]
             
-                        try:
+            try:
                 res_cuts = fuzzy_arithmetic_py(c1_list, c2_list, op_type)
             except ValueError as ve:
                 if 'invalid_domain' in str(ve):
@@ -30,7 +30,17 @@ def handle_fuzzy(req):
                         'operation': op,
                         'phase': 'fuzzy',
                         'mode': req.mode,
+                        'input': data,
+                        'normalized_input': data,
                         'result': None,
+                        'steps': steps,
+                        'assumptions': None,
+                        'conditions': [],
+                        'domain': None,
+                        'verification': None,
+                        'verification_status': 'verification_failed',
+                        'exactness': 'numerical_approximation',
+                        'numerical_evidence': None,
                         'status': 'invalid_domain',
                         'mathematicalExactness': 'exact',
                         'representationAccuracy': 'sampled',
@@ -42,7 +52,7 @@ def handle_fuzzy(req):
             classification = 'FUZZY_ARITHMETIC'
             steps.append({'step': 'Fuzzy Arithmetic', 'description': f'Computed {len(res_cuts)} alpha cuts for {op_type} via Python'})
 
-                elif op == 'fuzzy_relation':
+        elif op == 'fuzzy_relation':
             from .relations import compose_relations, transitive_closure
             
             sub_op = data.get('relation_op', 'compose')
@@ -52,7 +62,7 @@ def handle_fuzzy(req):
                 method = data.get('compositionType', 'max-min')
                 res = compose_relations(A, B, method)
                 result = {'matrix': res.tolist(), 'rows': res.shape[0], 'cols': res.shape[1]}
-                        elif sub_op == 'project':
+            elif sub_op == 'project':
                 from .relations import project_relation
                 A = data['matrix']
                 axis = data.get('axis', 0)
@@ -71,35 +81,7 @@ def handle_fuzzy(req):
                 }
             classification = 'FUZZY_RELATION'
 
-                elif op == 'defuzzify':
-            from .defuzzification import defuzzify_discrete, defuzzify_continuous
-            methods = data.get('method')
-            if isinstance(methods, str): methods = [methods]
-            
-            comparisons = {}
-            main_val = 0
-            status = 'success'
-            
-            for m in methods:
-                if 'continuousParams' in data:
-                    v, s = defuzzify_continuous(data['continuousParams'], m)
-                else:
-                    pts = [[p['x'], p['y']] for p in data['points']]
-                    v, s = defuzzify_discrete(pts, m)
-                    
-                comparisons[m] = v
-                if s != 'success': status = s
-                if m == methods[0]: main_val = v
-                
-            result = {
-                'value': main_val,
-                'method': methods[0],
-                'comparisons': comparisons if len(methods) > 1 else None,
-                'status': status
-            }
-            classification = 'FUZZY_DEFUZZIFICATION'
-
-                elif op == 'defuzzify':
+        elif op == 'defuzzify':
             from .defuzzification import defuzzify_discrete, defuzzify_continuous
             methods = data.get('method')
             input_type = data.get('inputType')
@@ -140,7 +122,7 @@ def handle_fuzzy(req):
 
             classification = 'FUZZY_DEFUZZIFICATION'
 
-                elif op == 'rule_engine':
+        elif op == 'rule_engine':
             from .rules import fuzzify_batch, evaluate_rules_batch
             
             rules = data.get('ruleBase', {}).get('rules', [])
@@ -150,8 +132,8 @@ def handle_fuzzy(req):
             # Format crisp to batch arrays
             batch_inputs = {k: [v] if isinstance(v, (int, float)) else v for k, v in crisp.items()}
             
+            config = data.get('config', {'tNorm': 'min', 'tConorm': 'max'})
             fuz = fuzzify_batch(variables, batch_inputs, config)
-                        config = data.get('config', {'tNorm': 'min', 'tConorm': 'max'})
             try:
                 evs = evaluate_rules_batch(rules, fuz, config)
                 result = {
@@ -172,16 +154,9 @@ def handle_fuzzy(req):
                     'representationAccuracy': 'sampled'
                 }
             
-            result = {
-                'evaluations': evs,
-                'status': 'success',
-                'provider': 'python_numpy',
-                'mathematicalExactness': 'numerical',
-                'representationAccuracy': 'sampled'
-            }
             classification = 'FUZZY_RULE_ENGINE'
 
-                elif op == 'mamdani':
+        elif op == 'mamdani':
             from .mamdani import execute_mamdani
             try:
                 result = execute_mamdani(data)
@@ -198,7 +173,7 @@ def handle_fuzzy(req):
                 }
                 classification = 'FUZZY_MAMDANI_INFERENCE'
         
-                        elif op == 'controller':
+        elif op == 'controller':
             from .controller import execute_controller
             try:
                 result = execute_controller(data)
@@ -237,8 +212,8 @@ def handle_fuzzy(req):
             
             # TODO: Full fuzzy relation composition and integration
             
-            result = {'stub_output': 0.0}
-            steps.append({'step': 'defuzzification', 'description': 'Centroid calculation complete'})
+            result = None
+            warnings.append('fuzzy_inference_not_implemented')
             
     except Exception as e:
         errors.append(str(e))
@@ -253,7 +228,7 @@ def handle_fuzzy(req):
         'normalized_input': data,
         'result': result,
         'steps': steps,
-        'classification': 'FUZZY_INFERENCE',
+        'classification': locals().get('classification', 'FUZZY_INFERENCE'),
         'assumptions': None,
         'conditions': [],
         'domain': None,

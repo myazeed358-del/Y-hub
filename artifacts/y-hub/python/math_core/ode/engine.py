@@ -67,7 +67,7 @@ def handle_ode(req):
                 best_hint = hints[0] if hints else 'default'
                 classification = 'EXACT_SYMBOLIC_ODE_' + best_hint.upper()
                 
-                                ics_dict = {}
+                ics_dict = {}
                 if 'initialConditions' in data:
                     for ic in data['initialConditions']:
                         # Example: y(0) = 1 -> f(0): 1, y'(0) = 2 -> f(indep).diff(indep).subs(indep, 0): 2
@@ -147,7 +147,7 @@ def handle_ode(req):
                     
                 eqs_f = [sp.Eq(replace_funcs(eq.lhs), replace_funcs(eq.rhs)) for eq in eqs]
                 
-                                ics_dict = {}
+                ics_dict = {}
                 if 'initialConditions' in data:
                     for ic in data['initialConditions']:
                         ic_lhs = ASTBridge.to_sympy(ic.get('lhs'))
