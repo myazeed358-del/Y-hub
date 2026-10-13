@@ -6,7 +6,7 @@ import { Router as WouterRouter } from 'wouter';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { uiCopy, type Language, type UiKey } from '@/i18n/uiCopy';
 import { LanguageContext } from '@/i18n/LanguageContext';
-import { ApplicationFrame } from '@/components/layout/ApplicationFrame';
+import { ApplicationFrame } from '@/app/ApplicationFrame';
 
 const queryClient = new QueryClient();
 
