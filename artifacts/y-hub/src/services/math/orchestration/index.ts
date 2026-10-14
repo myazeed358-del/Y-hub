@@ -6,6 +6,10 @@ import { DomainAnalyzer } from '../domain';
 import { PythonMathAdapter } from '../python/adapter';
 import { MathVerifier } from '../verification';
 import { CanonicalAST } from '../types/ast';
+import { MathEngineRegistry } from './engineRegistry';
+import { ASTUtils } from '../symbolic/utils';
+export { MathEngineRegistry } from './engineRegistry';
+export type { MathEnginePort } from './engineRegistry';
 
 export class MathOrchestrator {
   private classifier = new ProblemClassifier();
@@ -13,12 +17,14 @@ export class MathOrchestrator {
   private pythonAdapter = new PythonMathAdapter();
   private verifier = new MathVerifier();
 
+  constructor(private readonly registry: MathEngineRegistry = new MathEngineRegistry()) {}
+
   /**
    * The main pipeline: Understand -> Parse -> Classify -> Solve -> Verify -> Explain
    */
   public async solve(
-    rawInput: string, 
-    options?: Partial<MathOptions>, 
+    rawInput: string,
+    options?: Partial<MathOptions>,
     assumptions: Assumption[] = []
   ): Promise<MathResult> {
     const startTime = Date.now();
@@ -26,7 +32,7 @@ export class MathOrchestrator {
     try {
       // 1. Parse & Classify
       const request = this.classifier.classify(rawInput, options, assumptions);
-      
+
       if (!request.expression) {
         return this.buildError('parse_error', 'Could not parse the mathematical expression.', startTime);
       }
@@ -34,12 +40,17 @@ export class MathOrchestrator {
       // 2. Domain & Hazard Analysis
       const restrictions = this.domainAnalyzer.analyze(request.expression);
       const conditions = restrictions.map(r => r.message);
-      
-      // 3. Routing (Local vs Python)
+
+      // 3. Typed extension port: new math engines register without changing this router.
+      // Invalid outputs are rejected rather than silently accepted.
+      const registeredResult = await this.registry.execute(request);
+      if (registeredResult !== null) return registeredResult;
+
+      // 4. Historical routing (Local vs Python)
       // For Step E.1, we demonstrate the Python boundary routing.
       // E.g., integration and limits go to Python. Differentiation can be local or Python.
       const requiresPython = ['integrate', 'limit', 'solve_ode', 'matrix_rref', 'eigenvalues'].includes(request.operation);
-      
+
       let finalAst: CanonicalAST;
       let engineUsed: 'local_ts' | 'python_sympy' = 'local_ts';
       let steps: MathStep[] = [];
@@ -49,14 +60,14 @@ export class MathOrchestrator {
         // We explicitly test 'derive' in Python as per Step E.1 E2E requirements
         engineUsed = 'python_sympy';
         const pyResponse = await this.pythonAdapter.compute(request);
-        
+
         if (!pyResponse.success || pyResponse.error) {
           return this.buildError('internal_error', pyResponse.error || 'Python computation failed.', startTime);
         }
         if (!pyResponse.result_ast) {
           return this.buildError('internal_error', 'Python returned no AST.', startTime);
         }
-        
+
         finalAst = pyResponse.result_ast;
         steps = pyResponse.steps;
         latex = pyResponse.result_latex || '';
@@ -69,7 +80,7 @@ export class MathOrchestrator {
       // 4. Verification Engine
       let verificationResult = undefined;
       const variable = request.variable || 'x';
-      
+
       if (request.operation === 'integrate') {
         verificationResult = this.verifier.verifyIntegral(request.expression, finalAst, variable);
       } else if (request.operation === 'derive') {
@@ -82,7 +93,7 @@ export class MathOrchestrator {
       // 5. Build Result
       return {
         type: 'symbolic',
-        expression: 'Stringified fallback or canonical', 
+        expression: ASTUtils.serialize(finalAst),
         latex: latex,
         exact: true,
         steps,

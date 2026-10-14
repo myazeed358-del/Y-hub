@@ -2,6 +2,7 @@ import { PythonMathRequest, PythonMathResponse, MATH_PROTOCOL_VERSION } from './
 import { MathProblemRequest } from '../types/problem';
 import { MathSecurityLimits } from '../types/security';
 import { CanonicalAST } from '../types/ast';
+import { isVersionedMathResponse } from './versionedResponse';
 
 export class PythonMathAdapter {
   private endpoint: string;
@@ -42,7 +43,10 @@ export class PythonMathAdapter {
         throw new Error(`Python API Error: ${response.statusText}`);
       }
 
-      const data: PythonMathResponse = await response.json();
+      const data: unknown = await response.json();
+      if (!isVersionedMathResponse(data, payload.operation)) {
+        throw new Error('Python backend returned an incompatible protocol or incomplete mathematical result');
+      }
       return data;
     } catch (e: any) {
       return {
@@ -66,7 +70,7 @@ export class PythonMathAdapter {
     if (valid.includes(op as any)) {
       return op as PythonMathRequest['operation'];
     }
-    // Fallback or throw
-    return 'evaluate';
+    // Never silently execute a different mathematical operation.
+    throw new Error(`Unsupported Python math operation: ${op}`);
   }
 }

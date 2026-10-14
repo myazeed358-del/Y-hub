@@ -1,3 +1,3 @@
-import { exportToPDF } from '@/utils/pdfExport';
+import { exportToPDF } from './printSolverReport';
 
 export const exportSolverPDF = exportToPDF;

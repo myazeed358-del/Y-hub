@@ -1,9 +1,6 @@
 import { CanonicalAST } from '../types/ast';
-import { 
-  OrchestrationRequest, OrchestrationResult, IntegrationMode, 
-  IntegrationStrategyTrace, OrchestrationContext, DefiniteIntegrationRequest 
-} from '../types/integration';
-import { DomainAnalyzer } from '../domain';
+import { OrchestrationRequest, OrchestrationResult, IntegrationMode, IntegrationStrategyTrace, OrchestrationContext, DefiniteIntegrationRequest } from '../types/integration';
+
 import { IntegrationEngine } from './integration';
 import { DefiniteIntegrationEngine } from './definite_integration';
 import { ImproperIntegrationEngine } from './improper_integration';
@@ -11,30 +8,20 @@ import { NumericalIntegrationEngine } from './numerical_integration';
 import { DerivativeEngine } from './derivative';
 import { SymbolicSimplifier } from './simplifier';
 import { ASTUtils } from './utils';
-import { SetEngine } from './sets';
-import { InequalityEngine } from './inequality';
+
 
 import { CalculusAdapter } from '../python/CalculusAdapter';
+import { IntegrationModeClassifier } from './IntegrationModeClassifier';
+import { isHeavyIntegrationAst } from './integrationAccelerationPolicy';
 
 export class AdvancedIntegrationOrchestrator {
+  private readonly classifier = new IntegrationModeClassifier();
   private adapter = new CalculusAdapter();
 
-    private isHeavyAST(ast: any): boolean {
-      if (!ast) return false;
-      const str = JSON.stringify(ast);
-      if (str.includes('"exp"') || str.includes('"log"') || str.includes('"erf"') || str.includes('"sin"') || str.includes('"cos"')) {
-          return true;
-      }
-      const divMatch = str.match(/"operator":"\/"/g);
-      if (divMatch && divMatch.length > 1) {
-          return true;
-      }
-      return false;
-  }
 
   public async orchestrateAsync(req: OrchestrationRequest): Promise<OrchestrationResult> {
-    const isHeavy = this.isHeavyAST(req.integrand);
-    
+    const isHeavy = isHeavyIntegrationAst(req.integrand);
+
     if (!isHeavy) {
         const fastReq = { ...req, maxDepth: 2, maxTransformations: 5 };
         const tsRes = this.orchestrate(fastReq);
@@ -81,10 +68,10 @@ export class AdvancedIntegrationOrchestrator {
     (fallbackRes as any).provider = 'fallback_typescript';
     return fallbackRes;
   }
-  private domainAnalyzer = new DomainAnalyzer();
+
   private derivativeEngine = new DerivativeEngine();
   private simplifier = new SymbolicSimplifier();
-  private inequalityEngine = new InequalityEngine();
+
 
   // Lazy instantiate engines to avoid circular deps / heavy startup
   private get integrationEngine() { return new IntegrationEngine(); }
@@ -96,11 +83,11 @@ export class AdvancedIntegrationOrchestrator {
   public orchestrate(req: OrchestrationRequest): OrchestrationResult {
     const trace: IntegrationStrategyTrace[] = [];
     const warnings: string[] = [];
-    
+
     // 1. Classification
     let mode = req.mode;
     if (mode === 'auto') {
-      mode = this.classifyRequest(req);
+      mode = this.classifier.classifyRequest(req);
       trace.push({
         strategy: 'Classification',
         applicability: 'applicable',
@@ -126,67 +113,6 @@ export class AdvancedIntegrationOrchestrator {
     }
   }
 
-  private classifyRequest(req: OrchestrationRequest): IntegrationMode {
-    if (!req.lowerBound || !req.upperBound) {
-      return 'symbolic_indefinite';
-    }
-
-    // Check bounds for Infinity
-    const lInf = ASTUtils.isInfinity(req.lowerBound);
-    const uInf = ASTUtils.isInfinity(req.upperBound);
-    if (lInf || uInf) {
-      return 'symbolic_improper';
-    }
-
-    // Ensure bounds are constant (we don't do purely algebraic definite classification yet)
-    // For orchestration purposes, if we can evaluate the bounds, we check singularities.
-    let valA = NaN;
-    let valB = NaN;
-    try {
-        const ev = new (require('./evaluator').ASTEvaluator)();
-        valA = ev.evaluate(req.lowerBound, new Map());
-        valB = ev.evaluate(req.upperBound, new Map());
-    } catch {
-        // If they are purely symbolic (e.g. ∫_a^b), default to definite and let 6G handle it.
-        return 'symbolic_definite';
-    }
-
-    if (isNaN(valA) || isNaN(valB)) {
-        return 'symbolic_definite'; // Could be symbolic bounds
-    }
-
-    // Check domain for interior or endpoint singularities
-    const restrictions = this.domainAnalyzer.analyze(req.integrand);
-    if (restrictions.length > 0) {
-       let domainSet = SetEngine.createRealLine();
-       for (const r of restrictions) {
-          if (r.type === 'inverse_trig' || r.type === 'inverse_sec_csc') continue; // Simplified check for classification
-          const ineq: CanonicalAST = { type: 'Inequality', operator: r.type === 'denominator' ? '!=' : (r.type === 'even_root' ? '>=' : '>'), lhs: r.conditionAST, rhs: { type: 'Number', value: '0' } };
-          const solved = this.inequalityEngine.solve(ineq, req.variable);
-          if (solved.kind === 'solution_set') {
-             domainSet = { type: 'SolutionSet', variable: req.variable, domainRestrictions: [], intervals: SetEngine.intersection(domainSet.intervals, solved.solution.intervals) };
-          }
-       }
-       
-       const minBnd = Math.min(valA, valB);
-       const maxBnd = Math.max(valA, valB);
-       
-       for (const interval of domainSet.intervals) {
-           const min = interval.left.type === 'infinity' ? -Infinity : Number(interval.left.rational!.num)/Number(interval.left.rational!.den);
-           const max = interval.right.type === 'infinity' ? Infinity : Number(interval.right.rational!.num)/Number(interval.right.rational!.den);
-           
-           if (minBnd >= min && maxBnd <= max) {
-               if ((minBnd === min && !interval.leftClosed) || (maxBnd === max && !interval.rightClosed)) {
-                   return 'symbolic_improper'; // Endpoint singularity
-               }
-           } else if (minBnd < max && maxBnd > min) {
-               return 'symbolic_improper'; // Interior singularity or gap
-           }
-       }
-    }
-    
-    return 'symbolic_definite';
-  }
 
   private routeIndefinite(req: OrchestrationRequest, trace: IntegrationStrategyTrace[], warnings: string[]): OrchestrationResult {
     const context: OrchestrationContext = {
@@ -231,7 +157,7 @@ export class AdvancedIntegrationOrchestrator {
 
     try {
         const result = this.integrationEngine.integrate(req.integrand, req.variable, [], 0, context);
-        
+
         // Result Acceptance Verification
         const diff = this.derivativeEngine.differentiate(result, req.variable);
         const verified = this.areEquivalent(req.integrand, diff);
@@ -383,9 +309,5 @@ export class AdvancedIntegrationOrchestrator {
     };
   }
 }
-
-
-
-
 
 
