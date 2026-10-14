@@ -653,15 +653,6 @@ importers:
         specifier: ^7.3.0
         version: 7.3.6(@types/node@25.9.8)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(tsx@4.23.15)
 
-  scripts:
-    devDependencies:
-      '@types/node':
-        specifier: 'catalog:'
-        version: 25.9.8
-      tsx:
-        specifier: 'catalog:'
-        version: 4.23.15
-
 packages:
 
   '@asamuzakjp/css-color@3.2.0':

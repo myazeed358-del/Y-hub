@@ -1,5 +1,5 @@
 import * as React from 'react';
-import NotFound from '@/pages/legacy/NotFound';
+import NotFound from '@/shared/ui/NotFoundScreen';
 
 import { useLegacyLesson } from '../hooks/useLegacyLesson';
 import { LessonHeader } from '../components/LessonHeader';

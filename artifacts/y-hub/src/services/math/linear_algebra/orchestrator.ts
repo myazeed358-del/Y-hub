@@ -1,4 +1,4 @@
-import { LinearAlgebraRequest, LinearAlgebraResult, ExactMatrix, ExactVector } from './types';
+import { LinearAlgebraRequest, LinearAlgebraResult } from './types';
 import { LAMatrix } from './matrix';
 import { SystemSolver } from './system_solver';
 import { EigenEngine } from './eigen';
@@ -7,12 +7,13 @@ import { VectorSpaceEngine } from './vector_space';
 import { QuadraticFormEngine } from './quadratic_forms';
 import { NumericalLAEngine } from './numerical';
 import { LAApplications } from './applications';
-import { Rat, Rational } from '../utils/rational';
-import { CanonicalAST } from '../types/ast';
+
 
 import { LinearAlgebraAdapter } from '../python/LinearAlgebraAdapter';
+import { LinearAlgebraAstCodec } from './astCodec';
 
 export class LinearAlgebraOrchestrator {
+    private readonly codec = new LinearAlgebraAstCodec();
     private adapter = new LinearAlgebraAdapter();
 
     public async executeAsync(req: LinearAlgebraRequest): Promise<LinearAlgebraResult> {
@@ -30,8 +31,8 @@ export class LinearAlgebraOrchestrator {
 
     public execute(req: LinearAlgebraRequest): LinearAlgebraResult {
         try {
-            const mats = req.matrices.map(m => this.parseMatrix(m));
-            const vecs = req.vectors ? req.vectors.map(v => this.parseVector(v)) : [];
+            const mats = req.matrices.map(m => this.codec.parseMatrix(m));
+            const vecs = req.vectors ? req.vectors.map(v => this.codec.parseVector(v)) : [];
 
             switch (req.operation) {
                 case 'solve_system': {
@@ -42,18 +43,18 @@ export class LinearAlgebraOrchestrator {
                 case 'rref': {
                     if (mats.length === 0) throw new Error('invalid_input');
                     const { rref, steps } = LAMatrix.rref(mats[0]);
-                    return { operation: req.operation, status: 'completed', exactness: 'exact_symbolic', resultMatrix: this.astMatrix(rref), explanationSteps: steps };
+                    return { operation: req.operation, status: 'completed', exactness: 'exact_symbolic', resultMatrix: this.codec.astMatrix(rref), explanationSteps: steps };
                 }
                 case 'inverse': {
                     if (mats.length === 0) throw new Error('invalid_input');
                     const inv = LAMatrix.inverse(mats[0]);
                     if (!inv) return { operation: req.operation, status: 'no_solution', exactness: 'exact_symbolic' };
-                    return { operation: req.operation, status: 'solved', exactness: 'exact_symbolic', resultMatrix: this.astMatrix(inv) };
+                    return { operation: req.operation, status: 'solved', exactness: 'exact_symbolic', resultMatrix: this.codec.astMatrix(inv) };
                 }
                 case 'determinant': {
                     if (mats.length === 0) throw new Error('invalid_input');
                     const det = LAMatrix.determinant(mats[0]);
-                    return { operation: req.operation, status: 'solved', exactness: 'exact_symbolic', resultScalar: this.astRat(det) };
+                    return { operation: req.operation, status: 'solved', exactness: 'exact_symbolic', resultScalar: this.codec.astRat(det) };
                 }
                 case 'eigen': {
                     if (mats.length === 0) throw new Error('invalid_input');
@@ -68,12 +69,12 @@ export class LinearAlgebraOrchestrator {
                     if (mats.length === 0 || vecs.length === 0) throw new Error('invalid_input');
                     const ls = InnerProductEngine.leastSquares(mats[0], vecs[0]);
                     if (!ls) return { operation: req.operation, status: 'unsupported', exactness: 'exact_symbolic' };
-                    return { operation: req.operation, status: 'completed', exactness: 'exact_symbolic', resultVector: this.astVector(ls.solution), resultScalar: ls.error };
+                    return { operation: req.operation, status: 'completed', exactness: 'exact_symbolic', resultVector: this.codec.astVector(ls.solution), resultScalar: ls.error };
                 }
                 case 'gram_schmidt': {
                     if (vecs.length === 0) throw new Error('invalid_input');
                     const gs = InnerProductEngine.gramSchmidt(vecs);
-                    return { operation: req.operation, status: 'completed', exactness: 'exact_symbolic', explanationSteps: gs.map(v => this.astVector(v)) };
+                    return { operation: req.operation, status: 'completed', exactness: 'exact_symbolic', explanationSteps: gs.map(v => this.codec.astVector(v)) };
                 }
                 case 'definiteness': {
                     if (mats.length === 0) throw new Error('invalid_input');
@@ -83,30 +84,30 @@ export class LinearAlgebraOrchestrator {
                 case 'null_space': {
                     if (mats.length === 0) throw new Error('invalid_input');
                     const ns = VectorSpaceEngine.nullSpace(mats[0]);
-                    return { operation: req.operation, status: 'completed', exactness: 'exact_symbolic', explanationSteps: ns.basis.map(v => this.astVector(v)) };
+                    return { operation: req.operation, status: 'completed', exactness: 'exact_symbolic', explanationSteps: ns.basis.map(v => this.codec.astVector(v)) };
                 }
                 case 'leontief': {
                     if (mats.length === 0 || vecs.length === 0) throw new Error('invalid_input');
                     const leon = LAApplications.leontief(mats[0], vecs[0]);
                     if (!leon) return { operation: req.operation, status: 'no_solution', exactness: 'exact_symbolic' };
-                    return { operation: req.operation, status: 'completed', exactness: 'exact_symbolic', resultVector: this.astVector(leon) };
+                    return { operation: req.operation, status: 'completed', exactness: 'exact_symbolic', resultVector: this.codec.astVector(leon) };
                 }
                 case 'markov_steady_state': {
                     if (mats.length === 0) throw new Error('invalid_input');
                     const mkv = LAApplications.markovSteadyState(mats[0]);
                     if (!mkv) return { operation: req.operation, status: 'no_solution', exactness: 'exact_symbolic' };
-                    return { operation: req.operation, status: 'completed', exactness: 'exact_symbolic', resultVector: this.astVector(mkv) };
+                    return { operation: req.operation, status: 'completed', exactness: 'exact_symbolic', resultVector: this.codec.astVector(mkv) };
                 }
                 case 'power_method': {
                     if (mats.length === 0 || vecs.length === 0) throw new Error('invalid_input');
-                    const numMats = this.numMatrix(mats[0]);
-                    const numVecs = this.numVector(vecs[0]);
+                    const numMats = this.codec.numMatrix(mats[0]);
+                    const numVecs = this.codec.numVector(vecs[0]);
                     const res = NumericalLAEngine.powerMethod(numMats, numVecs, 1000, 1e-6);
                     return { operation: req.operation, status: 'completed', exactness: 'numerical_approximation', explanationSteps: [res] };
                 }
                 case 'lu': {
                     if (mats.length === 0) throw new Error('invalid_input');
-                    const numMats = this.numMatrix(mats[0]);
+                    const numMats = this.codec.numMatrix(mats[0]);
                     const res = NumericalLAEngine.luDecomposition(numMats);
                     return { operation: req.operation, status: 'completed', exactness: 'numerical_approximation', explanationSteps: [res] };
                 }
@@ -118,57 +119,7 @@ export class LinearAlgebraOrchestrator {
         }
     }
 
-    private parseMatrix(m: CanonicalAST[][]): ExactMatrix {
-        return m.map(row => row.map(cell => this.parseRat(cell)));
-    }
 
-    private parseVector(v: CanonicalAST[]): ExactVector {
-        return v.map(cell => this.parseRat(cell));
-    }
-
-    private parseRat(ast: CanonicalAST): Rational {
-        if (ast.type === 'Number') {
-            if (ast.value.includes('/')) {
-                const [n, d] = ast.value.split('/');
-
-                return Rat.div(
-                    Rat.fromString(n),
-                    Rat.fromString(d)
-                );
-            }
-
-            return Rat.fromString(ast.value);
-        }
-        if (ast.type === 'Operator' && ast.operator === '-' && ast.args.length === 2 && ast.args[0].type === 'Number' && ast.args[0].value === '0') {
-            const sub = this.parseRat(ast.args[1]);
-            return { num: -sub.num, den: sub.den };
-        }
-        throw new Error('Non-constant elements not supported yet in exact linear algebra matrix values');
-    }
-
-    private astMatrix(m: ExactMatrix): CanonicalAST[][] {
-        return m.map(row => row.map(val => this.astRat(val)));
-    }
-
-    private astVector(v: ExactVector): CanonicalAST[] {
-        return v.map(val => this.astRat(val));
-    }
-
-    private astRat(r: Rational): CanonicalAST {
-        const sim = Rat.simplify(r);
-        if (sim.den === 1n) return { type: 'Number', value: sim.num.toString() };
-        if (sim.num < 0n) return { type: 'Operator', operator: '-', args: [{ type: 'Number', value: '0' }, { type: 'Operator', operator: '/', args: [{ type: 'Number', value: (-sim.num).toString() }, { type: 'Number', value: sim.den.toString() }] }] };
-        return { type: 'Operator', operator: '/', args: [{ type: 'Number', value: sim.num.toString() }, { type: 'Number', value: sim.den.toString() }] };
-    }
-
-    private numMatrix(m: ExactMatrix): number[][] {
-        return m.map(row => row.map(v => Number(v.num) / Number(v.den)));
-    }
-
-    private numVector(v: ExactVector): number[] {
-        return v.map(v => Number(v.num) / Number(v.den));
-    }
 }
-
 
 
