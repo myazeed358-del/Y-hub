@@ -90,6 +90,17 @@ export type InequalityTransformationData =
 
 export type MathStepTransformation = TransformationData | InequalityTransformationData;
 
+export interface DerivativeDerivation {
+  kind: 'derivative';
+  variable: string;
+  input: CanonicalAST;
+  output: CanonicalAST;
+  verification:
+    | 'exactly_verified'
+    | 'numerically_consistent'
+    | 'not_proven';
+}
+
 export interface MathStep {
   id: string;
   title: string;
@@ -97,5 +108,6 @@ export interface MathStep {
   type?: 'error' | 'info' | 'transformation';
   details?: Record<string, unknown>;
   transformation?: MathStepTransformation;
+  derivation?: DerivativeDerivation;
   subSteps?: MathStep[];
 }

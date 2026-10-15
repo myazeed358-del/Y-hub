@@ -37,6 +37,7 @@ describe('navigationRoutes', () => {
     expect(paths('student', 'mathematics')).toEqual([
       '/',
       '/quiz',
+      '/calculus-1',
       '/calculus',
       '/math-solver',
       '/solver',
@@ -55,6 +56,7 @@ describe('navigationRoutes', () => {
   it('hides quick practice from instructors', () => {
     expect(paths('instructor', 'mathematics')).toEqual([
       '/',
+      '/calculus-1',
       '/calculus',
       '/math-solver',
       '/solver',
@@ -68,6 +70,7 @@ describe('navigationRoutes', () => {
       expect(paths(role, null)).toEqual([
         '/',
         '/quiz',
+        '/calculus-1',
         '/calculus',
         '/math-solver',
         '/solver',
@@ -86,6 +89,7 @@ describe('navigationRoutes', () => {
     expect(items.map((item) => item.iconId)).toEqual([
       'home',
       'brainCircuit',
+      'lineChart',
       'lineChart',
       'box',
       'calculator',
@@ -138,6 +142,7 @@ describe('navigationRoutes', () => {
     expect(items.map((item) => item.icon)).toEqual([
       Home,
       BrainCircuit,
+      LineChart,
       LineChart,
       Box,
       Calculator,

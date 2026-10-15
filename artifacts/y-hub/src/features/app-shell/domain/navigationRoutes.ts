@@ -37,6 +37,7 @@ export function buildNavigationRouteGroups(
   );
 
   const engineItems = [
+    { href: '/calculus-1', key: 'calculus1Solver' as UiKey, iconId: 'lineChart' as const },
     { href: '/calculus', key: 'calculusPlotter' as UiKey, iconId: 'lineChart' as const },
     { href: '/math-solver', key: 'calculus3Solver' as UiKey, iconId: 'box' as const },
     { href: '/solver', key: 'solver' as UiKey, iconId: 'calculator' as const },
