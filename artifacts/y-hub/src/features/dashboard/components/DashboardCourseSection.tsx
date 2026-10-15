@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { BookOpen, Loader2, Plus } from 'lucide-react';
 import { Button } from '@workspace/y-hub-ds/components/ui/button';
 import {
@@ -5,11 +6,15 @@ import {
   type Course,
 } from '@/features/dashboard/components/DashboardCourseCard';
 import type { getDashboardCopy } from '@/i18n/dashboardCopy';
+import { useCourseEnrollmentRoster } from '../hooks/useCourseEnrollmentRoster';
+import { CourseEnrollmentDialog } from './CourseEnrollmentDialog';
 
 interface DashboardCourseSectionProps {
   copy: ReturnType<typeof getDashboardCopy>;
   loading: boolean;
   courses: Course[];
+  viewerId: string | null;
+  isArabic: boolean;
   setIsOpen: (value: boolean) => void;
   handleDelete: (id: string) => Promise<void>;
   handleToggleStatus: (course: Course) => Promise<void>;
@@ -19,11 +24,24 @@ export function DashboardCourseSection({
   copy,
   loading,
   courses,
+  viewerId,
+  isArabic,
   setIsOpen,
   handleDelete,
   handleToggleStatus,
 }: DashboardCourseSectionProps) {
+  const {
+    counts,
+    countsError,
+    selectedCourse,
+    setSelectedCourse,
+    roster,
+    rosterLoading,
+    rosterError,
+  } = useCourseEnrollmentRoster(courses, loading);
+
   return (
+    <>
       <section className="rounded-[2rem] border border-slate-800/80 bg-[#0b1220]/65 p-5 sm:p-7">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <div>
@@ -40,6 +58,14 @@ export function DashboardCourseSection({
             </p>
           </div>
         </div>
+
+        {countsError && !loading && courses.length > 0 && (
+          <p role="alert" className="mb-4 text-sm text-destructive">
+            {isArabic
+              ? 'تعذر تحميل أعداد الطلاب.'
+              : 'Could not load enrollment counts.'}
+          </p>
+        )}
 
         {loading ? (
           <div className="flex min-h-[260px] flex-col items-center justify-center gap-4">
@@ -83,6 +109,10 @@ export function DashboardCourseSection({
                 key={course.id}
                 course={course}
                 copy={copy}
+                isArabic={isArabic}
+                enrollmentCount={counts[course.id] ?? null}
+                canManage={viewerId === course.instructor_id}
+                onShowStudents={() => setSelectedCourse(course)}
                 handleDelete={handleDelete}
                 handleToggleStatus={handleToggleStatus}
               />
@@ -90,5 +120,16 @@ export function DashboardCourseSection({
           </div>
         )}
       </section>
+      <CourseEnrollmentDialog
+        course={selectedCourse}
+        students={roster}
+        loading={rosterLoading}
+        error={rosterError}
+        isArabic={isArabic}
+        onOpenChange={(open) => {
+          if (!open) setSelectedCourse(null);
+        }}
+      />
+    </>
   );
 }
