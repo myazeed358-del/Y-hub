@@ -30,6 +30,29 @@ export interface EngineDefinition {
  */
 export const ENGINE_CATALOG: readonly EngineDefinition[] = [
   {
+    id: 'linear-algebra',
+    route: '/linear-algebra',
+    majors: ['mathematics'],
+    title: {
+      ar: 'الجبر الخطي',
+      en: 'Linear Algebra',
+    },
+    description: {
+      ar: 'المصفوفات، المحددات، المعكوس، واختزال الصفوف وحل الأنظمة الخطية.',
+      en: 'Matrices, determinants, inverses, row reduction, and linear systems.',
+    },
+    keywords: [
+      'linear algebra',
+      'matrix',
+      'determinant',
+      'inverse',
+      'rref',
+      'جبر خطي',
+      'مصفوفات',
+      'محدد',
+    ],
+  },
+  {
     id: 'calculus-plotter',
     route: '/calculus',
     majors: ['mathematics'],

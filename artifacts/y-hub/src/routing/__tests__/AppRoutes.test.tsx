@@ -165,6 +165,7 @@ describe('AppRoutes', () => {
       '/course/:id/view',
       '/course/:id/ai-tutor',
       '/exam/:id',
+      '/linear-algebra',
       '/math-solver',
       '/solver',
       '/calculus',
@@ -211,6 +212,7 @@ describe('AppRoutes', () => {
   });
 
   it.each([
+    '/linear-algebra',
     '/math-solver',
     '/solver',
     '/calculus',

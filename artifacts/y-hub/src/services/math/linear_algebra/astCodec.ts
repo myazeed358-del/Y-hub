@@ -28,6 +28,18 @@ public parseRat(ast: CanonicalAST): Rational {
 
             return Rat.fromString(ast.value);
         }
+        // Parse exact rational division from CanonicalAST.
+        if (
+            ast.type === 'Operator' &&
+            ast.operator === '/' &&
+            ast.args.length === 2
+        ) {
+            return Rat.div(
+                this.parseRat(ast.args[0]),
+                this.parseRat(ast.args[1])
+            );
+        }
+
         if (ast.type === 'Operator' && ast.operator === '-' && ast.args.length === 2 && ast.args[0].type === 'Number' && ast.args[0].value === '0') {
             const sub = this.parseRat(ast.args[1]);
             return { num: -sub.num, den: sub.den };

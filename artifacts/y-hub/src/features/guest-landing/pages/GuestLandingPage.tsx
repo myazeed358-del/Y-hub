@@ -18,7 +18,7 @@ export default function GuestLanding({
   return (
     <main
       dir={language === 'ar' ? 'rtl' : 'ltr'}
-      className="relative min-h-screen overflow-hidden bg-[#050914] text-white"
+      className="relative min-h-screen overflow-hidden bg-background text-foreground dark:bg-[#050914] dark:text-white"
     >
       {/* Background */}
       <GuestLandingBackground />

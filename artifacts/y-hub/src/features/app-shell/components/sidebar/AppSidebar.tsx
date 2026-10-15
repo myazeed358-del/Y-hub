@@ -73,7 +73,7 @@ export function AppSidebar({
 
   return (
     <aside
-      className={`fixed inset-y-0 z-40 flex w-[288px] flex-col border-sidebar-border bg-sidebar/95 px-4 py-5 text-sidebar-foreground shadow-2xl shadow-black/20 backdrop-blur-2xl transition-transform duration-300 md:translate-x-0 ${
+      className={`fixed inset-y-0 z-40 flex w-[288px] flex-col border-sidebar-border bg-sidebar px-4 py-5 text-sidebar-foreground shadow-[0_14px_40px_rgba(15,23,42,0.10)] dark:border-sidebar-border dark:bg-sidebar/95 dark:text-sidebar-foreground dark:shadow-2xl dark:shadow-black/20 backdrop-blur-2xl transition-transform duration-300 md:translate-x-0 ${
         language === 'ar'
           ? 'right-0 border-l'
           : 'left-0 border-r'
@@ -86,16 +86,16 @@ export function AppSidebar({
       }`}
     >
       <div className="mb-7 flex items-center gap-3 px-2">
-        <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-cyan-400/15 bg-cyan-400/[0.06] shadow-[0_0_28px_rgba(34,211,238,0.08)]">
+        <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-cyan-300/60 bg-[#E8EDF3] shadow-[0_0_16px_rgba(54,213,232,0.12)] dark:border-cyan-400/15 dark:bg-cyan-400/[0.06] dark:shadow-[0_0_28px_rgba(34,211,238,0.08)]">
           <LogoMark />
         </div>
 
         <div className="min-w-0 flex-1">
-          <div className="yhub-display text-sm font-black tracking-[0.18em] text-white">
+          <div className="yhub-display text-sm font-black tracking-[0.18em] text-sidebar-foreground dark:text-white">
             Y HUB
           </div>
 
-          <div className="mt-1 truncate text-[11px] font-medium text-slate-500">
+          <div className="mt-1 truncate text-[11px] font-medium text-slate-600 dark:text-slate-500">
             {activeCourseName ||
               (language === 'ar'
                 ? 'المنصة الأكاديمية الذكية'
@@ -107,13 +107,13 @@ export function AppSidebar({
           onClick={() => onCloseMobileNav()}
           aria-label={t('closeMenu')}
           data-testid="button-close-mobile-nav"
-          className="rounded-xl border border-white/[0.06] p-2 text-slate-400 transition-colors hover:bg-white/[0.05] hover:text-white md:hidden"
+          className="rounded-xl border border-slate-200 p-2 text-slate-600 transition-colors hover:bg-slate-200 hover:text-slate-900 dark:border-white/[0.06] dark:text-slate-400 dark:hover:bg-white/[0.05] dark:hover:text-white md:hidden"
         >
           <X size={18} />
         </button>
       </div>
 
-      <div className="mb-6 h-px bg-gradient-to-r from-transparent via-slate-800 to-transparent" />
+      <div className="mb-6 h-px bg-gradient-to-r from-transparent via-slate-300 dark:via-slate-800 to-transparent" />
 
       <SidebarEngineSearch
         isInstructor={isInstructor}

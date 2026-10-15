@@ -77,14 +77,14 @@ export function SolverReverseTab({
               </div>
             </Card>
 
-            <Card className="p-6 bg-[hsl(var(--sidebar))] text-[hsl(var(--sidebar-foreground))] relative">
+            <Card className="p-6 bg-[#E8EDF3] text-[#172B45] dark:bg-[hsl(var(--sidebar))] dark:text-[hsl(var(--sidebar-foreground))] relative">
               <div className="mb-8 flex items-center justify-between">
                 <h2 className="text-xl font-extrabold">{copy.validationProof}</h2>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" onClick={handleReverseExport} disabled={!validation} className="gap-2 bg-[hsl(var(--card))]">
+                  <Button variant="outline" size="sm" onClick={handleReverseExport} disabled={!validation} className="gap-2 bg-card text-foreground dark:bg-[hsl(var(--card))] dark:text-[hsl(var(--foreground))]">
                     <Download size={14} /> {copy.downloadProof}
                   </Button>
-                  <div className="rounded-xl bg-[hsl(var(--sidebar-accent))] p-2.5 text-[hsl(var(--accent))]">
+                  <div className="rounded-xl bg-cyan-100 p-2.5 text-cyan-700 dark:bg-[hsl(var(--sidebar-accent))] dark:text-[hsl(var(--accent))]">
                     <BrainCircuit size={18} />
                   </div>
                 </div>
@@ -92,7 +92,7 @@ export function SolverReverseTab({
 
               <div className="space-y-6">
                 {!validation ? (
-                  <div className="text-sm text-[hsl(var(--sidebar-foreground)/.6)] text-center py-10">
+                  <div className="text-sm text-slate-600 dark:text-[hsl(var(--sidebar-foreground)/.6)] text-center py-10">
                     {copy.enterAndCheck}
                   </div>
                 ) : (
@@ -111,8 +111,8 @@ export function SolverReverseTab({
                     </div>
 
                     <div>
-                      <h3 className="text-sm text-[hsl(var(--sidebar-foreground)/.6)] mb-2">{copy.algebraicSteps}</h3>
-                      <div className="bg-[hsl(var(--background))] text-[hsl(var(--foreground))] p-4 rounded-xl border border-[hsl(var(--border))] font-mono overflow-x-auto whitespace-pre">
+                      <h3 className="text-sm text-slate-600 dark:text-[hsl(var(--sidebar-foreground)/.6)] mb-2">{copy.algebraicSteps}</h3>
+                      <div className="bg-card text-foreground dark:bg-[hsl(var(--background))] dark:text-[hsl(var(--foreground))] p-4 rounded-xl border border-slate-200 dark:border-[hsl(var(--border))] font-mono overflow-x-auto whitespace-pre">
                         {`$$ ${validation.proof} $$`}
                       </div>
                     </div>

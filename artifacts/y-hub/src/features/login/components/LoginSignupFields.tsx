@@ -34,13 +34,13 @@ export function LoginSignupFields({
                     <div className="space-y-2">
                       <label
                         htmlFor="full_name"
-                        className="text-sm font-bold text-slate-300"
+                        className="text-sm font-bold text-foreground dark:text-slate-300"
                       >
                         {copy.fullName}
                       </label>
 
                       <div className="relative">
-                        <User className="absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                        <User className="absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground dark:text-slate-500" />
 
                         <Input
                           id="full_name"
@@ -50,7 +50,7 @@ export function LoginSignupFields({
                           value={formData.full_name}
                           onChange={handleChange}
                           placeholder={copy.fullNamePlaceholder}
-                          className="h-12 border-white/[0.08] bg-white/[0.025] pr-11 text-white placeholder:text-slate-600 focus-visible:ring-cyan-400/40"
+                          className="h-12 border-input bg-background dark:border-white/[0.08] dark:bg-white/[0.025] pr-11 text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-slate-600 focus-visible:ring-primary/40 dark:focus-visible:ring-cyan-400/40"
                         />
                       </div>
                     </div>
@@ -59,13 +59,13 @@ export function LoginSignupFields({
                       <div className="space-y-2">
                         <label
                           htmlFor="age"
-                          className="text-sm font-bold text-slate-300"
+                          className="text-sm font-bold text-foreground dark:text-slate-300"
                         >
                           {copy.age}
                         </label>
 
                         <div className="relative">
-                          <Layers3 className="absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                          <Layers3 className="absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground dark:text-slate-500" />
 
                           <Input
                             id="age"
@@ -77,7 +77,7 @@ export function LoginSignupFields({
                             value={formData.age}
                             onChange={handleChange}
                             placeholder="20"
-                            className="h-12 border-white/[0.08] bg-white/[0.025] pr-11 text-white placeholder:text-slate-600 focus-visible:ring-cyan-400/40"
+                            className="h-12 border-input bg-background dark:border-white/[0.08] dark:bg-white/[0.025] pr-11 text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-slate-600 focus-visible:ring-primary/40 dark:focus-visible:ring-cyan-400/40"
                           />
                         </div>
                       </div>
@@ -85,13 +85,13 @@ export function LoginSignupFields({
                       <div className="space-y-2">
                         <label
                           htmlFor="phone"
-                          className="text-sm font-bold text-slate-300"
+                          className="text-sm font-bold text-foreground dark:text-slate-300"
                         >
                           {copy.phone}
                         </label>
 
                         <div className="relative">
-                          <Phone className="absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                          <Phone className="absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground dark:text-slate-500" />
 
                           <Input
                             id="phone"
@@ -102,14 +102,14 @@ export function LoginSignupFields({
                             onChange={handleChange}
                             placeholder="07XXXXXXXX"
                             dir="ltr"
-                            className="h-12 border-white/[0.08] bg-white/[0.025] px-11 text-left text-white placeholder:text-slate-600 focus-visible:ring-cyan-400/40"
+                            className="h-12 border-input bg-background dark:border-white/[0.08] dark:bg-white/[0.025] px-11 text-left text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-slate-600 focus-visible:ring-primary/40 dark:focus-visible:ring-cyan-400/40"
                           />
                         </div>
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-sm font-bold text-slate-300">
+                      <label className="text-sm font-bold text-foreground dark:text-slate-300">
                         {copy.major}
                       </label>
 
@@ -119,9 +119,9 @@ export function LoginSignupFields({
                           handleSelectChange('major', value)
                         }
                       >
-                        <SelectTrigger className="h-12 border-white/[0.08] bg-white/[0.025] text-white focus:ring-cyan-400/40">
+                        <SelectTrigger className="h-12 border-input bg-background dark:border-white/[0.08] dark:bg-white/[0.025] text-foreground dark:text-white focus:ring-primary/40 dark:focus:ring-cyan-400/40">
                           <div className="flex items-center gap-3">
-                            <GraduationCap className="h-4 w-4 text-slate-500" />
+                            <GraduationCap className="h-4 w-4 text-muted-foreground dark:text-slate-500" />
                             <SelectValue placeholder={copy.majorPlaceholder} />
                           </div>
                         </SelectTrigger>
@@ -215,7 +215,7 @@ export function LoginSignupFields({
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-sm font-bold text-slate-300">
+                      <label className="text-sm font-bold text-foreground dark:text-slate-300">
                         {copy.studyYear}
                       </label>
 
@@ -225,9 +225,9 @@ export function LoginSignupFields({
                           handleSelectChange('study_year', value)
                         }
                       >
-                        <SelectTrigger className="h-12 border-white/[0.08] bg-white/[0.025] text-white focus:ring-cyan-400/40">
+                        <SelectTrigger className="h-12 border-input bg-background dark:border-white/[0.08] dark:bg-white/[0.025] text-foreground dark:text-white focus:ring-primary/40 dark:focus:ring-cyan-400/40">
                           <div className="flex items-center gap-3">
-                            <Layers3 className="h-4 w-4 text-slate-500" />
+                            <Layers3 className="h-4 w-4 text-muted-foreground dark:text-slate-500" />
                             <SelectValue placeholder={copy.studyYearPlaceholder} />
                           </div>
                         </SelectTrigger>

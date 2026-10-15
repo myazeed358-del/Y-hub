@@ -30,7 +30,7 @@ export function useDashboardController() {
     setLoading(true);
 
     const { data, error } =
-      await dashboardRepository.listInstructorCourses(user.id);
+      await dashboardRepository.listManagedCourses(user.id, role);
 
     if (error) {
       console.error('Failed to load instructor courses:', error);
@@ -44,7 +44,7 @@ export function useDashboardController() {
 
   useEffect(() => {
     void loadCourses();
-  }, [user]);
+  }, [user, role]);
 
   const resetCourseForm = () => {
     setNewTitle('');
@@ -142,6 +142,7 @@ export function useDashboardController() {
     copy,
     roleLabel,
     firstName,
+    viewerId: user?.id ?? null,
     isOpen,
     setIsOpen,
     newTitle,

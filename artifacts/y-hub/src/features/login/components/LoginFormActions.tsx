@@ -38,7 +38,7 @@ export function LoginFormActions({
                         setIsRecoveryRequest(true);
                         setMessage({ text: '', type: '' });
                       }}
-                      className="text-sm font-semibold text-cyan-400 transition hover:text-cyan-300"
+                      className="text-sm font-semibold text-primary transition hover:opacity-80 dark:text-cyan-400 dark:hover:text-cyan-300"
                     >
                       {copy.forgotLink}
                     </button>
@@ -49,8 +49,8 @@ export function LoginFormActions({
                   <div
                     className={`rounded-xl border px-4 py-3 text-sm leading-6 ${
                       message.type === 'error'
-                        ? 'border-red-400/20 bg-red-500/10 text-red-300'
-                        : 'border-cyan-400/20 bg-cyan-400/10 text-cyan-200'
+                        ? 'border-red-500/20 bg-red-500/10 text-red-700 dark:border-red-400/20 dark:text-red-300'
+                        : 'border-primary/20 bg-primary/10 text-primary dark:border-cyan-400/20 dark:bg-cyan-400/10 dark:text-cyan-200'
                     }`}
                   >
                     {message.text}
@@ -75,17 +75,17 @@ export function LoginFormActions({
                   <>
                 <div className="relative py-2">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-white/[0.07]" />
+                    <div className="w-full border-t border-border dark:border-white/[0.07]" />
                   </div>
 
                   <div className="relative flex justify-center text-xs">
-                    <span className="bg-[#07111f] px-4 text-slate-600">
+                    <span className="bg-card px-4 text-muted-foreground dark:bg-[#07111f] dark:text-slate-600">
                       {copy.or}
                     </span>
                   </div>
                 </div>
 
-                <div className="text-center text-sm text-slate-400">
+                <div className="text-center text-sm text-muted-foreground dark:text-slate-400">
                   {isSignUp
                     ? copy.haveAccount
                     : copy.noAccount}{' '}
@@ -93,7 +93,7 @@ export function LoginFormActions({
                   <button
                     type="button"
                     onClick={switchMode}
-                    className="font-bold text-cyan-400 transition hover:text-cyan-300"
+                    className="font-bold text-primary transition hover:opacity-80 dark:text-cyan-400 dark:hover:text-cyan-300"
                   >
                     {isSignUp ? copy.goLogin : copy.goCreate}
                   </button>
@@ -107,7 +107,7 @@ export function LoginFormActions({
                         setIsRecoveryRequest(false);
                         setMessage({ text: '', type: '' });
                       }}
-                      className="text-sm font-bold text-cyan-400 transition hover:text-cyan-300"
+                      className="text-sm font-bold text-primary transition hover:opacity-80 dark:text-cyan-400 dark:hover:text-cyan-300"
                     >
                       {copy.backToLogin}
                     </button>
@@ -115,7 +115,7 @@ export function LoginFormActions({
                 )}
 
                 {isSignUp && (
-                  <div className="flex items-start gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 text-xs leading-6 text-slate-500">
+                  <div className="flex items-start gap-3 rounded-xl border border-border bg-muted/30 p-4 text-xs leading-6 text-muted-foreground dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-slate-500">
                     <Mail className="mt-1 h-4 w-4 shrink-0" />
 
                     <p>

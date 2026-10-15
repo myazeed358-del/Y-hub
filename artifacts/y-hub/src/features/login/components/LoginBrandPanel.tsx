@@ -15,18 +15,20 @@ export function LoginBrandPanel({
   copy,
 }: LoginBrandPanelProps) {
   return (
-          <section className="relative hidden min-h-[760px] overflow-hidden border-l border-white/5 lg:flex lg:flex-col lg:justify-between">
+          <section className="relative hidden min-h-[760px] overflow-hidden border-l border-slate-200 bg-[#F8FAFC] text-[#172B45] dark:border-white/5 dark:bg-[#06101f] dark:text-white lg:flex lg:flex-col lg:justify-between">
             <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/[0.05] via-transparent to-violet-500/[0.08]" />
 
             <div className="relative z-10 px-12 pt-12">
               <div className="flex flex-col items-center text-center">
-                <YHubLogo size="hero" showText={false} />
+                <div className="rounded-2xl border border-[#36D5E8]/60 bg-[#E8EDF3] p-4 shadow-[0_0_20px_rgba(54,213,232,0.14)] dark:border-0 dark:bg-transparent dark:p-0 dark:shadow-none">
+                  <YHubLogo size="hero" showText={false} />
+                </div>
 
-                <div className="mt-5 text-4xl font-black tracking-[0.14em] text-white">
+                <div className="mt-5 text-4xl font-black tracking-[0.14em] text-[#172B45] dark:text-white">
                   Y HUB
                 </div>
 
-                <div className="mt-2 text-[11px] font-semibold tracking-[0.34em] text-slate-500">
+                <div className="mt-2 text-[11px] font-semibold tracking-[0.34em] text-[#536B80] dark:text-slate-500">
                   ACADEMIC PLATFORM
                 </div>
               </div>
@@ -36,55 +38,55 @@ export function LoginBrandPanel({
                   {copy.brandHeading}
                 </h2>
 
-                <p className="mx-auto mt-4 max-w-md text-base leading-8 text-slate-400">
+                <p className="mx-auto mt-4 max-w-md text-base leading-8 text-[#475569] dark:text-slate-400">
                   {copy.brandDescription}
                 </p>
               </div>
 
               <div className="mx-auto mt-10 grid max-w-md gap-3">
-                <div className="flex items-center gap-4 rounded-2xl border border-white/[0.06] bg-white/[0.025] px-4 py-3">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-cyan-400/10 text-cyan-300">
+                <div className="flex items-center gap-4 rounded-2xl border border-border bg-card/90 px-4 py-3 shadow-sm dark:border-white/[0.06] dark:bg-white/[0.025] dark:shadow-none">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-cyan-100 text-cyan-700 dark:bg-cyan-400/10 dark:text-cyan-300">
                     <BookOpen className="h-5 w-5" />
                   </div>
                   <div>
                     <div className="font-bold">{copy.organizedTitle}</div>
-                    <div className="mt-1 text-xs text-slate-500">
+                    <div className="mt-1 text-xs text-[#536B80] dark:text-slate-500">
                       {copy.organizedDescription}
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4 rounded-2xl border border-white/[0.06] bg-white/[0.025] px-4 py-3">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-violet-400/10 text-violet-300">
+                <div className="flex items-center gap-4 rounded-2xl border border-border bg-card/90 px-4 py-3 shadow-sm dark:border-white/[0.06] dark:bg-white/[0.025] dark:shadow-none">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-violet-100 text-violet-700 dark:bg-violet-400/10 dark:text-violet-300">
                     <BrainCircuit className="h-5 w-5" />
                   </div>
                   <div>
                     <div className="font-bold">{copy.toolsTitle}</div>
-                    <div className="mt-1 text-xs text-slate-500">
+                    <div className="mt-1 text-xs text-[#536B80] dark:text-slate-500">
                       {copy.toolsDescription}
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4 rounded-2xl border border-white/[0.06] bg-white/[0.025] px-4 py-3">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-400/10 text-blue-300">
+                <div className="flex items-center gap-4 rounded-2xl border border-border bg-card/90 px-4 py-3 shadow-sm dark:border-white/[0.06] dark:bg-white/[0.025] dark:shadow-none">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-700 dark:bg-blue-400/10 dark:text-blue-300">
                     <BarChart3 className="h-5 w-5" />
                   </div>
                   <div>
                     <div className="font-bold">{copy.progressTitle}</div>
-                    <div className="mt-1 text-xs text-slate-500">
+                    <div className="mt-1 text-xs text-[#536B80] dark:text-slate-500">
                       {copy.progressDescription}
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4 rounded-2xl border border-white/[0.06] bg-white/[0.025] px-4 py-3">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-cyan-400/10 text-cyan-300">
+                <div className="flex items-center gap-4 rounded-2xl border border-border bg-card/90 px-4 py-3 shadow-sm dark:border-white/[0.06] dark:bg-white/[0.025] dark:shadow-none">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-cyan-100 text-cyan-700 dark:bg-cyan-400/10 dark:text-cyan-300">
                     <Users className="h-5 w-5" />
                   </div>
                   <div>
                     <div className="font-bold">{copy.integratedTitle}</div>
-                    <div className="mt-1 text-xs text-slate-500">
+                    <div className="mt-1 text-xs text-[#536B80] dark:text-slate-500">
                       {copy.integratedDescription}
                     </div>
                   </div>

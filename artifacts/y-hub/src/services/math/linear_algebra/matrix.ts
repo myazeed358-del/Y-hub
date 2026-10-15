@@ -176,8 +176,19 @@ export class LAMatrix {
             return newRow;
         });
 
-        const { rref, rank } = this.rref(aug);
-        if (rank < m) return null;
+        const { rref } = this.rref(aug);
+
+        // A is invertible only if the left block
+        // of RREF([A | I]) is the identity matrix.
+        for (let i = 0; i < m; i++) {
+            for (let j = 0; j < m; j++) {
+                const expected = i === j ? Rat.one : Rat.zero;
+
+                if (!Rat.equals(rref[i][j], expected)) {
+                    return null;
+                }
+            }
+        }
 
         return rref.map(row => row.slice(m));
     }

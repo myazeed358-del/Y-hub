@@ -5,6 +5,7 @@ import {
   BrainCircuit,
   Calculator,
   FlaskConical,
+  Grid2X2,
   Home,
   LineChart,
 } from 'lucide-react';
@@ -40,6 +41,7 @@ describe('navigationRoutes', () => {
       '/math-solver',
       '/solver',
       '/lab',
+      '/linear-algebra',
     ]);
   });
 
@@ -57,6 +59,7 @@ describe('navigationRoutes', () => {
       '/math-solver',
       '/solver',
       '/lab',
+      '/linear-algebra',
     ]);
   });
 
@@ -69,6 +72,7 @@ describe('navigationRoutes', () => {
         '/math-solver',
         '/solver',
         '/lab',
+        '/linear-algebra',
       ]);
     }
   });
@@ -86,6 +90,7 @@ describe('navigationRoutes', () => {
       'box',
       'calculator',
       'flaskConical',
+      'grid2x2',
     ]);
 
     expect(
@@ -137,6 +142,7 @@ describe('navigationRoutes', () => {
       Box,
       Calculator,
       FlaskConical,
+      Grid2X2,
     ]);
   });
 

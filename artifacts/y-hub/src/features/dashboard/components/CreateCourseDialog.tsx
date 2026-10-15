@@ -49,7 +49,7 @@ export function CreateCourseDialog({
 
             <DialogContent
               dir={isArabic ? 'rtl' : 'ltr'}
-              className="border-slate-800 bg-[#0b1220] text-slate-100 sm:max-w-lg"
+              className="border-border bg-popover text-popover-foreground dark:border-slate-800 dark:bg-[#0b1220] dark:text-slate-100 sm:max-w-lg"
             >
               <DialogHeader>
                 <DialogTitle className="text-xl font-black">
@@ -59,7 +59,7 @@ export function CreateCourseDialog({
 
               <div className="space-y-5 pt-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-300">
+                  <label className="text-sm font-bold text-foreground dark:text-slate-300">
                     {copy.courseTitle}
                   </label>
 
@@ -69,12 +69,12 @@ export function CreateCourseDialog({
                       setNewTitle(event.target.value)
                     }
                     placeholder={copy.courseTitlePlaceholder}
-                    className="h-12 border-slate-800 bg-slate-950/50"
+                    className="h-12 border-input bg-background text-foreground dark:border-slate-800 dark:bg-slate-950/50 dark:text-slate-100"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-300">
+                  <label className="text-sm font-bold text-foreground dark:text-slate-300">
                     {copy.courseCode}
                   </label>
 
@@ -84,13 +84,13 @@ export function CreateCourseDialog({
                       setNewCode(event.target.value)
                     }
                     placeholder={copy.courseCodePlaceholder}
-                    className="h-12 border-slate-800 bg-slate-950/50"
+                    className="h-12 border-input bg-background text-foreground dark:border-slate-800 dark:bg-slate-950/50 dark:text-slate-100"
                     dir="ltr"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-300">
+                  <label className="text-sm font-bold text-foreground dark:text-slate-300">
                     {copy.courseDescription}
                   </label>
 
@@ -100,7 +100,7 @@ export function CreateCourseDialog({
                       setNewDesc(event.target.value)
                     }
                     placeholder={copy.courseDescriptionPlaceholder}
-                    className="h-12 border-slate-800 bg-slate-950/50"
+                    className="h-12 border-input bg-background text-foreground dark:border-slate-800 dark:bg-slate-950/50 dark:text-slate-100"
                   />
                 </div>
 

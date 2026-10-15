@@ -74,7 +74,7 @@ export function MathSolverPlotPanel({
                 />
               </div>
 
-              <div className="flex-1 min-h-[400px] border rounded-xl overflow-hidden bg-white/5 relative">
+              <div className="flex-1 min-h-[400px] border rounded-xl overflow-hidden bg-card/50 dark:bg-white/5 relative">
                 <Plot
                   data={plotData}
                   layout={{

@@ -29,6 +29,7 @@ const enginePaths = [
   '/math-solver',
   '/solver',
   '/lab',
+  '/linear-algebra',
 ];
 
 function visibleEnginePaths(
