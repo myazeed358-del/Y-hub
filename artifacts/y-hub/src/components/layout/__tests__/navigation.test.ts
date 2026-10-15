@@ -10,6 +10,7 @@ const mathEngines = [
   '/math-solver',
   '/solver',
   '/lab',
+  '/linear-algebra',
 ];
 
 function visibleRoutes(

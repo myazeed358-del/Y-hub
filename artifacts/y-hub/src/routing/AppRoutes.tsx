@@ -16,6 +16,18 @@ import MathSolver from '@/pages/MathSolver';
 import CalculusSolver from '@/pages/CalculusSolver';
 import Solver from '@/pages/Solver';
 
+const LinearAlgebraPage = React.lazy(
+  () => import('@/features/linear-algebra/pages/LinearAlgebraPage')
+);
+
+function LinearAlgebraRoute() {
+  return (
+    <React.Suspense fallback={<div role="status">جاري التحميل... / Loading...</div>}>
+      <LinearAlgebraPage />
+    </React.Suspense>
+  );
+}
+
 type AppRoutesProps = {
   Home: React.ComponentType;
   CoursePlan: React.ComponentType;
@@ -77,6 +89,14 @@ export function AppRoutes({
       <Route path="/course/:id/view">{(params) => <ProtectedRoute component={StudentCourseView} params={params} />}</Route>
       <Route path="/course/:id/ai-tutor">{(params) => <ProtectedRoute component={AIGenerator} params={params} />}</Route>
       <Route path="/exam/:id">{(params) => <ProtectedRoute component={ExamRunner} params={params} />}</Route>
+      <Route path="/linear-algebra">
+        {() => (
+          <ProtectedRoute
+            component={LinearAlgebraRoute}
+            enginePath="/linear-algebra"
+          />
+        )}
+      </Route>
       <Route path="/math-solver">{() => <ProtectedRoute component={MathSolver} enginePath="/math-solver" />}</Route>
       <Route path="/solver">{() => <ProtectedRoute component={Solver} enginePath="/solver" />}</Route>
       <Route path="/calculus">{() => <ProtectedRoute component={CalculusSolver} enginePath="/calculus" />}</Route>
