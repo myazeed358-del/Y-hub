@@ -23,8 +23,8 @@ export function StatCard({
       icon: 'border-violet-400/10 bg-violet-400/[0.07] text-violet-300',
     },
     slate: {
-      wrapper: 'border-slate-800 bg-white/[0.02]',
-      icon: 'border-white/[0.05] bg-white/[0.025] text-slate-400',
+      wrapper: 'border-border bg-card dark:border-slate-800 dark:bg-white/[0.02]',
+      icon: 'border-border bg-muted text-muted-foreground dark:border-white/[0.05] dark:bg-white/[0.025] dark:text-slate-400',
     },
   }[tone];
 
@@ -40,15 +40,15 @@ export function StatCard({
         </div>
 
         <div className="min-w-0">
-          <p className="text-xs font-semibold text-slate-500">
+          <p className="text-xs font-semibold text-muted-foreground">
             {title}
           </p>
 
-          <div className="mt-1 text-2xl font-black text-white">
+          <div className="mt-1 text-2xl font-black text-foreground">
             {value}
           </div>
 
-          <p className="mt-1 truncate text-[10px] text-slate-600">
+          <p className="mt-1 truncate text-[10px] text-muted-foreground">
             {description}
           </p>
         </div>

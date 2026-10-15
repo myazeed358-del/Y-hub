@@ -24,18 +24,18 @@ export function DashboardCourseSection({
   handleToggleStatus,
 }: DashboardCourseSectionProps) {
   return (
-      <section className="rounded-[2rem] border border-slate-800/80 bg-[#0b1220]/65 p-5 sm:p-7">
+      <section className="rounded-[2rem] border border-border bg-card/85 dark:border-slate-800/80 dark:bg-[#0b1220]/65 p-5 sm:p-7">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="mb-2 text-[10px] font-black uppercase tracking-[0.22em] text-cyan-400">
               Y HUB
             </p>
 
-            <h2 className="text-xl font-black text-white sm:text-2xl">
+            <h2 className="text-xl font-black text-foreground dark:text-white sm:text-2xl">
               {copy.courseManagement}
             </h2>
 
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground dark:text-slate-500">
               {copy.courseManagementSubtitle}
             </p>
           </div>
@@ -52,7 +52,7 @@ export function DashboardCourseSection({
             </p>
           </div>
         ) : courses.length === 0 ? (
-          <div className="flex min-h-[290px] flex-col items-center justify-center rounded-[1.5rem] border border-dashed border-slate-800 bg-slate-950/25 px-6 text-center">
+          <div className="flex min-h-[290px] flex-col items-center justify-center rounded-[1.5rem] border border-dashed border-border bg-muted/25 dark:border-slate-800 dark:bg-slate-950/25 px-6 text-center">
             <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-cyan-400/10 bg-cyan-400/[0.05]">
               <BookOpen
                 className="text-slate-600"
@@ -60,11 +60,11 @@ export function DashboardCourseSection({
               />
             </div>
 
-            <h3 className="text-lg font-black text-slate-200">
+            <h3 className="text-lg font-black text-foreground dark:text-slate-200">
               {copy.noCourses}
             </h3>
 
-            <p className="mt-2 max-w-md text-sm leading-7 text-slate-500">
+            <p className="mt-2 max-w-md text-sm leading-7 text-muted-foreground dark:text-slate-500">
               {copy.noCoursesText}
             </p>
 

@@ -37,7 +37,7 @@ export function SidebarEngineSearch({
           <div className="relative">
             <Search
               size={16}
-              className={`absolute top-1/2 -translate-y-1/2 text-slate-600 ${
+              className={`absolute top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-600 ${
                 language === 'ar' ? 'right-3.5' : 'left-3.5'
               }`}
             />
@@ -51,7 +51,7 @@ export function SidebarEngineSearch({
                   ? 'ابحث في الأدوات الأكاديمية...'
                   : 'Search academic tools...'
               }
-              className={`h-11 w-full rounded-xl border border-slate-800 bg-slate-950/55 text-xs text-slate-200 outline-none transition-all placeholder:text-slate-700 focus:border-cyan-400/25 focus:ring-2 focus:ring-cyan-400/[0.06] ${
+              className={`h-11 w-full rounded-xl border border-input bg-card text-xs text-foreground outline-none transition-all placeholder:text-slate-500 dark:border-slate-800 dark:bg-slate-950/55 dark:text-slate-200 dark:placeholder:text-slate-700 focus:border-cyan-400/25 focus:ring-2 focus:ring-cyan-400/[0.06] ${
                 language === 'ar'
                   ? 'pr-10 pl-3'
                   : 'pl-10 pr-3'
@@ -60,7 +60,7 @@ export function SidebarEngineSearch({
           </div>
 
           {engineSearch.trim() && (
-            <div className="mt-2 overflow-hidden rounded-2xl border border-slate-800 bg-[#080d18] shadow-2xl shadow-black/30">
+            <div className="mt-2 overflow-hidden rounded-2xl border border-border bg-popover shadow-xl shadow-slate-300/40 dark:border-slate-800 dark:bg-[#080d18] dark:shadow-2xl dark:shadow-black/30">
               {instructorSearchResults.length > 0 ||
               quickPracticeSearchMatch ? (
                 <div className="max-h-[320px] overflow-y-auto p-2">
@@ -73,12 +73,12 @@ export function SidebarEngineSearch({
                       }}
                       className="group flex items-start gap-3 rounded-xl p-3 transition-colors hover:bg-cyan-400/[0.05]"
                     >
-                      <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-violet-400/10 bg-violet-400/[0.05] text-violet-300">
+                      <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-400/10 dark:bg-violet-400/[0.05] dark:text-violet-300">
                         <BrainCircuit size={16} />
                       </div>
 
                       <div className="min-w-0 flex-1">
-                        <div className="truncate text-xs font-bold text-slate-200 group-hover:text-cyan-200">
+                        <div className="truncate text-xs font-bold text-foreground group-hover:text-primary dark:text-slate-200 dark:group-hover:text-cyan-200">
                           {language === 'ar'
                             ? 'تدريب سريع'
                             : 'Quick Practice'}
@@ -117,12 +117,12 @@ export function SidebarEngineSearch({
                         }}
                         className="group flex items-start gap-3 rounded-xl p-3 transition-colors hover:bg-cyan-400/[0.05]"
                       >
-                        <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-cyan-400/10 bg-cyan-400/[0.05] text-cyan-400">
+                        <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-cyan-200 bg-cyan-50 text-cyan-700 dark:border-cyan-400/10 dark:bg-cyan-400/[0.05] dark:text-cyan-400">
                           <Calculator size={16} />
                         </div>
 
                         <div className="min-w-0 flex-1">
-                          <div className="truncate text-xs font-bold text-slate-200 group-hover:text-cyan-200">
+                          <div className="truncate text-xs font-bold text-foreground group-hover:text-primary dark:text-slate-200 dark:group-hover:text-cyan-200">
                             {engine.title[language]}
                           </div>
 
@@ -142,7 +142,7 @@ export function SidebarEngineSearch({
                   })}
                 </div>
               ) : (
-                <div className="px-4 py-5 text-center text-[11px] text-slate-600">
+                <div className="px-4 py-5 text-center text-[11px] text-slate-600 dark:text-slate-600">
                   {language === 'ar'
                     ? 'لا توجد أدوات مطابقة للبحث.'
                     : 'No tools match your search.'}
