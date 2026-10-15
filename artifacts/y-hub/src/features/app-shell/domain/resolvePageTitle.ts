@@ -11,6 +11,10 @@ export function resolvePageTitle(
   language: Language,
   t: PageTitleTranslator
 ): string {
+  if (location === '/calculus-1') {
+    return t('calculus1Solver');
+  }
+
   return (
 location === '/' || location === '/dashboard'
       ? t('overview')

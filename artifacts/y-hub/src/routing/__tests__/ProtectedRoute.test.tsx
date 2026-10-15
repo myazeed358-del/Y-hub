@@ -103,6 +103,27 @@ describe('ProtectedRoute', () => {
     expect(html).toContain('TARGET_PAGE');
   });
 
+  it('allows mathematics students into Calculus 1', () => {
+    loginAs('student', 'mathematics');
+    expect(
+      renderGuard({ enginePath: '/calculus-1' })
+    ).toContain('TARGET_PAGE');
+  });
+
+  it('denies unrelated students access to Calculus 1', () => {
+    loginAs('student', 'medicine');
+    expect(
+      renderGuard({ enginePath: '/calculus-1' })
+    ).not.toContain('TARGET_PAGE');
+  });
+
+  it('allows administrators into Calculus 1', () => {
+    loginAs('admin', null);
+    expect(
+      renderGuard({ enginePath: '/calculus-1' })
+    ).toContain('TARGET_PAGE');
+  });
+
   it('denies a student without the required major', () => {
     loginAs('student', 'medicine');
 

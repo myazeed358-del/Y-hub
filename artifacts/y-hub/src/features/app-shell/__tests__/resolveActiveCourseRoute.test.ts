@@ -31,6 +31,7 @@ describe('resolveActiveCourseRoute', () => {
       '/lab',
       '/matrix-calc',
       '/simplex',
+      '/calculus-1',
       '/calculus',
       '/solver',
       '/sandbox',
