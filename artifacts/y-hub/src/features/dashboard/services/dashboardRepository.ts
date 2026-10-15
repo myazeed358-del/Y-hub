@@ -15,6 +15,16 @@ export const dashboardRepository = {
       .order('created_at', { ascending: false });
   },
 
+  listManagedCourses(userId: string, role: string | null) {
+    if (role === 'admin' || role === 'super_admin') {
+      return supabase.from('courses').select('*')
+        .order('created_at', { ascending: false });
+    }
+    return supabase.from('courses').select('*')
+      .eq('instructor_id', userId)
+      .order('created_at', { ascending: false });
+  },
+
   createCourse(input: CreateCourseInput) {
     return supabase.from('courses').insert(input);
   },

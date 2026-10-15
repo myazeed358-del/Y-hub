@@ -1,3 +1,4 @@
+import * as React from 'react';
 import {
   ArrowUpRight,
   BookOpen,
@@ -5,6 +6,7 @@ import {
   EyeOff,
   Settings2,
   Trash2,
+  Users,
 } from 'lucide-react';
 import { Link } from 'wouter';
 import { Button } from '@workspace/y-hub-ds/components/ui/button';
@@ -16,6 +18,10 @@ export type { Course } from '../types';
 interface DashboardCourseCardProps {
   course: Course;
   copy: ReturnType<typeof getDashboardCopy>;
+  enrollmentCount: number | null;
+  isArabic: boolean;
+  canManage: boolean;
+  onShowStudents: () => void;
   handleDelete: (id: string) => Promise<void>;
   handleToggleStatus: (course: Course) => Promise<void>;
 }
@@ -23,6 +29,10 @@ interface DashboardCourseCardProps {
 export function DashboardCourseCard({
   course,
   copy,
+  enrollmentCount,
+  isArabic,
+  canManage,
+  onShowStudents,
   handleDelete,
   handleToggleStatus,
 }: DashboardCourseCardProps) {
@@ -67,6 +77,22 @@ export function DashboardCourseCard({
                   </p>
                 </div>
 
+                <div className="relative mt-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-muted/30 p-3 dark:border-slate-800 dark:bg-slate-950/30">
+                  <span className="text-xs font-semibold text-muted-foreground">
+                    {isArabic ? 'الطلاب المسجلون' : 'Enrolled students'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={onShowStudents}
+                    className="inline-flex items-center gap-2 rounded-lg bg-primary/10 px-3 py-2 text-xs font-bold text-primary hover:bg-primary/20"
+                  >
+                    <Users size={15} />
+                    {enrollmentCount === null ? '—' : enrollmentCount}
+                    <span>{isArabic ? 'عرض الأسماء' : 'View names'}</span>
+                  </button>
+                </div>
+
+                {canManage && (
                 <div className="relative mt-6 border-t border-border pt-4 dark:border-slate-800/80">
                   <div className="flex items-center gap-2">
                     <button
@@ -107,6 +133,7 @@ export function DashboardCourseCard({
                     </Link>
                   </div>
                 </div>
+                )}
               </article>
   );
 }

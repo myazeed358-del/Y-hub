@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { DashboardStats } from '../components/DashboardStats';
 import { DashboardCourseSection } from '../components/DashboardCourseSection';
 import { DashboardHeader } from '../components/DashboardHeader';
@@ -9,6 +10,7 @@ export default function DashboardPage() {
     copy,
     roleLabel,
     firstName,
+    viewerId,
     isOpen,
     setIsOpen,
     newTitle,
@@ -55,6 +57,8 @@ export default function DashboardPage() {
       />
       <DashboardCourseSection
         copy={copy}
+        viewerId={viewerId}
+        isArabic={isArabic}
         loading={loading}
         courses={courses}
         setIsOpen={setIsOpen}
