@@ -140,6 +140,7 @@ export const uiCopy = {
     simplexSolver: 'محلل السمبلكس',
     calculusPlotter: 'التفاضل والتكامل 2',
     calculus3Solver: 'التفاضل والتكامل 3',
+    linearAlgebra: 'الجبر الخطي',
   },
   en: {
     appName: 'Y HUB',
@@ -265,5 +266,6 @@ export const uiCopy = {
     simplexSolver: 'Simplex Solver',
     calculusPlotter: 'Calculus II',
     calculus3Solver: 'Calculus III',
+    linearAlgebra: 'Linear Algebra',
   },
 } as const;

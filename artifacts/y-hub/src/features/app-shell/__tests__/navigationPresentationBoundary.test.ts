@@ -9,6 +9,7 @@ import {
   BrainCircuit,
   Calculator,
   FlaskConical,
+  Grid2X2,
   Home,
   LineChart,
 } from 'lucide-react';
@@ -125,6 +126,7 @@ describe('NavigationPresentationBoundary', () => {
       Box,
       Calculator,
       FlaskConical,
+      Grid2X2,
     ]);
   });
 

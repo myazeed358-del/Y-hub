@@ -11,7 +11,8 @@ export type NavigationIconId =
   | 'lineChart'
   | 'box'
   | 'calculator'
-  | 'flaskConical';
+  | 'flaskConical'
+  | 'grid2x2';
 
 export interface NavigationRouteItem {
   href: string;
@@ -40,6 +41,7 @@ export function buildNavigationRouteGroups(
     { href: '/math-solver', key: 'calculus3Solver' as UiKey, iconId: 'box' as const },
     { href: '/solver', key: 'solver' as UiKey, iconId: 'calculator' as const },
     { href: '/lab', key: 'lab' as UiKey, iconId: 'flaskConical' as const },
+    { href: '/linear-algebra', key: 'linearAlgebra' as UiKey, iconId: 'grid2x2' as const },
   ].filter((item) => sidebarEngineRoutes.has(item.href));
 
   return [

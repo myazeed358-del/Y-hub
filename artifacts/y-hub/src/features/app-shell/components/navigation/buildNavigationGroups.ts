@@ -5,6 +5,7 @@ import {
   BrainCircuit,
   Calculator,
   FlaskConical,
+  Grid2X2,
   Home as HomeIcon,
   LineChart,
 } from 'lucide-react';
@@ -35,6 +36,7 @@ const NAVIGATION_ICONS: Record<NavigationIconId, LucideIcon> = {
   box: Box,
   calculator: Calculator,
   flaskConical: FlaskConical,
+  grid2x2: Grid2X2,
 };
 
 export function buildNavigationGroups(
