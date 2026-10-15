@@ -60,25 +60,25 @@ export function SolverForwardTab({
               </div>
             </Card>
 
-            <Card className="p-6 bg-[hsl(var(--sidebar))] text-[hsl(var(--sidebar-foreground))] relative">
+            <Card className="p-6 bg-[#E8EDF3] text-[#172B45] dark:bg-[hsl(var(--sidebar))] dark:text-[hsl(var(--sidebar-foreground))] relative">
               <div className="mb-8 flex items-center justify-between">
                 <h2 className="text-xl font-extrabold">{t('proofEngine')}</h2>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" onClick={handleForwardExport} className="gap-2 bg-[hsl(var(--card))]">
+                  <Button variant="outline" size="sm" onClick={handleForwardExport} className="gap-2 bg-card text-foreground dark:bg-[hsl(var(--card))] dark:text-[hsl(var(--foreground))]">
                     <Download size={14} /> {t('exportPdf')}
                   </Button>
-                  <div className="rounded-xl bg-[hsl(var(--sidebar-accent))] p-2.5 text-[hsl(var(--accent))]">
+                  <div className="rounded-xl bg-cyan-100 p-2.5 text-cyan-700 dark:bg-[hsl(var(--sidebar-accent))] dark:text-[hsl(var(--accent))]">
                     <BrainCircuit size={18} />
                   </div>
                 </div>
               </div>
               <div className="mb-8">
-                <div className="mb-2 text-sm font-semibold opacity-60 uppercase tracking-widest">{t('finalResult')}</div>
-                <div className="text-5xl font-mono text-[hsl(var(--accent))] tracking-tighter">{result}</div>
+                <div className="mb-2 text-sm font-semibold text-slate-600 dark:opacity-60 uppercase tracking-widest">{t('finalResult')}</div>
+                <div className="text-5xl font-mono text-cyan-800 dark:text-[hsl(var(--accent))] tracking-tighter">{result}</div>
               </div>
               <div>
-                <div className="mb-3 text-sm font-semibold opacity-60">{t('algebraicStep')}</div>
-                <div className="rounded-xl bg-[hsl(var(--background))] p-4 font-mono text-sm leading-relaxed overflow-x-auto border border-[hsl(var(--border))]">
+                <div className="mb-3 text-sm font-semibold text-slate-600 dark:opacity-60">{t('algebraicStep')}</div>
+                <div className="rounded-xl bg-card text-foreground dark:bg-[hsl(var(--background))] dark:text-[hsl(var(--foreground))] p-4 font-mono text-sm leading-relaxed overflow-x-auto border border-slate-200 dark:border-[hsl(var(--border))]">
                   $$ {proof} $$
                 </div>
               </div>
