@@ -79,6 +79,10 @@ export function StudentDashboardMain({
                     <button onClick={() => setLocation(`/course/${course.id}/view`)} className="w-full py-2 rounded-lg bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity">
                       {t('enterCourse')}
                     </button>
+                  ) : course.enrollment_open !== true ? (
+                    <button type="button" disabled aria-label={t('registrationClosed')} className="w-full py-2 rounded-lg border border-border bg-muted text-muted-foreground cursor-not-allowed font-semibold">
+                      {t('registrationClosed')}
+                    </button>
                   ) : (
                     <button onClick={() => handleEnroll(course.id)} disabled={isEnrolling} className="w-full py-2 rounded-lg bg-background border border-border text-foreground font-semibold hover:bg-accent/10 transition-colors">
                       {isEnrolling ? t('enrolling') : t('enrollNow')}

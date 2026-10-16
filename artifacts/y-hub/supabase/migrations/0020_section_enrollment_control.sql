@@ -58,6 +58,7 @@ FOR INSERT
 TO authenticated
 WITH CHECK (
   student_id = (SELECT auth.uid())
+  AND status = 'active'
 
   AND EXISTS (
     SELECT 1

@@ -4,6 +4,8 @@ import {
   BookOpen,
   Eye,
   EyeOff,
+  Lock,
+  LockOpen,
   Settings2,
   Trash2,
   Users,
@@ -24,6 +26,8 @@ interface DashboardCourseCardProps {
   onShowStudents: () => void;
   handleDelete: (id: string) => Promise<void>;
   handleToggleStatus: (course: Course) => Promise<void>;
+  handleToggleEnrollmentOpen: (course: Course) => Promise<void>;
+  updatingEnrollmentId: string | null;
 }
 
 export function DashboardCourseCard({
@@ -35,6 +39,8 @@ export function DashboardCourseCard({
   onShowStudents,
   handleDelete,
   handleToggleStatus,
+  handleToggleEnrollmentOpen,
+  updatingEnrollmentId,
 }: DashboardCourseCardProps) {
   return (
               <article
@@ -58,6 +64,13 @@ export function DashboardCourseCard({
                     {course.is_published
                       ? copy.publishedBadge
                       : copy.draftBadge}
+                  </span>
+                  <span className={`rounded-full border px-2.5 py-1 text-[10px] font-bold ${
+                    course.enrollment_open
+                      ? 'border-emerald-500/30 text-emerald-600 dark:text-emerald-300'
+                      : 'border-amber-500/30 text-amber-700 dark:text-amber-300'
+                  }`}>
+                    {course.enrollment_open ? copy.registrationOpen : copy.registrationClosed}
                   </span>
                 </div>
 
@@ -119,6 +132,18 @@ export function DashboardCourseCard({
                       ) : (
                         <Eye size={16} />
                       )}
+                    </button>
+
+                    <button
+                      type="button"
+                      aria-label={course.enrollment_open ? copy.closeRegistration : copy.openRegistration}
+                      title={course.enrollment_open ? copy.closeRegistration : copy.openRegistration}
+                      disabled={updatingEnrollmentId === course.id}
+                      onClick={() => handleToggleEnrollmentOpen(course)}
+                      className="flex h-10 items-center gap-2 rounded-xl border border-border px-3 text-xs font-bold text-foreground hover:bg-muted disabled:opacity-50"
+                    >
+                      {course.enrollment_open ? <Lock size={15} /> : <LockOpen size={15} />}
+                      <span>{course.enrollment_open ? copy.closeRegistration : copy.openRegistration}</span>
                     </button>
 
                     <Link

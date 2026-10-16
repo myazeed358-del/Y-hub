@@ -37,4 +37,15 @@ export const dashboardRepository = {
     return supabase.from('courses')
       .update({ is_published: published }).eq('id', id);
   },
+
+  async setEnrollmentOpen(id: string, open: boolean) {
+    const { data, error } = await supabase.from('courses')
+      .update({ enrollment_open: open })
+      .eq('id', id)
+      .select('id, enrollment_open')
+      .maybeSingle();
+    return {
+      error: error ?? (!data ? new Error('Enrollment update was not authorized') : null),
+    };
+  },
 };

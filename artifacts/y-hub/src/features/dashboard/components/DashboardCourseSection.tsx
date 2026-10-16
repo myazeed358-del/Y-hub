@@ -18,6 +18,8 @@ interface DashboardCourseSectionProps {
   setIsOpen: (value: boolean) => void;
   handleDelete: (id: string) => Promise<void>;
   handleToggleStatus: (course: Course) => Promise<void>;
+  handleToggleEnrollmentOpen: (course: Course) => Promise<void>;
+  updatingEnrollmentId: string | null;
 }
 
 export function DashboardCourseSection({
@@ -29,6 +31,8 @@ export function DashboardCourseSection({
   setIsOpen,
   handleDelete,
   handleToggleStatus,
+  handleToggleEnrollmentOpen,
+  updatingEnrollmentId,
 }: DashboardCourseSectionProps) {
   const {
     counts,
@@ -115,6 +119,8 @@ export function DashboardCourseSection({
                 onShowStudents={() => setSelectedCourse(course)}
                 handleDelete={handleDelete}
                 handleToggleStatus={handleToggleStatus}
+                handleToggleEnrollmentOpen={handleToggleEnrollmentOpen}
+                updatingEnrollmentId={updatingEnrollmentId}
               />
             ))}
           </div>

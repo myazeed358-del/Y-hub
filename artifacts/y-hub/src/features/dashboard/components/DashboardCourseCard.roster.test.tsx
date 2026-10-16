@@ -32,6 +32,7 @@ const course = {
   title: 'Calculus',
   instructor_id: 'instructor-1',
   is_published: true,
+  enrollment_open: true,
 };
 
 describe('Course enrollment card', () => {
@@ -48,6 +49,8 @@ describe('Course enrollment card', () => {
         onShowStudents={onShowStudents}
         handleDelete={vi.fn()}
         handleToggleStatus={vi.fn()}
+        handleToggleEnrollmentOpen={vi.fn()}
+        updatingEnrollmentId={null}
       />
     );
 
@@ -71,6 +74,8 @@ describe('Course enrollment card', () => {
         onShowStudents={vi.fn()}
         handleDelete={vi.fn()}
         handleToggleStatus={vi.fn()}
+        handleToggleEnrollmentOpen={vi.fn()}
+        updatingEnrollmentId={null}
       />
     );
 

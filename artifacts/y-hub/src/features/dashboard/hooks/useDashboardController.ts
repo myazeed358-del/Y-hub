@@ -17,6 +17,7 @@ export function useDashboardController() {
   const [newCode, setNewCode] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [updatingEnrollmentId, setUpdatingEnrollmentId] = useState<string | null>(null);
 
   const copy = getDashboardCopy(isArabic);
 
@@ -116,6 +117,26 @@ export function useDashboardController() {
     await loadCourses();
   };
 
+  const handleToggleEnrollmentOpen = async (course: Course) => {
+    if (updatingEnrollmentId) return;
+    setUpdatingEnrollmentId(course.id);
+    try {
+      const { error } = await dashboardRepository.setEnrollmentOpen(
+        course.id, !course.enrollment_open
+      );
+      if (error) throw error;
+      toast.success(course.enrollment_open
+        ? copy.registrationClosedSuccess
+        : copy.registrationOpenedSuccess);
+      await loadCourses();
+    } catch (error) {
+      console.error('Failed to update enrollment availability:', error);
+      toast.error(copy.registrationUpdateError);
+    } finally {
+      setUpdatingEnrollmentId(null);
+    }
+  };
+
   const accountName =
     profile?.full_name?.trim() ||
     user?.email?.split('@')[0] ||
@@ -157,6 +178,8 @@ export function useDashboardController() {
     publishedCount,
     draftCount,
     handleDelete,
-    handleToggleStatus
+    handleToggleStatus,
+    handleToggleEnrollmentOpen,
+    updatingEnrollmentId,
   };
 }

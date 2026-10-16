@@ -48,6 +48,10 @@ export function useStudentCourse() {
 
   const handleEnroll = async () => {
     if (!user || !courseId) return;
+    if (!course?.enrollment_open) {
+      toast.error('التسجيل مغلق حاليًا');
+      return;
+    }
     setEnrolling(true);
     try {
       const { error } = await repository.enroll(courseId, user.id);
@@ -57,7 +61,16 @@ export function useStudentCourse() {
           toast.info('أنت مسجّل في هذا المساق مسبقاً');
           setIsEnrolled(true);
         } else {
-          toast.error('فشل التسجيل: ' + error.message);
+          if (error.code === '42501') {
+            // The course may have been closed between rendering and submission.
+            const refreshed = await repository.course(courseId);
+            if (refreshed) setCourse(refreshed);
+            toast.error(refreshed?.enrollment_open === false
+              ? 'التسجيل مغلق حاليًا'
+              : 'لا تملك صلاحية التسجيل في هذا المساق');
+          } else {
+            toast.error('فشل التسجيل: ' + error.message);
+          }
         }
       } else {
         toast.success('تم التسجيل في المساق بنجاح!');

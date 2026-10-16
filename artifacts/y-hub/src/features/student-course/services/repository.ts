@@ -3,7 +3,7 @@ import { supabase } from '@/utils/supabaseClient';
 export const repository = {
   async course(id: string) {
     const { data } = await supabase.from('courses')
-      .select('id, title, description, course_code, is_published')
+      .select('id, title, description, course_code, is_published, enrollment_open')
       .eq('id', id).single();
     return data;
   },
