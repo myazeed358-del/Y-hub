@@ -19,7 +19,7 @@ year (`YY`), month (`MM`), and a shared monthly 1–99999 sequence (`NNNNN`).
 
 1. Run the installer from a clean **feature branch** in `artifacts/y-hub`.
 2. Review `git diff` and run `pnpm typecheck` and
-   `pnpm test --run src/features/profile/components/__tests__/ProfileAccountInfo.test.tsx`.
+   `pnpm exec vitest run src/features/profile/components/__tests__/ProfileAccountInfo.test.tsx`.
 3. Commit and open a PR; merge only after review and green checks.
 4. Back up the Supabase DB and run `pnpm dlx supabase db push --dry-run`
    from `artifacts/y-hub` to confirm exactly what would be applied.

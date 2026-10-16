@@ -61,4 +61,46 @@ BEGIN
 END;
 $$;
 
+
+-- Regression: a later BEFORE trigger must not change the number.
+CREATE FUNCTION public.yhub_test_late_number_mutation_0018()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN
+  NEW.user_number := '999999999';
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER zz_yhub_test_late_number_mutation_0018
+BEFORE UPDATE ON public.users
+FOR EACH ROW
+EXECUTE FUNCTION public.yhub_test_late_number_mutation_0018();
+
+DO $$
+DECLARE
+  v_id UUID;
+  v_rejected BOOLEAN := false;
+BEGIN
+  SELECT id INTO v_id FROM public.users LIMIT 1;
+
+  IF v_id IS NULL THEN
+    RAISE EXCEPTION 'Test requires a seeded profile';
+  END IF;
+
+  BEGIN
+    UPDATE public.users
+    SET full_name = full_name
+    WHERE id = v_id;
+  EXCEPTION WHEN SQLSTATE '23514' THEN
+    v_rejected := true;
+  END;
+
+  IF NOT v_rejected THEN
+    RAISE EXCEPTION 'Late trigger bypassed number protection';
+  END IF;
+
+  RAISE NOTICE 'PASS: final user number is immutable';
+END;
+$$;
+
 ROLLBACK;

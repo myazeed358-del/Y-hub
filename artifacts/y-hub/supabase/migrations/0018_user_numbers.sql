@@ -146,9 +146,16 @@ REVOKE ALL ON FUNCTION yhub_internal.assign_user_number_on_profile()
   FROM PUBLIC, anon, authenticated;
 
 CREATE TRIGGER assign_yhub_user_number
-  BEFORE INSERT OR UPDATE OF user_number
+  BEFORE INSERT OR UPDATE
   ON public.users
   FOR EACH ROW
+  EXECUTE FUNCTION yhub_internal.assign_user_number_on_profile();
+
+-- Check final value after all BEFORE UPDATE triggers.
+CREATE TRIGGER verify_yhub_user_number_after_update
+  AFTER UPDATE ON public.users
+  FOR EACH ROW
+  WHEN (OLD.user_number IS DISTINCT FROM NEW.user_number)
   EXECUTE FUNCTION yhub_internal.assign_user_number_on_profile();
 
 COMMENT ON COLUMN public.users.user_number IS
