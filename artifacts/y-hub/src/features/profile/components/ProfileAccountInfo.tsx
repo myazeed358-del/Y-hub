@@ -2,6 +2,7 @@ import {
   GraduationCap,
   LockKeyhole,
   Mail,
+  Hash,
   ShieldCheck,
   UserRound,
 } from 'lucide-react';
@@ -9,7 +10,7 @@ import { ReadOnlyField } from '@/features/profile/components/ReadOnlyField';
 import type { getProfileCopy } from '@/i18n/profileCopy';
 
 interface ProfileAccountInfoProps {
-  profile: { full_name?: string | null };
+  profile: { full_name?: string | null; user_number?: string | null };
   copy: ReturnType<typeof getProfileCopy>;
   accountEmail: string;
   roleLabel: string;
@@ -41,6 +42,14 @@ export function ProfileAccountInfo({
                 icon={<Mail size={17} />}
                 label={copy.email}
                 value={accountEmail}
+                badge={copy.readonly}
+                ltr
+              />
+
+              <ReadOnlyField
+                icon={<Hash size={17} />}
+                label={copy.accountNumber}
+                value={profile.user_number || copy.notAvailable}
                 badge={copy.readonly}
                 ltr
               />
