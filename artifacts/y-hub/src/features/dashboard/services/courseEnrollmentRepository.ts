@@ -8,6 +8,7 @@ export interface CourseEnrollmentCount {
 export interface EnrollmentRosterStudent {
   student_id: string;
   full_name: string;
+  user_number: string | null;
   enrolled_at: string;
 }
 
@@ -19,6 +20,7 @@ type CountRow = {
 type RosterRow = {
   student_id: string;
   full_name: string;
+  user_number: string | null;
   enrolled_at: string;
 };
 
@@ -52,7 +54,7 @@ export const courseEnrollmentRepository = {
     }
 
     const { data, error } = await supabase.rpc(
-      'get_managed_course_enrollment_roster',
+      'get_managed_course_enrollment_roster_v2',
       { p_course_id: courseId }
     );
 
@@ -61,6 +63,7 @@ export const courseEnrollmentRepository = {
     return ((data ?? []) as RosterRow[]).map((row) => ({
       student_id: row.student_id,
       full_name: row.full_name,
+      user_number: row.user_number,
       enrolled_at: row.enrolled_at,
     }));
   },
