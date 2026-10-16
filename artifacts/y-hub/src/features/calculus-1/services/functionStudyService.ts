@@ -10,11 +10,32 @@ import {
   provePolynomialMonotonicity,
   type PolynomialMonotonicityProof
 } from './polynomialMonotonicityProof';
+import {
+  proveCubicMonotonicity,
+  type CubicMonotonicityProof
+} from './cubicMonotonicityProof';
+import {
+  proveQuarticMonotonicity,
+  type QuarticMonotonicityProof
+} from './quarticMonotonicityProof';
+import {
+  proveEvenQuarticMonotonicity,
+  type EvenQuarticMonotonicityProof
+} from './evenQuarticMonotonicityProof';
+import {
+  proveQuarticConcavity,
+  type QuarticConcavityProof
+} from './quarticConcavityProof';
 
 export interface FunctionStudyResult {
   status: 'candidate_results';
   verification: 'not_proven';
-  monotonicityProof: PolynomialMonotonicityProof;
+  monotonicityProof:
+    | PolynomialMonotonicityProof
+    | CubicMonotonicityProof
+    | QuarticMonotonicityProof
+    | EvenQuarticMonotonicityProof;
+  concavityProof: QuarticConcavityProof;
   firstDerivative: string;
   secondDerivative: string;
   criticalPointCandidates: string[];
@@ -150,64 +171,165 @@ export async function studyCalculus1Function(
     derivativeSteps
   );
 
-  const monotonicityProof = provePolynomialMonotonicity(
+  const lowerDegreeProof = provePolynomialMonotonicity(
     expression
   );
 
-  const analysis = await functionAnalysisPort.execute({
-    expression: original,
-    variable: 'x',
-    mode: 'real'
-  });
+  const cubicOrLowerDegreeProof =
+    lowerDegreeProof.status === 'verified'
+      ? lowerDegreeProof
+      : proveCubicMonotonicity(expression);
+
+  const standardQuarticOrLowerProof =
+    cubicOrLowerDegreeProof.status === 'verified'
+      ? cubicOrLowerDegreeProof
+      : proveQuarticMonotonicity(expression);
+
+  // Try the exact even-quartic specialization only when
+  // the other monotonicity proofs cannot certify the result.
+  const monotonicityProof =
+    standardQuarticOrLowerProof.status === 'verified'
+      ? standardQuarticOrLowerProof
+      : proveEvenQuarticMonotonicity(expression);
+
+  // Independent of whether monotonicity was certified.
+  const concavityProof = proveQuarticConcavity(
+    expression
+  );
+
+  // Candidate analysis is optional. An unsupported exact
+  // equation-solving route must not erase independent proofs.
+  let candidateAnalysis: {
+    criticalPointCandidates: string[];
+    increasingIntervalCandidates: string[];
+    decreasingIntervalCandidates: string[];
+    extremaCandidates: Array<{
+      point: string;
+      type: string;
+    }>;
+    concaveUpIntervalCandidates: string[];
+    concaveDownIntervalCandidates: string[];
+    inflectionCandidates: Array<{
+      point: string;
+      status: string;
+    }>;
+    steps: MathStep[];
+    warning: string | null;
+  };
+
+  try {
+    const analysis = await functionAnalysisPort.execute({
+      expression: original,
+      variable: 'x',
+      mode: 'real'
+    });
+
+    candidateAnalysis = {
+      criticalPointCandidates: (
+        analysis.criticalPoints ?? []
+      ).map(item => endpointText(item.point)),
+
+      increasingIntervalCandidates: (
+        analysis.increasingIntervals ?? []
+      ).map(intervalText),
+
+      decreasingIntervalCandidates: (
+        analysis.decreasingIntervals ?? []
+      ).map(intervalText),
+
+      extremaCandidates: (
+        analysis.extrema ?? []
+      ).map(item => ({
+        point: endpointText(item.point),
+        type: item.type
+      })),
+
+      concaveUpIntervalCandidates: (
+        analysis.concaveUpIntervals ?? []
+      ).map(intervalText),
+
+      concaveDownIntervalCandidates: (
+        analysis.concaveDownIntervals ?? []
+      ).map(intervalText),
+
+      inflectionCandidates: (
+        analysis.inflectionPoints ?? []
+      ).map(item => ({
+        point: endpointText(item.point),
+        status: item.status
+      })),
+
+      steps: analysis.steps,
+      warning: null
+    };
+  } catch (error) {
+    // Only handle the explicitly recognized unsupported
+    // exact-solving route. Unexpected failures must propagate.
+    if (
+      !(error instanceof Error) ||
+      error.message !== 'ROUTE_TO_PYTHON_EXACT'
+    ) {
+      throw error;
+    }
+
+    candidateAnalysis = {
+      criticalPointCandidates: [],
+      increasingIntervalCandidates: [],
+      decreasingIntervalCandidates: [],
+      extremaCandidates: [],
+      concaveUpIntervalCandidates: [],
+      concaveDownIntervalCandidates: [],
+      inflectionCandidates: [],
+      steps: [],
+      warning:
+        'General candidate analysis is unavailable because ' +
+        'the exact equation-solving route is not supported. ' +
+        'Independent verified proofs remain available.'
+    };
+  }
 
   return {
     status: 'candidate_results',
     verification: 'not_proven',
     monotonicityProof,
+    concavityProof,
     firstDerivative: ASTUtils.serialize(firstDerivative),
     secondDerivative: ASTUtils.serialize(secondDerivative),
 
-    criticalPointCandidates: (
-      analysis.criticalPoints ?? []
-    ).map(item => endpointText(item.point)),
+    criticalPointCandidates:
+      candidateAnalysis.criticalPointCandidates,
 
-    increasingIntervalCandidates: (
-      analysis.increasingIntervals ?? []
-    ).map(intervalText),
+    increasingIntervalCandidates:
+      candidateAnalysis.increasingIntervalCandidates,
 
-    decreasingIntervalCandidates: (
-      analysis.decreasingIntervals ?? []
-    ).map(intervalText),
+    decreasingIntervalCandidates:
+      candidateAnalysis.decreasingIntervalCandidates,
 
-    extremaCandidates: (
-      analysis.extrema ?? []
-    ).map(item => ({
-      point: endpointText(item.point),
-      type: item.type
-    })),
+    extremaCandidates:
+      candidateAnalysis.extremaCandidates,
 
-    concaveUpIntervalCandidates: (
-      analysis.concaveUpIntervals ?? []
-    ).map(intervalText),
+    concaveUpIntervalCandidates:
+      candidateAnalysis.concaveUpIntervalCandidates,
 
-    concaveDownIntervalCandidates: (
-      analysis.concaveDownIntervals ?? []
-    ).map(intervalText),
+    concaveDownIntervalCandidates:
+      candidateAnalysis.concaveDownIntervalCandidates,
 
-    inflectionCandidates: (
-      analysis.inflectionPoints ?? []
-    ).map(item => ({
-      point: endpointText(item.point),
-      status: item.status
-    })),
+    inflectionCandidates:
+      candidateAnalysis.inflectionCandidates,
 
-    steps: [...derivativeSteps, ...analysis.steps],
+    steps: [
+      ...derivativeSteps,
+      ...candidateAnalysis.steps
+    ],
 
     warnings: [
+      ...(candidateAnalysis.warning
+        ? [candidateAnalysis.warning]
+        : []),
       'The candidate sections are not independently verified. Any separate exact proof applies only to its stated scope.',
       'An empty candidate list does not prove that no such points or intervals exist.',
       'Critical points, monotonicity and extrema require additional completeness checks.',
-      'This version does not establish global extrema or a complete function study.'
+      'The general candidate analysis does not establish global extrema or a complete function study; consult any separate verified proof.'
     ]
   };
 }

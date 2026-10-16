@@ -74,6 +74,9 @@ export function FunctionStudyResults({
     ? 'لم يرجع المحرك مرشحات؛ هذا لا يثبت عدم وجودها.'
     : 'No candidates returned; this does not prove none exist.';
 
+  const verifiedMonotonicity =
+    result.monotonicityProof.status === 'verified';
+
   const sections = [
     {
       title: ar ? 'النقاط الحرجة المرشحة' : 'Critical point candidates',
@@ -109,6 +112,30 @@ export function FunctionStudyResults({
     }
   ];
 
+  const verifiedQuarticConcavity =
+    result.concavityProof.status === 'verified';
+
+  const cubicCurvatureCertified =
+    result.monotonicityProof.status === 'verified' &&
+    result.monotonicityProof.degree === 3;
+
+  const candidateSections = sections.filter((_, index) => {
+    // Categories 0-3: critical points, monotonicity, extrema.
+    if (index < 4 && verifiedMonotonicity) {
+      return false;
+    }
+
+    // Categories 4-6: concavity and inflection.
+    if (
+      index >= 4 &&
+      (cubicCurvatureCertified || verifiedQuarticConcavity)
+    ) {
+      return false;
+    }
+
+    return true;
+  });
+
   return (
     <section
       aria-label="Function study results"
@@ -140,7 +167,7 @@ export function FunctionStudyResults({
         </section>
       </div>
 
-      {result.monotonicityProof.status === 'verified' ? (
+      {verifiedMonotonicity && result.monotonicityProof.status === 'verified' ? (
         <section
           aria-label="Verified monotonicity proof"
           className="space-y-4 rounded-lg border bg-background p-4"
@@ -153,8 +180,8 @@ export function FunctionStudyResults({
 
           <p className="text-sm text-muted-foreground">
             {ar
-              ? 'إثبات دقيق لكثيرة حدود من الدرجة الأولى أو الثانية ضمن نطاق الأعداد الحقيقية.'
-              : 'Exact proof for a supported linear or quadratic polynomial over the real numbers.'}
+              ? `إثبات دقيق لدالة كثيرة حدود من الدرجة ${result.monotonicityProof.degree} ضمن نطاق الأعداد الحقيقية والحالات المدعومة.`
+              : `Exact proof for a supported degree-${result.monotonicityProof.degree} polynomial over the real numbers.`}
           </p>
 
           <div className="grid gap-3 sm:grid-cols-2">
@@ -176,7 +203,35 @@ export function FunctionStudyResults({
                 values: result.monotonicityProof.extrema.map(item =>
                   `${item.type}: x = ${item.x}, f(x) = ${item.y}`
                 )
-              }
+              },
+              ...(result.monotonicityProof.degree === 3
+                ? [
+                    {
+                      label: ar
+                        ? 'فترات التقعر لأعلى'
+                        : 'Concave-up intervals',
+                      values:
+                        result.monotonicityProof.concaveUpIntervals
+                    },
+                    {
+                      label: ar
+                        ? 'فترات التقعر لأسفل'
+                        : 'Concave-down intervals',
+                      values:
+                        result.monotonicityProof.concaveDownIntervals
+                    },
+                    {
+                      label: ar
+                        ? 'نقاط الانعطاف'
+                        : 'Inflection points',
+                      values:
+                        result.monotonicityProof.inflectionPoints.map(
+                          point =>
+                            `x = ${point.x}, f(x) = ${point.y}`
+                        )
+                    }
+                  ]
+                : [])
             ].map(section => (
               <div key={section.label} className="space-y-1">
                 <h4 className="text-sm font-semibold">
@@ -220,22 +275,104 @@ export function FunctionStudyResults({
         </p>
       )}
 
-      <h3 className="font-semibold">
-        {ar
-          ? 'نتائج التحليل الأولية غير المثبتة'
-          : 'Unverified analysis candidates'}
-      </h3>
+      {result.concavityProof.status === 'verified' && (
+        <section
+          aria-label="Verified concavity proof"
+          className="space-y-4 rounded-lg border bg-background p-4"
+        >
+          <h3 className="font-semibold">
+            {ar
+              ? 'نتائج مثبتة: التقعر ونقاط الانعطاف'
+              : 'Proven results: concavity and inflection'}
+          </h3>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        {sections.map(section => (
-          <CandidateSection
-            key={section.title}
-            title={section.title}
-            items={section.items}
-            emptyMessage={emptyMessage}
+          <p className="text-sm text-muted-foreground">
+            {ar
+              ? 'هذا الإثبات مستقل عن إثبات التزايد والتناقص، ويعتمد على المشتقة الثانية.'
+              : 'This proof is independent of the monotonicity proof and uses the exact second derivative.'}
+          </p>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            {[
+              {
+                label: ar
+                  ? 'فترات التقعر لأعلى'
+                  : 'Concave-up intervals',
+                values: result.concavityProof.concaveUpIntervals
+              },
+              {
+                label: ar
+                  ? 'فترات التقعر لأسفل'
+                  : 'Concave-down intervals',
+                values: result.concavityProof.concaveDownIntervals
+              },
+              {
+                label: ar
+                  ? 'نقاط الانعطاف'
+                  : 'Inflection points',
+                values: result.concavityProof.inflectionPoints.map(
+                  point =>
+                    `x = ${point.x}, f(x) = ${point.y}`
+                )
+              }
+            ].map(section => (
+              <div key={section.label} className="space-y-1">
+                <h4 className="text-sm font-semibold">
+                  {section.label}
+                </h4>
+
+                {section.values.length > 0 ? (
+                  <ul className="space-y-1">
+                    {section.values.map((value, index) => (
+                      <li
+                        key={index}
+                        dir="ltr"
+                        className="font-mono text-sm"
+                      >
+                        {value}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    {ar ? 'لا يوجد' : 'None'}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <h4 className="font-semibold">
+            {ar ? 'خطوات إثبات التقعر' : 'Concavity proof steps'}
+          </h4>
+
+          <MathSolutionSteps
+            steps={result.concavityProof.steps}
+            language={language}
           />
-        ))}
-      </div>
+        </section>
+      )}
+
+      {candidateSections.length > 0 && (
+        <>
+          <h3 className="font-semibold">
+            {ar
+              ? 'نتائج التحليل الأولية غير المثبتة'
+              : 'Unverified analysis candidates'}
+          </h3>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            {candidateSections.map(section => (
+              <CandidateSection
+                key={section.title}
+                title={section.title}
+                items={section.items}
+                emptyMessage={emptyMessage}
+              />
+            ))}
+          </div>
+        </>
+      )}
 
       <section className="space-y-2">
         <h3 className="font-semibold">

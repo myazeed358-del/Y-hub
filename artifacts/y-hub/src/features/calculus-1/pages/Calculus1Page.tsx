@@ -15,9 +15,21 @@ import {
   type FunctionStudyResult
 } from '../services/functionStudyService';
 import { FunctionStudyResults } from '../components/FunctionStudyResults';
+import {
+  proveExactDomain,
+  type ExactDomainProof
+} from '../services/exactDomainProof';
+import {
+  proveExactRange,
+  type ExactRangeProof
+} from '../services/exactRangeProof';
+import {
+  proveExactIntercepts,
+  type ExactInterceptProof
+} from '../services/exactInterceptProof';
 import 'katex/dist/katex.min.css';
 
-type Operation = 'limits' | 'derivatives' | 'implicit' | 'higher-order' | 'tangent-normal' | 'function-study';
+type Operation = 'limits' | 'derivatives' | 'implicit' | 'higher-order' | 'tangent-normal' | 'domain' | 'range' | 'intercepts' | 'function-study';
 
 const DEFAULT_EXPRESSIONS: Record<Operation, string> = {
   limits: 'sin(x)/x',
@@ -25,7 +37,10 @@ const DEFAULT_EXPRESSIONS: Record<Operation, string> = {
   implicit: 'x^2+y^2=25',
   'higher-order': 'x^4',
   'tangent-normal': 'x^2',
-  'function-study': 'x^3-3*x'
+  'function-study': 'x^3-3*x',
+  domain: 'sqrt(x^2-2)',
+  range: 'x^2-4*x+1',
+  intercepts: 'x^2-2'
 };
 
 export default function Calculus1Page() {
@@ -50,6 +65,12 @@ export default function Calculus1Page() {
     React.useState<Calculus1Result | null>(null);
   const [studyResult, setStudyResult] =
     React.useState<FunctionStudyResult | null>(null);
+  const [domainResult, setDomainResult] =
+    React.useState<ExactDomainProof | null>(null);
+  const [rangeResult, setRangeResult] =
+    React.useState<ExactRangeProof | null>(null);
+  const [interceptResult, setInterceptResult] =
+    React.useState<ExactInterceptProof | null>(null);
   const [isStudying, setIsStudying] = React.useState(false);
   const requestIdRef = React.useRef(0);
   const [error, setError] = React.useState<string | null>(null);
@@ -61,11 +82,29 @@ export default function Calculus1Page() {
 
     setResult(null);
     setStudyResult(null);
+    setDomainResult(null);
+    setRangeResult(null);
+    setInterceptResult(null);
     setError(null);
     setIsStudying(operation === 'function-study');
 
     try {
-      if (operation === 'function-study') {
+      if (operation === 'domain') {
+        const proof = proveExactDomain(expression);
+        if (requestId === requestIdRef.current) {
+          setDomainResult(proof);
+        }
+      } else if (operation === 'intercepts') {
+        const proof = proveExactIntercepts(expression);
+        if (requestId === requestIdRef.current) {
+          setInterceptResult(proof);
+        }
+      } else if (operation === 'range') {
+        const proof = proveExactRange(expression);
+        if (requestId === requestIdRef.current) {
+          setRangeResult(proof);
+        }
+      } else if (operation === 'function-study') {
         const studied = await studyCalculus1Function(expression);
 
         if (requestId === requestIdRef.current) {
@@ -123,7 +162,7 @@ export default function Calculus1Page() {
 
       <div role="tablist" aria-label="Calculus operations"
         className="flex flex-wrap gap-2">
-        {(['limits', 'derivatives', 'implicit', 'higher-order', 'tangent-normal', 'function-study'] as const).map(item => (
+        {(['limits', 'derivatives', 'implicit', 'higher-order', 'tangent-normal', 'domain', 'range', 'intercepts', 'function-study'] as const).map(item => (
           <button
             key={item}
             type="button"
@@ -134,6 +173,9 @@ export default function Calculus1Page() {
               setOperation(item);
               setResult(null);
               setStudyResult(null);
+              setDomainResult(null);
+              setRangeResult(null);
+              setInterceptResult(null);
               setIsStudying(false);
               setError(null);
             }}
@@ -153,7 +195,13 @@ export default function Calculus1Page() {
                     ? (ar ? 'المشتقات العليا' : 'Higher-order derivatives')
                     : item === 'tangent-normal'
                       ? (ar ? 'المماس والعمودي' : 'Tangent & normal')
-                      : (ar ? 'دراسة الدالة' : 'Function study')}
+                      : item === 'domain'
+                    ? (ar ? 'مجال الدالة' : 'Domain')
+                    : item === 'range'
+                      ? (ar ? 'مدى الدالة' : 'Range')
+                      : item === 'intercepts'
+                        ? (ar ? 'تقاطعات المحاور' : 'Intercepts')
+                        : (ar ? 'دراسة الدالة' : 'Function study')}
           </button>
         ))}
       </div>
@@ -291,6 +339,226 @@ export default function Calculus1Page() {
           className="rounded-lg border border-destructive p-4 text-destructive">
           {error}
         </div>
+      )}
+
+      {domainResult && operation === 'domain' && (
+        <section
+          role="region"
+          aria-label={
+            domainResult.status === 'verified'
+              ? 'Verified real domain'
+              : 'Unverified real domain'
+          }
+          className="space-y-4 rounded-xl border bg-card p-5"
+        >
+          <h2 className="text-xl font-bold">
+            {ar ? 'مجال الدالة' : 'Function domain'}
+          </h2>
+
+          {domainResult.status === 'verified' ? (
+            <>
+              <p className="font-semibold">
+                {ar
+                  ? 'مجال مثبت ضمن الحالات المدعومة'
+                  : 'Verified within the supported scope'}
+              </p>
+
+              <p
+                dir="ltr"
+                className="break-words font-mono"
+                data-testid="exact-domain-result"
+              >
+                {domainResult.domain.join(' ∪ ')}
+              </p>
+
+              <p className="text-sm text-muted-foreground">
+                {ar
+                  ? 'الإثبات خاص بنطاق الدوال الذي يدعمه المحرك، ولا يعني دعم جميع أنواع الدوال.'
+                  : 'This proof applies to the supported function grammar, not to every mathematical function.'}
+              </p>
+
+              {domainResult.steps.length > 0 && (
+                <MathSolutionSteps
+                  steps={domainResult.steps}
+                  language={language}
+                />
+              )}
+            </>
+          ) : (
+            <>
+              <p className="font-semibold">
+                {ar
+                  ? 'لم يتم إثبات المجال لهذه الدالة'
+                  : 'Complete domain proof unavailable'}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {domainResult.reason}
+              </p>
+            </>
+          )}
+        </section>
+      )}
+
+      {rangeResult && operation === 'range' && (
+        <section
+          role="region"
+          aria-label={
+            rangeResult.status === 'verified'
+              ? 'Verified real range'
+              : 'Unverified real range'
+          }
+          className="space-y-4 rounded-xl border bg-card p-5"
+        >
+          <h2 className="text-xl font-bold">
+            {ar ? 'مدى الدالة' : 'Function range'}
+          </h2>
+
+          {rangeResult.status === 'verified' ? (
+            <>
+              <p className="font-semibold">
+                {ar
+                  ? 'مدى مثبت ضمن الحالات المدعومة'
+                  : 'Verified range within the supported scope'}
+              </p>
+
+              <p
+                dir="ltr"
+                className="break-words font-mono"
+                data-testid="exact-range-result"
+              >
+                {rangeResult.range.join(' ∪ ')}
+              </p>
+
+              <p className="text-sm text-muted-foreground">
+                {ar
+                  ? 'الإثبات يدعم كثيرات الحدود حتى الدرجة الثانية، والتكعيبيات والرباعيات التي اجتازت إثباتًا مستقلًا.'
+                  : 'The proof supports polynomials of degree zero through two and independently certified cubics and quartics.'}
+              </p>
+
+              {rangeResult.steps.length > 0 && (
+                <MathSolutionSteps
+                  steps={rangeResult.steps}
+                  language={language}
+                />
+              )}
+            </>
+          ) : (
+            <>
+              <p className="font-semibold">
+                {ar
+                  ? 'لم يتم إثبات المدى لهذه الدالة'
+                  : 'Complete range proof unavailable'}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {rangeResult.reason}
+              </p>
+            </>
+          )}
+        </section>
+      )}
+
+      {interceptResult && operation === 'intercepts' && (
+        <section
+          role="region"
+          aria-label={
+            interceptResult.status === 'verified'
+              ? 'Verified intercepts'
+              : 'Unverified intercepts'
+          }
+          className="space-y-4 rounded-xl border bg-card p-5"
+        >
+          <h2 className="text-xl font-bold">
+            {ar ? 'تقاطعات المحاور' : 'Axis intercepts'}
+          </h2>
+
+          {interceptResult.status === 'verified' ? (
+            <>
+              <p className="font-semibold">
+                {ar
+                  ? 'تقاطعات مثبتة ضمن نطاق المحرك'
+                  : 'Verified within the supported scope'}
+              </p>
+
+              <div className="space-y-2">
+                <h3 className="font-semibold">
+                  {ar
+                    ? 'التقاطع مع محور y'
+                    : 'Y-intercept'}
+                </h3>
+
+                <p dir="ltr" data-testid="y-intercept">
+                  (0, {interceptResult.yIntercept.y})
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <h3 className="font-semibold">
+                  {ar
+                    ? 'التقاطعات مع محور x'
+                    : 'X-intercepts'}
+                </h3>
+
+                {interceptResult.xIntercepts.kind ===
+                'all_real' ? (
+                  <p data-testid="all-real-intercepts">
+                    {ar
+                      ? 'كل عدد حقيقي يمثل تقاطعًا مع محور x.'
+                      : 'Every real x is an x-intercept.'}
+                  </p>
+                ) : interceptResult.xIntercepts.roots.length
+                    === 0 ? (
+                  <p data-testid="no-x-intercepts">
+                    {ar
+                      ? 'لا توجد تقاطعات حقيقية مع محور x.'
+                      : 'No real x-intercepts.'}
+                  </p>
+                ) : (
+                  <ul
+                    dir="ltr"
+                    className="space-y-1"
+                    data-testid="x-intercepts"
+                  >
+                    {interceptResult.xIntercepts.roots.map(
+                      (root, index) => (
+                        <li
+                          key={`${index}-${root}`}
+                          className="font-mono"
+                        >
+                          ({root}, 0)
+                        </li>
+                      )
+                    )}
+                  </ul>
+                )}
+              </div>
+
+              <p className="text-sm text-muted-foreground">
+                {ar
+                  ? 'الإثبات الحالي يدعم كثيرات الحدود حتى الدرجة الثانية، بما فيها الجذور التربيعية غير النسبية.'
+                  : 'The current proof supports real polynomials through degree two, including exact irrational quadratic roots.'}
+              </p>
+
+              {interceptResult.steps.length > 0 && (
+                <MathSolutionSteps
+                  steps={interceptResult.steps}
+                  language={language}
+                />
+              )}
+            </>
+          ) : (
+            <>
+              <p className="font-semibold">
+                {ar
+                  ? 'لا يتوفر إثبات كامل للتقاطعات'
+                  : 'Complete intercept proof unavailable'}
+              </p>
+
+              <p className="text-sm text-muted-foreground">
+                {interceptResult.reason}
+              </p>
+            </>
+          )}
+        </section>
       )}
 
       {studyResult && operation === 'function-study' && (
