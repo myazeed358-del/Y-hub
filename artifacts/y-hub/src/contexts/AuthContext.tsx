@@ -8,6 +8,7 @@ export type AuthStatus = 'loading' | 'unauthenticated' | 'authenticated' | 'prof
 
 export interface UserProfile {
   email?: string;
+  user_number?: string | null;
   full_name?: string;
   age?: number;
   major?: string;
