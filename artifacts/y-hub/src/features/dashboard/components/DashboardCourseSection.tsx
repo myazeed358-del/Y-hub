@@ -107,7 +107,13 @@ export function DashboardCourseSection({
             </Button>
           </div>
         ) : (
-          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          <div
+            className="grid min-w-0 gap-5"
+            style={{
+              gridTemplateColumns:
+                'repeat(auto-fit, minmax(min(100%, 340px), 1fr))',
+            }}
+          >
             {courses.map((course) => (
               <DashboardCourseCard
                 key={course.id}
