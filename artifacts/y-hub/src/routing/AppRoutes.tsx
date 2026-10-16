@@ -28,6 +28,18 @@ function Calculus1Route() {
   );
 }
 
+const OdePage = React.lazy(
+  () => import('@/features/ode/pages/OdePage')
+);
+
+function OdeRoute() {
+  return (
+    <React.Suspense fallback={<div role="status">Loading ODE...</div>}>
+      <OdePage />
+    </React.Suspense>
+  );
+}
+
 const LinearAlgebraPage = React.lazy(
   () => import('@/features/linear-algebra/pages/LinearAlgebraPage')
 );
@@ -101,6 +113,11 @@ export function AppRoutes({
       <Route path="/course/:id/view">{(params) => <ProtectedRoute component={StudentCourseView} params={params} />}</Route>
       <Route path="/course/:id/ai-tutor">{(params) => <ProtectedRoute component={AIGenerator} params={params} />}</Route>
       <Route path="/exam/:id">{(params) => <ProtectedRoute component={ExamRunner} params={params} />}</Route>
+      <Route path="/ode">
+        {() => (
+          <ProtectedRoute component={OdeRoute} enginePath="/ode" />
+        )}
+      </Route>
       <Route path="/linear-algebra">
         {() => (
           <ProtectedRoute
