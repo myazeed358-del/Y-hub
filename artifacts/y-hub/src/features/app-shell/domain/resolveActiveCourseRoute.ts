@@ -8,6 +8,7 @@ const contextPreservingTools = new Set([
   '/lab',
   '/matrix-calc',
   '/simplex',
+  '/calculus-1',
   '/calculus',
   '/solver',
   '/sandbox',

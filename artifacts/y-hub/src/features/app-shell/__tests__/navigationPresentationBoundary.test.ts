@@ -123,6 +123,7 @@ describe('NavigationPresentationBoundary', () => {
       Home,
       BrainCircuit,
       LineChart,
+      LineChart,
       Box,
       Calculator,
       FlaskConical,

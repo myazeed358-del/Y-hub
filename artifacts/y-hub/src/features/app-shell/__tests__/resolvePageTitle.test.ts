@@ -21,6 +21,7 @@ describe('resolvePageTitle', () => {
     ['/course', 'coursePlan'],
     ['/course/123', 'coursePlan'],
     ['/quiz', 'quickPractice'],
+    ['/calculus-1', 'calculus1Solver'],
     ['/calculus', 'calculusPlotter'],
     ['/math-solver', 'calculus3Solver'],
     ['/lesson/introduction', 'lessonPath'],

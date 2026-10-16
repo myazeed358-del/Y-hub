@@ -169,6 +169,7 @@ describe('AppRoutes', () => {
       '/linear-algebra',
       '/math-solver',
       '/solver',
+      '/calculus-1',
       '/calculus',
       '/legacy-home',
       '/legacy-course',
@@ -213,6 +214,7 @@ describe('AppRoutes', () => {
   });
 
   it.each([
+    '/calculus-1',
     '/linear-algebra',
     '/ode',
     '/math-solver',

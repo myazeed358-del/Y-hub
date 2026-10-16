@@ -47,6 +47,29 @@ export const ENGINE_CATALOG: readonly EngineDefinition[] = [
     ],
   },
   {
+    id: 'calculus-1',
+    route: '/calculus-1',
+    majors: ['mathematics'],
+    title: {
+      ar: 'التفاضل والتكامل 1',
+      en: 'Calculus I',
+    },
+    description: {
+      ar: 'حل النهايات والاشتقاق باستخدام محركات رياضية داخلية.',
+      en: 'Limits and derivatives using internal math engines.',
+    },
+    keywords: [
+      'calculus 1',
+      'calculus i',
+      'limits',
+      'derivatives',
+      'تفاضل وتكامل 1',
+      'كالك 1',
+      'نهايات',
+      'اشتقاق',
+    ],
+  },
+  {
     id: 'linear-algebra',
     route: '/linear-algebra',
     majors: ['mathematics'],

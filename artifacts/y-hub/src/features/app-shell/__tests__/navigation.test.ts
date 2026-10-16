@@ -25,6 +25,7 @@ function paths(groups: NavigationGroup[]): string[] {
 }
 
 const enginePaths = [
+  '/calculus-1',
   '/calculus',
   '/math-solver',
   '/solver',

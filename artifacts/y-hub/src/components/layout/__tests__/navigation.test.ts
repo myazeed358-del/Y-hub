@@ -6,6 +6,7 @@ import {
 } from '@/config/majorEngineAccess';
 
 const mathEngines = [
+  '/calculus-1',
   '/calculus',
   '/math-solver',
   '/solver',

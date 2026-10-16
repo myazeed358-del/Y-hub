@@ -16,6 +16,18 @@ import MathSolver from '@/pages/MathSolver';
 import CalculusSolver from '@/pages/CalculusSolver';
 import Solver from '@/pages/Solver';
 
+const Calculus1Page = React.lazy(
+  () => import('@/features/calculus-1/pages/Calculus1Page')
+);
+
+function Calculus1Route() {
+  return (
+    <React.Suspense fallback={<div role="status">جاري التحميل... / Loading...</div>}>
+      <Calculus1Page />
+    </React.Suspense>
+  );
+}
+
 const OdePage = React.lazy(
   () => import('@/features/ode/pages/OdePage')
 );
@@ -116,6 +128,9 @@ export function AppRoutes({
       </Route>
       <Route path="/math-solver">{() => <ProtectedRoute component={MathSolver} enginePath="/math-solver" />}</Route>
       <Route path="/solver">{() => <ProtectedRoute component={Solver} enginePath="/solver" />}</Route>
+      <Route path="/calculus-1">
+        {() => <ProtectedRoute component={Calculus1Route} enginePath="/calculus-1" />}
+      </Route>
       <Route path="/calculus">{() => <ProtectedRoute component={CalculusSolver} enginePath="/calculus" />}</Route>
       <Route path="/legacy-home">{() => <ProtectedRoute component={Home} />}</Route>
       <Route path="/legacy-course">{() => <ProtectedRoute component={CoursePlan} />}</Route>

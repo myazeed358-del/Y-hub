@@ -1,4 +1,5 @@
 import * as math from 'mathjs';
+import type { MathStep } from '../services/math/types/step';
 import { ExpressionParser } from '../services/math/parser';
 import { ASTNormalizer } from '../services/math/parser/normalizer';
 import { LimitEngine } from '../services/math/symbolic/limit';
@@ -7,6 +8,7 @@ import type { LimitDirection, LimitApproach } from '../services/math/types/limit
 import type { LimitClassification } from '../services/math/types/result';
 
 export interface CalculusLimitOutcome {
+  steps: MathStep[];
   classification: LimitClassification;
   valueLatex: string | null;
   strategy: string;
@@ -148,5 +150,6 @@ export function evaluateCalculusLimit(
     strategy: result.strategy,
     warnings,
     conditions: result.conditions,
+    steps: result.steps,
   };
 }
