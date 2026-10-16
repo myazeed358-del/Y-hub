@@ -45,17 +45,17 @@ export function DashboardCourseCard({
   return (
               <article
                 key={course.id}
-                className="group relative flex min-h-[280px] flex-col overflow-hidden rounded-[1.5rem] border border-border bg-card p-5 dark:border-slate-800 dark:bg-slate-950/35 transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:bg-muted/30 dark:hover:border-cyan-400/20 dark:hover:bg-slate-950/55 hover:shadow-[0_20px_45px_rgba(0,0,0,.18)]"
+                className="group relative flex min-h-[280px] min-w-0 w-full flex-col overflow-hidden rounded-[1.5rem] border border-border bg-card p-5 dark:border-slate-800 dark:bg-slate-950/35 transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:bg-muted/30 dark:hover:border-cyan-400/20 dark:hover:bg-slate-950/55 hover:shadow-[0_20px_45px_rgba(0,0,0,.18)]"
               >
                 <div className="pointer-events-none absolute right-0 top-0 h-28 w-28 rounded-full bg-cyan-400/[0.04] blur-3xl transition-opacity group-hover:bg-cyan-400/[0.08]" />
 
-                <div className="relative flex items-start justify-between gap-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-primary/15 bg-primary/5 text-primary dark:border-white/[0.05] dark:bg-white/[0.025] dark:text-cyan-400">
+                <div className="relative flex flex-wrap items-center gap-2">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-primary/15 bg-primary/5 text-primary dark:border-white/[0.05] dark:bg-white/[0.025] dark:text-cyan-400">
                     <BookOpen size={20} />
                   </div>
 
                   <span
-                    className={`rounded-full border px-2.5 py-1 text-[10px] font-black ${
+                    className={`shrink-0 whitespace-nowrap rounded-full border px-2.5 py-1 text-[10px] font-black ${
                       course.is_published
                         ? 'border-primary/20 bg-primary/10 text-primary dark:border-cyan-400/15 dark:bg-cyan-400/[0.06] dark:text-cyan-300'
                         : 'border-violet-500/20 bg-violet-500/10 text-violet-700 dark:border-violet-400/15 dark:bg-violet-400/[0.06] dark:text-violet-300'
@@ -65,7 +65,7 @@ export function DashboardCourseCard({
                       ? copy.publishedBadge
                       : copy.draftBadge}
                   </span>
-                  <span className={`rounded-full border px-2.5 py-1 text-[10px] font-bold ${
+                  <span className={`shrink-0 whitespace-nowrap rounded-full border px-2.5 py-1 text-[10px] font-bold ${
                     course.enrollment_open
                       ? 'border-emerald-500/30 text-emerald-600 dark:text-emerald-300'
                       : 'border-amber-500/30 text-amber-700 dark:text-amber-300'
@@ -107,7 +107,7 @@ export function DashboardCourseCard({
 
                 {canManage && (
                 <div className="relative mt-6 border-t border-border pt-4 dark:border-slate-800/80">
-                  <div className="flex items-center gap-2">
+                  <div className="grid grid-cols-[40px_40px_minmax(0,1fr)] gap-2">
                     <button
                       type="button"
                       title={copy.delete}
@@ -140,15 +140,15 @@ export function DashboardCourseCard({
                       title={course.enrollment_open ? copy.closeRegistration : copy.openRegistration}
                       disabled={updatingEnrollmentId === course.id}
                       onClick={() => handleToggleEnrollmentOpen(course)}
-                      className="flex h-10 items-center gap-2 rounded-xl border border-border px-3 text-xs font-bold text-foreground hover:bg-muted disabled:opacity-50"
+                      className="flex h-10 min-w-0 items-center justify-center gap-2 rounded-xl border border-border px-2 text-xs font-bold text-foreground hover:bg-muted disabled:opacity-50"
                     >
                       {course.enrollment_open ? <Lock size={15} /> : <LockOpen size={15} />}
-                      <span>{course.enrollment_open ? copy.closeRegistration : copy.openRegistration}</span>
+                      <span className="min-w-0 truncate">{course.enrollment_open ? copy.closeRegistration : copy.openRegistration}</span>
                     </button>
 
                     <Link
                       href={`/course/${course.id}`}
-                      className="min-w-0 flex-1"
+                      className="col-span-3 min-w-0"
                     >
                       <Button className="h-10 w-full gap-2 rounded-xl border border-primary/25 bg-primary/10 font-bold text-primary hover:bg-primary/15 hover:text-primary dark:border-cyan-400/15 dark:bg-cyan-400/[0.07] dark:text-cyan-300 dark:hover:bg-cyan-400/[0.12] dark:hover:text-cyan-200">
                         <Settings2 size={15} />
