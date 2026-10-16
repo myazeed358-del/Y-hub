@@ -42,6 +42,7 @@ describe('navigationRoutes', () => {
       '/solver',
       '/lab',
       '/linear-algebra',
+      '/ode',
     ]);
   });
 
@@ -60,6 +61,7 @@ describe('navigationRoutes', () => {
       '/solver',
       '/lab',
       '/linear-algebra',
+      '/ode',
     ]);
   });
 
@@ -73,6 +75,7 @@ describe('navigationRoutes', () => {
         '/solver',
         '/lab',
         '/linear-algebra',
+      '/ode',
       ]);
     }
   });
@@ -91,6 +94,7 @@ describe('navigationRoutes', () => {
       'calculator',
       'flaskConical',
       'grid2x2',
+      'lineChart',
     ]);
 
     expect(
@@ -143,6 +147,7 @@ describe('navigationRoutes', () => {
       Calculator,
       FlaskConical,
       Grid2X2,
+      LineChart,
     ]);
   });
 

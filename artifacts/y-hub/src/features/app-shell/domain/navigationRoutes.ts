@@ -42,6 +42,7 @@ export function buildNavigationRouteGroups(
     { href: '/solver', key: 'solver' as UiKey, iconId: 'calculator' as const },
     { href: '/lab', key: 'lab' as UiKey, iconId: 'flaskConical' as const },
     { href: '/linear-algebra', key: 'linearAlgebra' as UiKey, iconId: 'grid2x2' as const },
+    { href: '/ode', key: 'odeSolver' as UiKey, iconId: 'lineChart' as const },
   ].filter((item) => sidebarEngineRoutes.has(item.href));
 
   return [

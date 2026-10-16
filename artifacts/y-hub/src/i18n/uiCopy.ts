@@ -141,6 +141,7 @@ export const uiCopy = {
     calculusPlotter: 'التفاضل والتكامل 2',
     calculus3Solver: 'التفاضل والتكامل 3',
     linearAlgebra: 'الجبر الخطي',
+    odeSolver: 'المعادلات التفاضلية',
   },
   en: {
     appName: 'Y HUB',
@@ -267,5 +268,6 @@ export const uiCopy = {
     calculusPlotter: 'Calculus II',
     calculus3Solver: 'Calculus III',
     linearAlgebra: 'Linear Algebra',
+    odeSolver: 'Differential Equations',
   },
 } as const;

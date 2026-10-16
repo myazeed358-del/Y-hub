@@ -30,6 +30,23 @@ export interface EngineDefinition {
  */
 export const ENGINE_CATALOG: readonly EngineDefinition[] = [
   {
+    id: 'ode',
+    route: '/ode',
+    majors: ['mathematics'],
+    title: {
+      ar: 'المعادلات التفاضلية',
+      en: 'Differential Equations',
+    },
+    description: {
+      ar: 'حل المعادلات التفاضلية رمزيًا وعدديًا مع خطوات الحل.',
+      en: 'Symbolic and numerical ODE solving with steps.',
+    },
+    keywords: [
+      'ode', 'differential equations', 'euler',
+      'runge kutta', 'معادلات تفاضلية', 'تفاضلية',
+    ],
+  },
+  {
     id: 'linear-algebra',
     route: '/linear-algebra',
     majors: ['mathematics'],
