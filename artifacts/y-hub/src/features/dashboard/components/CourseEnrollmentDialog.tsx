@@ -60,10 +60,19 @@ export function CourseEnrollmentDialog({
             {students.map((student, index) => (
               <li
                 key={student.student_id}
-                className="flex items-center gap-3 rounded-lg border border-border bg-card px-3 py-2 text-sm"
+                className="flex min-w-0 flex-wrap items-center gap-3 rounded-lg border border-border bg-card px-3 py-2 text-sm"
               >
                 <span className="text-muted-foreground">{index + 1}.</span>
-                <span className="font-semibold">{student.full_name}</span>
+                <span className="min-w-0 flex-1 break-words font-semibold">
+                  {student.full_name}
+                </span>
+                <span
+                  dir="ltr"
+                  title={isArabic ? 'رقم Y-Hub' : 'Y-Hub number'}
+                  className="shrink-0 rounded-lg border border-border bg-muted/40 px-3 py-1 font-mono text-xs font-bold"
+                >
+                  {student.user_number ?? '—'}
+                </span>
               </li>
             ))}
           </ul>
