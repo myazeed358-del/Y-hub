@@ -5,6 +5,7 @@ import {
   Loader2,
   ShieldAlert,
   UserPlus,
+  Lock,
 } from 'lucide-react';
 
 interface Props {
@@ -12,6 +13,7 @@ interface Props {
     title: string;
     description?: string | null;
     course_code?: string | null;
+    enrollment_open: boolean;
   };
   enrolling: boolean;
   handleEnroll: () => Promise<void>;
@@ -43,15 +45,19 @@ export function StudentEnrollmentGate({
         <div className="mt-8 p-6 rounded-2xl border border-border bg-card">
           <p className="font-bold text-lg mb-1">التسجيل مطلوب</p>
           <p className="text-sm text-muted-foreground mb-6">
-            سجّل في هذا المساق للوصول إلى المواد الدراسية والاختبارات والمعلم الذكي.
+            {course.enrollment_open
+              ? 'سجّل في هذا المساق للوصول إلى المواد الدراسية والاختبارات والمعلم الذكي.'
+              : 'التسجيل مغلق حاليًا. الطلاب المسجلون سابقًا يستطيعون الاستمرار في المساق.'}
           </p>
           <div className="flex gap-3 justify-center flex-wrap">
             <Button
               className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-8"
               onClick={handleEnroll}
-              disabled={enrolling}
+              disabled={enrolling || !course.enrollment_open}
             >
-              {enrolling ? (
+              {!course.enrollment_open ? (
+                <><Lock size={16} /> التسجيل مغلق</>
+              ) : enrolling ? (
                 <><Loader2 size={16} className="animate-spin" /> جاري التسجيل...</>
               ) : (
                 <><UserPlus size={18} /> سجّل الآن</>

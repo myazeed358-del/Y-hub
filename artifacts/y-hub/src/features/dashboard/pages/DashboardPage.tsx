@@ -25,7 +25,9 @@ export default function DashboardPage() {
     publishedCount,
     draftCount,
     handleDelete,
-    handleToggleStatus
+    handleToggleStatus,
+    handleToggleEnrollmentOpen,
+    updatingEnrollmentId,
   } = useDashboardController();
 
   return (
@@ -64,6 +66,8 @@ export default function DashboardPage() {
         setIsOpen={setIsOpen}
         handleDelete={handleDelete}
         handleToggleStatus={handleToggleStatus}
+        handleToggleEnrollmentOpen={handleToggleEnrollmentOpen}
+        updatingEnrollmentId={updatingEnrollmentId}
       />
     </div>
   );
