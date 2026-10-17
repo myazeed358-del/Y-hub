@@ -4,9 +4,37 @@ export type EngineAccessRole =
   | 'admin'
   | 'super_admin';
 
+/**
+ * Serializable sidebar metadata for engines.
+ * Kept in the engine catalog so navigation never maintains a second
+ * hard-coded engine inventory.
+ */
+export type EngineSidebarIconId =
+  | 'lineChart'
+  | 'box'
+  | 'calculator'
+  | 'flaskConical'
+  | 'grid2x2';
+
+export type EngineSidebarLabelKey =
+  | 'calculus1Solver'
+  | 'calculusPlotter'
+  | 'calculus3Solver'
+  | 'solver'
+  | 'lab'
+  | 'linearAlgebra'
+  | 'odeSolver';
+
+export interface EngineSidebarMetadata {
+  labelKey: EngineSidebarLabelKey;
+  iconId: EngineSidebarIconId;
+  order: number;
+}
+
 export interface EngineDefinition {
   id: string;
   route: string;
+  sidebar?: EngineSidebarMetadata;
   majors: readonly string[];
   title: {
     ar: string;
@@ -32,6 +60,7 @@ export const ENGINE_CATALOG: readonly EngineDefinition[] = [
   {
     id: 'ode',
     route: '/ode',
+    sidebar: { labelKey: 'odeSolver', iconId: 'lineChart', order: 70 },
     majors: ['mathematics'],
     title: {
       ar: 'المعادلات التفاضلية',
@@ -49,6 +78,7 @@ export const ENGINE_CATALOG: readonly EngineDefinition[] = [
   {
     id: 'calculus-1',
     route: '/calculus-1',
+    sidebar: { labelKey: 'calculus1Solver', iconId: 'lineChart', order: 10 },
     majors: ['mathematics'],
     title: {
       ar: 'التفاضل والتكامل 1',
@@ -72,6 +102,7 @@ export const ENGINE_CATALOG: readonly EngineDefinition[] = [
   {
     id: 'linear-algebra',
     route: '/linear-algebra',
+    sidebar: { labelKey: 'linearAlgebra', iconId: 'grid2x2', order: 60 },
     majors: ['mathematics'],
     title: {
       ar: 'الجبر الخطي',
@@ -95,6 +126,7 @@ export const ENGINE_CATALOG: readonly EngineDefinition[] = [
   {
     id: 'calculus-plotter',
     route: '/calculus',
+    sidebar: { labelKey: 'calculusPlotter', iconId: 'lineChart', order: 20 },
     majors: ['mathematics'],
     title: {
       ar: 'التفاضل والتكامل 2',
@@ -119,6 +151,7 @@ export const ENGINE_CATALOG: readonly EngineDefinition[] = [
   {
     id: 'calculus-iii',
     route: '/math-solver',
+    sidebar: { labelKey: 'calculus3Solver', iconId: 'box', order: 30 },
     majors: ['mathematics'],
     title: {
       ar: 'التفاضل والتكامل 3',
@@ -141,6 +174,7 @@ export const ENGINE_CATALOG: readonly EngineDefinition[] = [
   {
     id: 'fuzzy-logic-solver',
     route: '/solver',
+    sidebar: { labelKey: 'solver', iconId: 'calculator', order: 40 },
     majors: ['mathematics'],
     title: {
       ar: 'المنطق الضبابي',
@@ -168,6 +202,7 @@ export const ENGINE_CATALOG: readonly EngineDefinition[] = [
   {
     id: 'fuzzy-lab',
     route: '/lab',
+    sidebar: { labelKey: 'lab', iconId: 'flaskConical', order: 50 },
     majors: ['mathematics'],
     title: {
       ar: 'مختبر المنطق الضبابي',
