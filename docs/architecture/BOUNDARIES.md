@@ -65,4 +65,8 @@ The runtime check is intentionally lightweight; a specialised engine must additi
 
 ### Automated checks
 
-Run `python3 -B tools/audit_architecture.py --strict` or `bash scripts/verify-architecture-refactor.sh`. The latter requires project dependencies already installed (e.g. `pnpm install --frozen-lockfile`). Static checks guard cycles and direct cross-feature imports, but do not replace compiler, tests or runtime integration checks.
+Run `bash scripts/verify-architecture-refactor.sh` after `pnpm install --frozen-lockfile`. Set `YHUB_PYTHON` to the prepared interpreter. It runs all workspace TypeScript checks without regenerating design tokens, Vitest, the app build, Python tests and three architecture checks.
+
+`tools/check_module_boundaries.mjs` uses the existing TypeScript compiler API and project aliases to resolve static imports, re-exports and literal dynamic imports. It checks module-to-feature public entries, cross-module private imports, cross-feature private imports, math/composition separation, eager manifest imports and common metadata side effects. The known discovery glob contributes runtime graph edges; unsupported glob patterns require review. Type-only and lazy edges do not create static runtime cycles. Its Node tests include deliberately invalid import graphs.
+
+This is an architectural guard, not a security sandbox or proof of dead code. Computed import expressions, indirect runtime effects, backend authorization and actual UI behavior still require review and integration tests. Trusted module manifests must contain side-effect-free metadata; component errors and rejected lazy loaders are isolated at runtime.

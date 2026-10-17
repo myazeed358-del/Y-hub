@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run from a Codespaces checkout, on a feature branch. Never modifies source files.
+# Run from a prepared checkout, on a feature branch. Never modifies source files.
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
@@ -12,12 +12,16 @@ fi
 echo '===== ARCHITECTURE BOUNDARIES ====='
 python3 -B tools/audit_architecture.py --strict
 python3 -B tools/check_math_boundaries.py
+node --test tools/check_module_boundaries.test.mjs
+node tools/check_module_boundaries.mjs
 
 echo '===== TYPESCRIPT TYPECHECK ====='
-pnpm typecheck
+# Call tsc directly to avoid the design-system pretypecheck token generator.
+pnpm exec tsc --build
+pnpm --filter './artifacts/**' -r exec tsc -p tsconfig.json --noEmit
 
 echo '===== VITEST ====='
-pnpm --filter y-hub exec vitest run
+pnpm --filter y-hub exec vitest run --maxWorkers=2 --minWorkers=1
 
 echo '===== VITE BUILD ====='
 pnpm --filter y-hub build
