@@ -28,6 +28,7 @@ const schema = z.object({
     path: z.string().regex(/^\/[a-z0-9-]+(?:\/[a-z0-9-]+)*$/),
     load: z.custom<ModuleRouteDefinition['load']>(value => typeof value === 'function'),
     order: z.number().finite().optional(),
+    dashboard: z.object({ title: localized, iconId: z.enum(MODULE_ICONS), order: z.number().finite() }).strict().optional(),
     navigation: z.object({
       title: localized.optional(),
       labelKey: z.custom<NonNullable<ModuleRouteDefinition['navigation']>['labelKey']>(

@@ -39,6 +39,7 @@ export default {
     path: "/lab",
     order: 70,
     load: () => import('@/features/legacy-lab'),
+    dashboard: { title: { en: 'Statistics', ar: 'الإحصاء' }, iconId: 'activity', order: 30 },
     navigation: {"labelKey": "lab", "iconId": "flaskConical", "order": 50},
   }],
 } satisfies ModuleManifest;

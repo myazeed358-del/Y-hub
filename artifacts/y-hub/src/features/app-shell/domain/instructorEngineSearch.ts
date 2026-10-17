@@ -1,4 +1,4 @@
-import { searchEngines } from '@/config/majorEngineAccess';
+import { searchEngines, canRoleAccessEngineRoute } from '@/config/majorEngineAccess';
 import type { Language } from '@/i18n/uiCopy';
 
 export function resolveInstructorEngineSearch(
@@ -8,7 +8,9 @@ export function resolveInstructorEngineSearch(
 ) {
   const instructorSearchResults =
     role === 'instructor'
-      ? searchEngines(engineSearch, language).slice(0, 6)
+      ? searchEngines(engineSearch, language)
+          .filter(engine => canRoleAccessEngineRoute('instructor', null, engine.route))
+          .slice(0, 6)
       : [];
 
   const normalizedEngineSearch = engineSearch.trim().toLowerCase();

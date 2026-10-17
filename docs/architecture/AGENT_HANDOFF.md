@@ -1,16 +1,16 @@
 # Agent handoff
 
-CURRENT PHASE: module integration implemented; boundary/cleanup work next.
-CURRENT WORK PACKAGE: verified module discovery and route/navigation integration.
-LAST COMPLETED TASK: seven existing engines moved to metadata manifests and public entry points; demonstration and failure-isolation tests passed.
+CURRENT PHASE: dashboard/module integration complete; enforcement and cleanup next.
+CURRENT WORK PACKAGE: recovered interrupted dashboard package, verified and ready for remote checkpoint.
+LAST COMPLETED TASK: preserved and reviewed every pending diff; completed dashboard discovery integration test and validation.
 CURRENT BRANCH: refactor/architecture-plug-and-play
-LAST VERIFIED REMOTE COMMIT SHA: 749097edb0a8c54b8703922e90e6b1f718d1d77f (previous verified checkpoint; compare branch tip after pushing this package).
-FILES MODIFIED: src/modules added; seven feature index.ts entry points; majorEngineAccess projection; AppRoutes, ProtectedRoute, shell navigation/title adapters; route guard tests; contract/target docs.
-FILES DELETED: none yet; duplicate central registrations removed in place.
-TESTS EXECUTED: full Vitest; main app typecheck/build; static architecture and math boundary scripts.
-TEST RESULTS: 180 files / 1609 tests passed; 359 focused module/routing/navigation tests passed; compiler/build/audits pass. Python baseline remains 29 passing tests (no Python changes).
-KNOWN FAILURES: GitHub API Forbidden (Git push succeeds); anonymous Supabase tables denied; large bundle/PDF.js/Starlette warnings remain.
-UNFINISHED WORK: student dashboard must consume module contributions; search must filter module-specific roles; add module boundary enforcement, concrete service isolation improvements and verified cleanup; final regression and PR.
-NEXT EXACT STEP: inspect student dashboard tools and unused navItems, use shared module selection, enforce manifest/public API boundaries, inspect safe cleanup candidates.
-RECOVERY COMMANDS: git status --short --branch; git log -8 --oneline; git ls-remote origin refs/heads/refactor/architecture-plug-and-play; read AGENTS.md, REFACTOR_PROGRESS.md and PLUGIN_CONTRACT.md.
-IMPORTANT RISKS: module permissions without resource grants fail closed; no authenticated backend-security proof; metadata modules must be side-effect-free; do not migrate/delete production data or overwrite unrelated work.
+LAST VERIFIED REMOTE COMMIT SHA: 0add5ed5aeca454edb89223461bdd1d028a77912 (previous verified checkpoint).
+FILES MODIFIED: module dashboard metadata/selection, shared icon adapter, student dashboard hook/repository/types/components, instructor search and associated tests; PLUGIN_CONTRACT.md.
+FILES DELETED: no files; removed unused local navItems and duplicate tool arrays.
+TESTS EXECUTED: module/routing/app-shell/dashboard suites; app typecheck; main production build; static architecture/math-boundary audits; git diff --check.
+TEST RESULTS: 39 files / 387 focused tests passed; typecheck/build/audits passed. Last full run: 180 files / 1609 tests, before this package. Python baseline 29 passing tests; Python unchanged.
+KNOWN FAILURES: API GitHub CONNECT denied (403); normal Git push works. Added api.github.com to environment draft without replacing Supabase domain or presets; runtime activation/review remains external. Supabase signed-in/RLS validation remains unavailable. Large chunks, PDF.js and Starlette warnings remain.
+UNFINISHED WORK: compiler-aware module boundaries and tests; conclusive dead-file/dependency cleanup; final full regression and review PR.
+NEXT EXACT STEP: implement module/feature boundary checks using TypeScript parsing; inspect unreferenced application files and unused direct dependencies before removal.
+RECOVERY COMMANDS: git status --short --branch; git log -8 --oneline; git ls-remote origin refs/heads/refactor/architecture-plug-and-play; read AGENTS.md and REFACTOR_PROGRESS.md. Never reset unknown changes.
+IMPORTANT RISKS: no production migrations/data changes, no main merge, no authenticated backend security claim. Current module grants fail closed without trusted resource context.

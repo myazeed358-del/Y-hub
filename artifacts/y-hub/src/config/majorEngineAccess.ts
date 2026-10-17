@@ -1,23 +1,15 @@
 import { moduleRegistry, canAccessModule } from '@/modules';
+import type { ModuleIcon, ModuleRole } from '@/modules';
 import type { UiKey } from '@/i18n/uiCopy';
 
-export type EngineAccessRole =
-  | 'student'
-  | 'instructor'
-  | 'admin'
-  | 'super_admin';
+export type EngineAccessRole = ModuleRole;
 
 /**
  * Serializable sidebar metadata for engines.
  * Kept in the engine catalog so navigation never maintains a second
  * hard-coded engine inventory.
  */
-export type EngineSidebarIconId =
-  | 'lineChart'
-  | 'box'
-  | 'calculator'
-  | 'flaskConical'
-  | 'grid2x2';
+export type EngineSidebarIconId = ModuleIcon;
 
 export type EngineSidebarLabelKey =
   | 'calculus1Solver'

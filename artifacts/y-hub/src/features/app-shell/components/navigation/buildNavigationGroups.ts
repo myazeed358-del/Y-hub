@@ -1,14 +1,10 @@
+import { MODULE_ICON_COMPONENTS } from '@/shared/ui/moduleIcons';
 import type { LocalizedText } from '@/modules';
 import type { LucideIcon } from 'lucide-react';
 
 import {
-  Box,
   BrainCircuit,
-  Calculator,
-  FlaskConical,
-  Grid2X2,
   Home as HomeIcon,
-  LineChart,
 } from 'lucide-react';
 
 import type { EngineAccessRole } from '@/config/majorEngineAccess';
@@ -34,11 +30,7 @@ export interface NavigationGroup {
 const NAVIGATION_ICONS: Record<NavigationIconId, LucideIcon> = {
   home: HomeIcon,
   brainCircuit: BrainCircuit,
-  lineChart: LineChart,
-  box: Box,
-  calculator: Calculator,
-  flaskConical: FlaskConical,
-  grid2x2: Grid2X2,
+  ...MODULE_ICON_COMPONENTS,
 };
 
 export function buildNavigationGroups(

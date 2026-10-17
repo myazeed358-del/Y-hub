@@ -11,6 +11,7 @@ export default {
   routes: [{
     path: '/module-example',
     load: () => import('./ExamplePage'),
+    dashboard: { title: { en: 'Module discovery example', ar: 'مثال الوحدة' }, iconId: 'box', order: 100 },
     navigation: { iconId: 'box', order: 100 },
   }],
 } satisfies ModuleManifest;

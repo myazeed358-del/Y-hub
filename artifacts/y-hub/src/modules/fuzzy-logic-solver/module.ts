@@ -45,6 +45,7 @@ export default {
     path: "/solver",
     order: 40,
     load: () => import('@/features/solver'),
+    dashboard: { title: { en: 'Equations', ar: 'المعادلات' }, iconId: 'functionSquare', order: 20 },
     navigation: {"labelKey": "solver", "iconId": "calculator", "order": 40},
   }],
 } satisfies ModuleManifest;

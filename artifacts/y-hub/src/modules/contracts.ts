@@ -5,7 +5,7 @@ export const MODULE_ROLES = ['student', 'instructor', 'admin', 'super_admin'] as
 export type ModuleRole = typeof MODULE_ROLES[number];
 export const MODULE_PERMISSIONS = ['course:read', 'course:manage'] as const;
 export type ModulePermission = typeof MODULE_PERMISSIONS[number];
-export const MODULE_ICONS = ['lineChart', 'box', 'calculator', 'flaskConical', 'grid2x2'] as const;
+export const MODULE_ICONS = ['lineChart', 'box', 'calculator', 'flaskConical', 'grid2x2', 'functionSquare', 'activity'] as const;
 export type ModuleIcon = typeof MODULE_ICONS[number];
 export interface LocalizedText { ar: string; en: string }
 
@@ -23,6 +23,7 @@ export interface ModuleRouteDefinition {
   path: string;
   load: () => Promise<{ default: ComponentType }>;
   order?: number;
+  dashboard?: { title: LocalizedText; iconId: ModuleIcon; order: number };
   navigation?: {
     title?: LocalizedText;
     labelKey?: UiKey;

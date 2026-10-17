@@ -42,6 +42,7 @@ export default {
     path: "/calculus",
     order: 60,
     load: () => import('@/features/calculus'),
+    dashboard: { title: { en: 'Graphing', ar: 'الرسوم البيانية' }, iconId: 'lineChart', order: 10 },
     navigation: {"labelKey": "calculusPlotter", "iconId": "lineChart", "order": 20},
   }],
 } satisfies ModuleManifest;

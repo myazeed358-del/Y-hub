@@ -4,6 +4,8 @@ import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { Router } from 'wouter';
 import { memoryLocation } from 'wouter/memory-location';
 import { Box } from 'lucide-react';
+import { StudentDashboardSidebar } from '@/features/student-dashboard/components/StudentDashboardSidebar';
+import { getModuleNavigation } from '../navigation';
 import { AppRoutes } from '@/routing/AppRoutes';
 import { buildNavigationRouteGroups } from '@/features/app-shell/domain/navigationRoutes';
 import { SidebarNavigation } from '@/features/app-shell/components/sidebar/SidebarNavigation';
@@ -36,7 +38,10 @@ function mount(registry: ModuleRegistry, path: string) {
   const navigation = buildNavigationRouteGroups(auth.role, auth.profile.major, registry).map(group => ({
     ...group, items: group.items.map(item => ({ ...item, icon: Box })),
   }));
+  const tools = getModuleNavigation(registry, { role: auth.role, major: auth.profile.major }, 'dashboard')
+    .map(item => ({ name: item.title.en, path: item.href, icon: Box }));
   render(<Router hook={location.hook}>
+    <StudentDashboardSidebar tools={tools} t={key => key} setLocation={location.navigate} />
     <SidebarNavigation isInstructor={false} location={path} onCloseMobileNav={() => {}}
       dynamicNavItems={navigation} onEngineInfoTooltipChange={() => {}} />
     <AppRoutes Home={Placeholder} CoursePlan={Placeholder} LessonPage={Placeholder}
@@ -61,6 +66,13 @@ describe('real host module integration', () => {
     mount(registry, '/');
     expect(screen.getByText('Dashboard intact')).toBeTruthy();
     fireEvent.click(screen.getByRole('link', { name: 'Module discovery example' }));
+    expect(await screen.findByText('Automatically discovered module entry')).toBeTruthy();
+  });
+
+  it('contributes a dashboard tool that navigates without a host registry edit', async () => {
+    const registry = createModuleRegistry(discoveredModules, { enabledIds: ['discovery-example'] });
+    mount(registry, '/');
+    fireEvent.click(screen.getByRole('button', { name: 'Module discovery example' }));
     expect(await screen.findByText('Automatically discovered module entry')).toBeTruthy();
   });
 

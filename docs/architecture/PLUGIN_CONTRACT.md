@@ -4,7 +4,7 @@
 Create src/modules/<unique-kebab-id>/module.ts exporting a default object satisfying ModuleManifest (import its type from ../contracts). No central registry, AppRoutes, engine catalog, sidebar array or translation-table edit is needed.
 
 Required fields: id, version (major.minor.patch), apiVersion: 1, title {ar,en}, access.roles, and nonempty routes. Each route has a static lowercase absolute path and load: () => import('@/features/my-feature'). Expose the component as the feature's default public export.
-Optional metadata: description, category, keywords, capabilities, dependencies (module IDs), defaultEnabled, route.order and route.navigation.
+Optional metadata: description, category, keywords, capabilities, dependencies (module IDs), defaultEnabled, route.order, route.navigation and route.dashboard. Dashboard contributions provide their own localized title, iconId and order, sharing the same access checks.
 Navigation requires iconId and order; title can be supplied locally, or use an existing UiKey labelKey for backward-compatible translations. New localized titles require no global translation edits.
 
 See src/modules/discovery-example/module.ts and ExamplePage.tsx for a disabled working example. Integration tests enable it through createModuleRegistry(discoveredModules, {enabledIds: ['discovery-example']}) and render the real AppRoutes and SidebarNavigation. The fixture is not a new user-facing product.
