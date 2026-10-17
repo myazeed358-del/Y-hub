@@ -21,7 +21,8 @@ export default {
     "محدد"
   ],
   "version": "1.0.0",
-  "apiVersion": 1,
+  "apiVersion": 2,
+  "kind": "engine",
   "category": "mathematics",
   "access": {
     "roles": [
@@ -41,6 +42,6 @@ export default {
     path: "/linear-algebra",
     order: 20,
     load: () => import('@/features/linear-algebra'),
-    navigation: {"labelKey": "linearAlgebra", "iconId": "grid2x2", "order": 60},
+    navigation: {"group": "tools", "labelKey": "linearAlgebra", "iconId": "grid2x2", "order": 60},
   }],
 } satisfies ModuleManifest;

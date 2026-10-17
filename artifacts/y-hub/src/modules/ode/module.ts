@@ -19,7 +19,8 @@ export default {
     "تفاضلية"
   ],
   "version": "1.0.0",
-  "apiVersion": 1,
+  "apiVersion": 2,
+  "kind": "engine",
   "category": "mathematics",
   "access": {
     "roles": [
@@ -39,6 +40,6 @@ export default {
     path: "/ode",
     order: 10,
     load: () => import('@/features/ode'),
-    navigation: {"labelKey": "odeSolver", "iconId": "lineChart", "order": 70},
+    navigation: {"group": "tools", "labelKey": "odeSolver", "iconId": "lineChart", "order": 70},
   }],
 } satisfies ModuleManifest;

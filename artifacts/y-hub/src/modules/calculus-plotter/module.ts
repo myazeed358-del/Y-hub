@@ -22,7 +22,8 @@ export default {
     "رسم"
   ],
   "version": "1.0.0",
-  "apiVersion": 1,
+  "apiVersion": 2,
+  "kind": "engine",
   "category": "mathematics",
   "access": {
     "roles": [
@@ -43,6 +44,6 @@ export default {
     order: 60,
     load: () => import('@/features/calculus'),
     dashboard: { title: { en: 'Graphing', ar: 'الرسوم البيانية' }, iconId: 'lineChart', order: 10 },
-    navigation: {"labelKey": "calculusPlotter", "iconId": "lineChart", "order": 20},
+    navigation: {"group": "tools", "labelKey": "calculusPlotter", "iconId": "lineChart", "order": 20},
   }],
 } satisfies ModuleManifest;

@@ -49,10 +49,10 @@ function mount(registry: ModuleRegistry, path: string) {
   </Router>);
   return location;
 }
-function custom(load: ModuleManifest['routes'][number]['load'], access: ModuleManifest['access'] = { roles: ['admin'] }) {
+function custom(load: ModuleManifest['routes'][number]['load'], access: ModuleManifest['access'] = { roles: ['admin'] }, kind: ModuleManifest['kind'] = 'application') {
   return createModuleRegistry({ custom: {
-    id: 'custom', version: '1.0.0', apiVersion: 1, title: { ar: 'اختبار', en: 'Custom module' },
-    access, routes: [{ path: '/custom', load, navigation: { iconId: 'box', order: 1 } }],
+    id: 'custom', version: '1.0.0', apiVersion: 2, kind, category: 'education', title: { ar: 'اختبار', en: 'Custom module' },
+    access, routes: [{ path: '/custom', load, navigation: { group: 'applications', iconId: 'box', order: 1 } }],
   } });
 }
 beforeEach(() => {
@@ -61,6 +61,16 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
 describe('real host module integration', () => {
+  it.each(['math', 'science', 'application', 'laboratory'])('discovers and lazy-loads the %s fixture through actual navigation', async name => {
+    const fixtures = import.meta.glob('./fixtures/*/module.ts', { eager: true, import: 'default' });
+    const registry = createModuleRegistry(fixtures);
+    expect(registry.issues).toEqual([]);
+    mount(registry, '/');
+    fireEvent.click(screen.getByRole('link', { name: 'Fixture ' + name }));
+    expect(await screen.findByText('Classification fixture loaded')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Fixture ' + name })).toBeTruthy();
+  });
+
   it('discovers the example, contributes a sidebar link and navigates to its lazy page without a host edit', async () => {
     const registry = createModuleRegistry(discoveredModules, { enabledIds: ['discovery-example'] });
     mount(registry, '/');
@@ -107,9 +117,9 @@ describe('real host module integration', () => {
     expect(load).not.toHaveBeenCalled();
   });
 
-  it('fails closed when a module requires a resource-scoped grant unavailable to the host', () => {
+  it.each(['engine', 'application', 'laboratory'] as const)('fails closed for missing resource grants on a %s', kind => {
     const load = vi.fn(async () => ({ default: Placeholder }));
-    mount(custom(load, { roles: ['admin'], permissions: ['course:manage'] }), '/custom');
+    mount(custom(load, { roles: ['admin'], permissions: ['course:manage'] }, kind), '/custom');
     expect(screen.getByText('This tool is not available for your account')).toBeTruthy();
     expect(load).not.toHaveBeenCalled();
   });
@@ -123,12 +133,12 @@ describe('real host module integration', () => {
     expect(await screen.findByText('Lazy entry ready')).toBeTruthy();
   });
 
-  it('contains a loader failure, retries it, and keeps host navigation working', async () => {
+  it.each(['engine', 'application', 'laboratory'] as const)('contains and retries a %s loader failure while keeping the host working', async kind => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
     const load = vi.fn<ModuleManifest['routes'][number]['load']>()
       .mockRejectedValueOnce(new Error('Chunk unavailable'))
       .mockResolvedValueOnce({ default: () => <p>Recovered module</p> });
-    const location = mount(custom(load), '/custom');
+    const location = mount(custom(load, undefined, kind), '/custom');
     expect(await screen.findByText('Something went wrong')).toBeTruthy();
     expect(screen.getByRole('link', { name: 'Custom module' })).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Try again' }));

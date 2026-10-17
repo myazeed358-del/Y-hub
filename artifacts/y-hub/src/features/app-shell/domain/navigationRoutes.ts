@@ -1,15 +1,11 @@
-import { moduleRegistry, getModuleNavigation, type ModuleRegistry, type LocalizedText } from '@/modules';
-import {
-  type EngineAccessRole,
-  type EngineSidebarIconId,
-} from '@/config/majorEngineAccess';
+import { moduleRegistry, getModuleNavigation, type ModuleRegistry, type LocalizedText, type ModuleIcon, type ModuleRole, type ModuleNavigationGroup } from '@/modules';
 
 import type { UiKey } from '@/i18n/uiCopy';
 
 export type NavigationIconId =
   | 'home'
   | 'brainCircuit'
-  | EngineSidebarIconId;
+  | ModuleIcon;
 
 export interface NavigationRouteItem {
   href: string;
@@ -23,13 +19,21 @@ export interface NavigationRouteGroup {
   items: NavigationRouteItem[];
 }
 
+/** Host presentation areas, not a module registration list. Kind never selects placement. */
+const MODULE_SECTIONS: { group: ModuleNavigationGroup; section: UiKey }[] = [
+  { group: 'tools', section: 'understandingTools' },
+  { group: 'applications', section: 'moduleApplications' },
+  { group: 'laboratories', section: 'moduleLaboratories' },
+];
+
 export function buildNavigationRouteGroups(
-  role: EngineAccessRole | null | undefined,
+  role: ModuleRole | null | undefined,
   major?: string | null,
   modules: ModuleRegistry = moduleRegistry,
 ): NavigationRouteGroup[] {
-  const engineItems: NavigationRouteItem[] = getModuleNavigation(modules, { role, major })
-    .map(item => ({
+  const contributions = getModuleNavigation(modules, { role, major });
+  const itemsFor = (group: ModuleNavigationGroup): NavigationRouteItem[] => contributions
+    .filter(item => item.group === group).map(item => ({
       href: item.href,
       key: item.labelKey ?? 'understandingTools',
       iconId: item.iconId,
@@ -54,15 +58,12 @@ export function buildNavigationRouteGroups(
               ]
             : []
         ),
+        ...itemsFor('learning'),
       ],
     },
-    ...(engineItems.length > 0
-      ? [
-          {
-            section: 'understandingTools' as UiKey,
-            items: engineItems,
-          },
-        ]
-      : []),
+    ...MODULE_SECTIONS.flatMap(({ group, section }) => {
+      const items = itemsFor(group);
+      return items.length ? [{ section, items }] : [];
+    }),
   ];
 }

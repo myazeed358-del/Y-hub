@@ -20,7 +20,8 @@ export default {
     "متعدد المتغيرات"
   ],
   "version": "1.0.0",
-  "apiVersion": 1,
+  "apiVersion": 2,
+  "kind": "engine",
   "category": "mathematics",
   "access": {
     "roles": [
@@ -40,6 +41,6 @@ export default {
     path: "/math-solver",
     order: 30,
     load: () => import('@/features/math-solver'),
-    navigation: {"labelKey": "calculus3Solver", "iconId": "box", "order": 30},
+    navigation: {"group": "tools", "labelKey": "calculus3Solver", "iconId": "box", "order": 30},
   }],
 } satisfies ModuleManifest;

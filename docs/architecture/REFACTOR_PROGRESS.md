@@ -1,5 +1,13 @@
 # Refactor progress
 
+## Focused classification update — PR #15
+
+Implementation: API-2 module kinds/categories and explicit sidebar destinations; engine-only catalog/search/tooltip metadata; generic navigation/dashboard contributions retained. Seven existing engines, including Fuzzy Logic Lab, retain their routes, labels, icons, ordering and access policies. The disabled discovery example is now explicitly an application. Four test-only fixture types demonstrate glob discovery and host integration; no new product is introduced.
+
+Final verification: the recovered full run and fresh resumed run both passed. Latest: **183 Vitest files / 1645 tests** (73.40s), **29 Python tests** (0.898s), **eight boundary-check tests**, root and all three artifact TypeScript checks, three architecture audits, production build (42.49s), and git diff --check. Existing compatibility tests and 23 added classification/integration cases passed. No detected regressions or reported test skips. Source changes are confined to module contracts/manifests, their consumers, two new section translations and tests. The known Vercel Python bundle-size limit is outside scope and was not investigated.
+
+Existing branch and PR #15 head were both confirmed at `c7a2f1fa59ceba53a70cf4b00125aad590259edb` before edits. This verified package is ready for its normal push to the same branch. Keep PR #15 Draft; do not create another PR or merge main. The API cannot independently report Draft state under the current policy; no action in this task marks it ready.
+
 ## Completed implementation packages
 
 - Baseline/audit and recovery instructions: preserved existing feature separation, math ports, algorithms and compatibility facades. See ARCHITECTURE_AUDIT.md and TEST_BASELINE.md.
@@ -22,11 +30,11 @@
 | Cleanup | Complete for verified batch | 58 deleted paths and 39 direct declarations documented; uncertain public APIs retained |
 | Engineering checks | Complete | Compiler and existing guards in repeatable verification command |
 | Final verification | Complete locally | See FINAL_VERIFICATION.md for actual results and limits |
-| Git review | Checkpoints pushed; PR blocked | Git works; api.github.com denied by current network policy |
+| Git review | Existing PR #15 | Branch and PR head verified through Git transport; API access is unnecessary for the requested branch update |
 
 ## Remaining work
 
-1. Activate the prepared additive network-policy draft for api.github.com, inspect existing PRs and open/update the review PR. Never merge automatically.
+1. Complete and push the focused classification checkpoint to the existing branch for PR #15; verify remote branch and PR head. Never create a replacement PR or merge automatically.
 2. In an authorized test environment, validate signed-in roles, course ownership/enrollment and RLS with test identities. Do not use production writes or request a frontend service-role key.
 3. Separate follow-up debt: heavy Plotly/PDF/math chunks, dependency deprecations, optional AuthContext extraction, alternate Python protocol deployment/hardening and real-browser workflow/visual verification.
 

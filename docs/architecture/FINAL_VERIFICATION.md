@@ -1,5 +1,21 @@
 # Final verification — 2026-10-17
 
+## Focused module classification follow-up — PR #15
+
+Recovered the uncommitted API-2 implementation on `refactor/architecture-plug-and-play`; local HEAD, remote branch and `refs/pull/15/head` all matched `c7a2f1fa59ceba53a70cf4b00125aad590259edb` before this package. No pending work was discarded. The scope is classification and its existing consumers, not another general refactoring phase.
+
+API 2 requires kind (`engine`, `application`, `laboratory`), independent category, explicit roles and a group on every sidebar contribution. Custom categories are supported without registration edits. Engine-specific catalogs/search/tooltips exclude other kinds; generic routing/navigation/dashboard composition supports all three. All eight shipped manifests are migrated, including the disabled discovery example. Fuzzy Logic Lab remains an engine with unchanged route, labels, icon, ordering, dashboard entry and access. Obsolete API versions and invalid classifications are quarantined.
+
+Added files: `modules/__tests__/classification.test.tsx`, four test-only fixture manifests under `modules/__tests__/fixtures/{math,science,application,laboratory}`, and a shared fixture page. Modified source: module contracts/validation/navigation/public exports, eight manifests, engine metadata/selectors, instructor search, app-shell navigation composition, two localized section labels, registry/integration tests. No production features, algorithms, database changes or file deletions are included. The five contract/extension/progress/handoff/verification documents describe the result and future example.
+
+Recovered complete run (`/tmp/yhub-classification-full.log`): 183 Vitest files / 1645 tests passed (74.31 seconds), 29 Python tests passed, eight boundary-check tests passed, root plus all three artifact TypeScript checks passed, all three architecture audits passed (483 application files, 143 math modules), and production build passed (44.54 seconds). No failed/skipped tests were reported. The increase from 1622 is 23 classification/integration cases, including missing grants and retry across every kind.
+
+Fresh resumed verification (`/tmp/yhub-classification-resume.log`) also exited 0: **183 Vitest files / 1645 tests passed** (73.40 seconds), **29 Python tests passed** (0.898 seconds), **eight boundary-check tests passed**, root plus all three artifact TypeScript checks and all three architecture audits passed, and production build passed (42.49 seconds). `git diff --check` passed. Protected math, Python, Supabase/auth, design-system and lockfile paths have no changes in this package. Both runs use the same `scripts/verify-architecture-refactor.sh` command below. The full suite includes existing navigation/sidebar/dashboard/tooltips, mathematical, enrollment/student-number and routing compatibility tests.
+
+PR #15 already exists and is to remain Draft. Push only its existing branch; never create a replacement PR, mark it ready or merge main. GitHub API requests still return Forbidden, so the Draft flag cannot be independently queried in this environment. Normal Git transport can verify both the branch commit and PR head without changing draft state. The known Vercel Python bundle-size deployment limitation is outside scope and was not investigated. Existing large-chunk, PDF.js and Starlette warnings remain; no classification regression has been detected.
+
+The earlier general-refactor baseline/report below is retained as historical evidence; the focused results above supersede its test counts and PR-creation status.
+
 ## Scope and readiness
 
 Repository: `myazeed358-del/Y-hub`; working branch: `refactor/architecture-plug-and-play`. Main was verified at `cca4f313097cbcf72488234a8df601dd00a8df48` and has not been merged into or pushed to. Existing navigation work was reused with original authorship. Interrupted changes were inspected, preserved, completed and pushed before subsequent enforcement/cleanup work.
@@ -68,6 +84,6 @@ Full real-browser visual/authenticated workflows and remote AI execution were **
 
 ## Review and continuity
 
-GitHub REST/GraphQL access is blocked by proxy CONNECT 403 because `api.github.com` is absent from the active allowlist. Normal Git transport works. An additive environment draft includes that hostname while preserving the Supabase host and presets; activating the revised environment policy is external to this checkout. A final `gh pr list --head refactor/architecture-plug-and-play` attempt also returned Forbidden. No PR is claimed to exist. After activation, check for an existing PR before creating one against main; never merge automatically.
+GitHub REST/GraphQL access is blocked by proxy CONNECT 403 because `api.github.com` is absent from the active allowlist. Normal Git transport works. An additive environment draft includes that hostname while preserving the Supabase host and presets; activating the revised environment policy is external to this checkout. A final `gh pr list --head refactor/architecture-plug-and-play` attempt also returned Forbidden. PR #15 now exists on the same branch and must remain Draft. Push updates to that branch only; do not create another PR or merge automatically. Git transport confirms the PR head even though the API cannot independently report its Draft flag.
 
 See AGENT_HANDOFF.md for the previous verified SHA and the exact next step, REFACTOR_PROGRESS.md for phase status, CODEBASE_CLEANUP_REPORT.md for all 58 removed paths and 39 removed direct declarations, and PLUGIN_CONTRACT.md for future module integration. Git history and `ls-remote` establish the newest checkpoint; a document cannot contain its own commit SHA.

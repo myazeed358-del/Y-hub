@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { ModuleManifest, ModuleRouteDefinition } from './contracts';
-import { MODULE_ICONS, MODULE_PERMISSIONS, MODULE_ROLES } from './contracts';
+import { MODULE_CATEGORIES, MODULE_ICONS, MODULE_KINDS, MODULE_NAVIGATION_GROUPS, MODULE_PERMISSIONS, MODULE_ROLES, type ModuleCategory } from './contracts';
 import { uiCopy } from '@/i18n/uiCopy';
 
 const text = z.string().trim().min(1);
@@ -10,10 +10,13 @@ const roles = z.array(z.enum(MODULE_ROLES)).min(1);
 const schema = z.object({
   id: identifier,
   version: z.string().regex(/^\d+\.\d+\.\d+$/),
-  apiVersion: z.literal(1),
+  apiVersion: z.literal(2),
+  kind: z.enum(MODULE_KINDS),
   title: localized,
   description: localized.optional(),
-  category: text.optional(),
+  category: z.union([z.enum(MODULE_CATEGORIES), z.custom<ModuleCategory>(
+    value => typeof value === 'string' && /^custom:[a-z][a-z0-9-]*$/.test(value),
+  )]),
   keywords: z.array(text).optional(),
   capabilities: z.array(identifier).optional(),
   dependencies: z.array(identifier).optional(),
@@ -30,6 +33,7 @@ const schema = z.object({
     order: z.number().finite().optional(),
     dashboard: z.object({ title: localized, iconId: z.enum(MODULE_ICONS), order: z.number().finite() }).strict().optional(),
     navigation: z.object({
+      group: z.enum(MODULE_NAVIGATION_GROUPS),
       title: localized.optional(),
       labelKey: z.custom<NonNullable<ModuleRouteDefinition['navigation']>['labelKey']>(
         value => typeof value === 'string' && Object.hasOwn(uiCopy.en, value),

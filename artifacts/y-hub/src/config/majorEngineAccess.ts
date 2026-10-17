@@ -1,5 +1,5 @@
 import { moduleRegistry, canAccessModule } from '@/modules';
-import type { ModuleIcon, ModuleRole } from '@/modules';
+import type { ModuleIcon, ModuleRole, ModuleCategory, ModuleRegistry } from '@/modules';
 import type { UiKey } from '@/i18n/uiCopy';
 
 export type EngineAccessRole = ModuleRole;
@@ -11,14 +11,8 @@ export type EngineAccessRole = ModuleRole;
  */
 export type EngineSidebarIconId = ModuleIcon;
 
-export type EngineSidebarLabelKey =
-  | 'calculus1Solver'
-  | 'calculusPlotter'
-  | 'calculus3Solver'
-  | 'solver'
-  | 'lab'
-  | 'linearAlgebra'
-  | 'odeSolver';
+/** Legacy alias accepts future localized engine labels too. */
+export type EngineSidebarLabelKey = UiKey;
 
 export interface EngineSidebarMetadata {
   labelKey?: UiKey;
@@ -29,6 +23,7 @@ export interface EngineSidebarMetadata {
 export interface EngineDefinition {
   id: string;
   route: string;
+  category: ModuleCategory;
   sidebar?: EngineSidebarMetadata;
   majors: readonly string[];
   title: {
@@ -42,16 +37,21 @@ export interface EngineDefinition {
   keywords: readonly string[];
 }
 
-/** Compatibility projection: manifests own metadata, routes and access policy. */
-export const ENGINE_CATALOG: readonly EngineDefinition[] = moduleRegistry.routes.map(route => ({
-  id: route.module.routes.length === 1 ? route.module.id : route.module.id + ':' + route.path,
-  route: route.path,
-  majors: route.module.access.majors ?? [],
-  title: route.navigation?.title ?? route.module.title,
-  description: route.module.description ?? route.module.title,
-  keywords: route.module.keywords ?? [],
-  sidebar: route.navigation,
-}));
+/** Engine-only projection. Subject, capabilities, major and navigation group never imply kind. */
+export function getEngineCatalog(registry: ModuleRegistry = moduleRegistry): readonly EngineDefinition[] {
+  return registry.routes.filter(route => route.module.kind === 'engine').map(route => ({
+    id: route.module.routes.length === 1 ? route.module.id : route.module.id + ':' + route.path,
+    route: route.path,
+    category: route.module.category,
+    majors: route.module.access.majors ?? [],
+    title: route.navigation?.title ?? route.module.title,
+    description: route.module.description ?? route.module.title,
+    keywords: route.module.keywords ?? [],
+    sidebar: route.navigation,
+  }));
+}
+
+export const ENGINE_CATALOG = getEngineCatalog();
 
 export const ALL_ENGINE_ROUTES = ENGINE_CATALOG.map(
   (engine) => engine.route
@@ -62,11 +62,12 @@ export const ALL_ENGINE_ROUTES = ENGINE_CATALOG.map(
  * Used for the normal Student/Instructor sidebar.
  */
 export function getEnginesForMajor(
-  major?: string | null
+  major?: string | null,
+  registry: ModuleRegistry = moduleRegistry,
 ): readonly EngineDefinition[] {
   if (!major) return [];
 
-  return ENGINE_CATALOG.filter((engine) =>
+  return getEngineCatalog(registry).filter((engine) =>
     engine.majors.includes(major)
   );
 }
@@ -75,9 +76,10 @@ export function getEnginesForMajor(
  * Backwards-compatible helper used by the current UI.
  */
 export function getAllowedEngineRoutes(
-  major?: string | null
+  major?: string | null,
+  registry: ModuleRegistry = moduleRegistry,
 ): readonly string[] {
-  return getEnginesForMajor(major).map((engine) => engine.route);
+  return getEnginesForMajor(major, registry).map((engine) => engine.route);
 }
 
 /**
@@ -95,17 +97,19 @@ export function getAllowedEngineRoutes(
  */
 export function getSidebarEngineRoutes(
   role: EngineAccessRole | null | undefined,
-  major?: string | null
+  major?: string | null,
+  registry: ModuleRegistry = moduleRegistry,
 ): readonly string[] {
-  return moduleRegistry.routes.filter(route =>
-    canAccessModule(route.module.access, { role, major }) &&
+  return registry.routes.filter(route =>
+    route.module.kind === 'engine' && canAccessModule(route.module.access, { role, major }) &&
     (role === 'admin' || role === 'super_admin' ||
       !route.module.access.majors?.length || Boolean(major && route.module.access.majors.includes(major)))
   ).map(route => route.path);
 }
 
 /**
- * Real route authorization.
+ * Engine-specific frontend route eligibility; ProtectedRoute handles generic modules.
+ * Backend authorization remains mandatory.
  *
  * Student:
  *   strictly restricted to engines belonging to the student's major.
@@ -121,9 +125,10 @@ export function getSidebarEngineRoutes(
 export function canRoleAccessEngineRoute(
   role: EngineAccessRole | null | undefined,
   major: string | null | undefined,
-  route: string
+  route: string,
+  registry: ModuleRegistry = moduleRegistry,
 ): boolean {
-  const registered = moduleRegistry.routes.find(item => item.path === route);
+  const registered = registry.routes.find(item => item.module.kind === 'engine' && item.path === route);
   return Boolean(registered && canAccessModule(registered.module.access, { role, major }));
 }
 
@@ -133,9 +138,10 @@ export function canRoleAccessEngineRoute(
  */
 export function canAccessEngineRoute(
   major: string | null | undefined,
-  route: string
+  route: string,
+  registry: ModuleRegistry = moduleRegistry,
 ): boolean {
-  return getAllowedEngineRoutes(major).includes(route);
+  return getAllowedEngineRoutes(major, registry).includes(route);
 }
 
 /**
@@ -144,18 +150,20 @@ export function canAccessEngineRoute(
  */
 export function searchEngines(
   query: string,
-  language: 'ar' | 'en' = 'en'
+  language: 'ar' | 'en' = 'en',
+  registry: ModuleRegistry = moduleRegistry,
 ): readonly EngineDefinition[] {
   const normalizedQuery = query.trim().toLowerCase();
 
   if (!normalizedQuery) return [];
 
-  return ENGINE_CATALOG.filter((engine) => {
+  return getEngineCatalog(registry).filter((engine) => {
     const searchableText = [
       engine.title[language],
       engine.title.ar,
       engine.title.en,
       engine.description[language],
+      engine.category,
       ...engine.keywords,
       ...engine.majors,
     ]

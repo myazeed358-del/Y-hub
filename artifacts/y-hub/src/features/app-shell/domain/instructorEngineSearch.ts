@@ -1,15 +1,17 @@
 import { searchEngines, canRoleAccessEngineRoute } from '@/config/majorEngineAccess';
+import { moduleRegistry, type ModuleRegistry } from '@/modules';
 import type { Language } from '@/i18n/uiCopy';
 
 export function resolveInstructorEngineSearch(
   role: string | null | undefined,
   engineSearch: string,
-  language: Language
+  language: Language,
+  registry: ModuleRegistry = moduleRegistry,
 ) {
   const instructorSearchResults =
     role === 'instructor'
-      ? searchEngines(engineSearch, language)
-          .filter(engine => canRoleAccessEngineRoute('instructor', null, engine.route))
+      ? searchEngines(engineSearch, language, registry)
+          .filter(engine => canRoleAccessEngineRoute('instructor', null, engine.route, registry))
           .slice(0, 6)
       : [];
 

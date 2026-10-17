@@ -1,16 +1,17 @@
 # Agent handoff
 
-CURRENT PHASE: implementation/cleanup complete locally and secured remotely; external review/validation blocked.
-CURRENT WORK PACKAGE: final verification, architecture audit and recovery documentation.
-LAST COMPLETED TASK: cleanup full verification passed and remote cleanup commit was confirmed with git ls-remote.
+CURRENT PHASE: focused module classification update for existing PR #15.
+CURRENT WORK PACKAGE: API-2 kinds/categories, explicit navigation areas, engine-only consumers and classification integration tests.
+LAST COMPLETED TASK: API-2 migration, classification/compatibility tests and all five requested docs complete; recovered and fresh full verification passed.
 CURRENT BRANCH: refactor/architecture-plug-and-play
-LAST VERIFIED REMOTE COMMIT SHA: af474161638071da0de2ecb7bff54db8db148956 (previous verified checkpoint; Git history and ls-remote establish the newest checkpoint).
-FILES MODIFIED: final verification, audit, progress/handoff documentation and engine extension guide. Source/package cleanup is already committed at the verified SHA above.
-FILES DELETED: 55 unused app components/ui files, two scaffold hooks, pages/not-found.tsx. All 58 paths and reference evidence are in CODEBASE_CLEANUP_REPORT.md.
-TESTS EXECUTED: frozen offline pnpm install; pip check; root/workspace tsc; full Vitest; main production build; Python unit/API suite; all three architecture audits and seeded boundary-check tests; read-only Supabase Auth settings; git diff --check.
-TEST RESULTS: 182 files / 1622 Vitest tests passed (70.12s); 29 Python tests passed; eight guard tests passed; all typechecks/audits passed; build passed (43.18s); Auth HTTP 200. No detected regression within this coverage.
-KNOWN FAILURES: GitHub API CONNECT denied (403); normal Git push works. api.github.com added to the environment draft but absent from active policy. Signed-in Supabase/RLS validation unavailable. Large bundle, PDF.js, package deprecation and Starlette warnings remain; see FINAL_VERIFICATION.md.
-UNFINISHED WORK: create/update review PR when API policy permits; authenticated backend and real-browser validation. No unfinished source implementation from the recovered package or subsequent enforcement/cleanup. Documentation checkpoint follows the verified source commit above.
-NEXT EXACT STEP: inspect git status/log and verify remote SHA; read FINAL_VERIFICATION.md. Once api.github.com is allowed, inspect existing PRs for this branch and create/update a review PR against main. Prepared body: /tmp/yhub-refactor-pr.md (session-local; regenerate from FINAL_VERIFICATION.md if missing). For backend validation use authorized nonproduction test identities. Do not repeat completed refactoring or tests unless changes warrant it.
-RECOVERY COMMANDS: git status --short --branch; git log -8 --oneline; git ls-remote origin refs/heads/refactor/architecture-plug-and-play; read AGENTS.md and REFACTOR_PROGRESS.md. Never reset unknown changes. Full log for this environment: /tmp/yhub-final-verification.log; durable results are in FINAL_VERIFICATION.md.
-IMPORTANT RISKS: no production migrations/data changes, no main merge, no authenticated backend-security claim. Module resource grants fail closed without trusted context. Manifests are trusted build-time metadata. Alternate Python protocol remains separately deployable and unverified.
+LAST VERIFIED REMOTE COMMIT SHA: c7a2f1fa59ceba53a70cf4b00125aad590259edb (branch and refs/pull/15/head matched before this package).
+FILES MODIFIED: modules contracts/registry/navigation/index and eight manifests; config/majorEngineAccess; app-shell navigation/search; section translations; module tests; PLUGIN_CONTRACT.md, ENGINE_EXTENSION_GUIDE.md, FINAL_VERIFICATION.md and progress/handoff docs.
+FILES CREATED: classification.test.tsx and test-only glob fixtures for mathematics/scientific engines, application and laboratory.
+FILES DELETED: none in this focused package.
+TESTS EXECUTED: full verification script, including all Vitest and Python tests, root/workspace TypeScript checks, architecture/math/module audits and guard tests, production build; git diff --check; protected-path diff review.
+TEST RESULTS: fresh run exited 0; 183 files / 1645 Vitest tests (73.40s), 29 Python tests (0.898s), eight architecture-check tests; typechecks/audits passed; build passed (42.49s). No detected regressions or reported skips. Full log: /tmp/yhub-classification-resume.log; durable evidence in FINAL_VERIFICATION.md.
+KNOWN FAILURES: none detected in focused checks. Existing large chunks and PDF.js/Starlette warnings remain. GitHub API policy is restricted, but Git push and PR-head verification work. Authenticated backend/browser verification remains outside local coverage.
+UNFINISHED WORK: commit/push the verified package normally and verify branch plus refs/pull/15/head. No unfinished source work. PR #15 must stay Draft; API restrictions prevent independent Draft-flag verification, and this task must never mark it ready.
+NEXT EXACT STEP: commit the verified source/docs on the existing branch, push normally and confirm both remote branch and PR #15 head. Record the verified source checkpoint in the following documentation update. Do not repeat implementation/tests without a new change; do not create another PR or merge main.
+RECOVERY COMMANDS: git status --short --branch; git log -5 --oneline; git ls-remote origin refs/heads/refactor/architecture-plug-and-play refs/pull/15/head; read PLUGIN_CONTRACT.md and REFACTOR_PROGRESS.md.
+IMPORTANT RISKS: API 1 is deliberately rejected; migrate manifests explicitly using PLUGIN_CONTRACT.md. Fuzzy Logic Lab stays an engine for existing computation/search compatibility; future laboratory-kind modules remain separate. Kinds/categories/capabilities/groups grant no privileges. No Supabase/RLS/migration/theme/math algorithm changes. Known Vercel Python bundle-size deployment limit is outside this task; do not investigate it here.

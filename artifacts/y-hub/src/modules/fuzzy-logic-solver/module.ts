@@ -25,7 +25,8 @@ export default {
     "تي نورم"
   ],
   "version": "1.0.0",
-  "apiVersion": 1,
+  "apiVersion": 2,
+  "kind": "engine",
   "category": "mathematics",
   "access": {
     "roles": [
@@ -46,6 +47,6 @@ export default {
     order: 40,
     load: () => import('@/features/solver'),
     dashboard: { title: { en: 'Equations', ar: 'المعادلات' }, iconId: 'functionSquare', order: 20 },
-    navigation: {"labelKey": "solver", "iconId": "calculator", "order": 40},
+    navigation: {"group": "tools", "labelKey": "solver", "iconId": "calculator", "order": 40},
   }],
 } satisfies ModuleManifest;

@@ -1,5 +1,5 @@
 import { MODULE_ICON_COMPONENTS } from '@/shared/ui/moduleIcons';
-import type { LocalizedText } from '@/modules';
+import type { LocalizedText, ModuleRole } from '@/modules';
 import type { LucideIcon } from 'lucide-react';
 
 import {
@@ -7,7 +7,6 @@ import {
   Home as HomeIcon,
 } from 'lucide-react';
 
-import type { EngineAccessRole } from '@/config/majorEngineAccess';
 import type { UiKey } from '@/i18n/uiCopy';
 
 import {
@@ -34,7 +33,7 @@ const NAVIGATION_ICONS: Record<NavigationIconId, LucideIcon> = {
 };
 
 export function buildNavigationGroups(
-  role: EngineAccessRole | null | undefined,
+  role: ModuleRole | null | undefined,
   major?: string | null
 ): NavigationGroup[] {
   return buildNavigationRouteGroups(role, major).map((group) => ({

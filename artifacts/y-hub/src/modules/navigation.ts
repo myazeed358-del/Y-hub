@@ -12,6 +12,7 @@ export function getModuleNavigation(registry: ModuleRegistry, context: ModuleAcc
       Boolean(context.major && route.module.access.majors.includes(context.major));
     return visible ? [{
       href: route.path,
+      group: surface === 'navigation' ? route.navigation?.group : undefined,
       title: contribution.title ?? route.module.title,
       labelKey: surface === 'navigation' ? route.navigation?.labelKey : undefined,
       iconId: contribution.iconId,

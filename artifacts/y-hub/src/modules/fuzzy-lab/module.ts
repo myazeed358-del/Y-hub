@@ -19,7 +19,8 @@ export default {
     "دالة العضوية"
   ],
   "version": "1.0.0",
-  "apiVersion": 1,
+  "apiVersion": 2,
+  "kind": "engine",
   "category": "mathematics",
   "access": {
     "roles": [
@@ -40,6 +41,6 @@ export default {
     order: 70,
     load: () => import('@/features/legacy-lab'),
     dashboard: { title: { en: 'Statistics', ar: 'الإحصاء' }, iconId: 'activity', order: 30 },
-    navigation: {"labelKey": "lab", "iconId": "flaskConical", "order": 50},
+    navigation: {"group": "tools", "labelKey": "lab", "iconId": "flaskConical", "order": 50},
   }],
 } satisfies ModuleManifest;

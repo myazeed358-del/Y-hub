@@ -9,6 +9,15 @@ export const MODULE_ICONS = ['lineChart', 'box', 'calculator', 'flaskConical', '
 export type ModuleIcon = typeof MODULE_ICONS[number];
 export interface LocalizedText { ar: string; en: string }
 
+/** Product identity is independent of subject, grants and presentation. */
+export const MODULE_KINDS = ['engine', 'application', 'laboratory'] as const;
+export type ModuleKind = typeof MODULE_KINDS[number];
+export const MODULE_CATEGORIES = ['mathematics', 'physics', 'chemistry', 'biology', 'medicine', 'engineering', 'productivity', 'education'] as const;
+/** Custom subjects need no host registration; use a lowercase custom:<slug>. */
+export type ModuleCategory = typeof MODULE_CATEGORIES[number] | `custom:${string}`;
+export const MODULE_NAVIGATION_GROUPS = ['learning', 'tools', 'applications', 'laboratories'] as const;
+export type ModuleNavigationGroup = typeof MODULE_NAVIGATION_GROUPS[number];
+
 export interface ModuleAccessPolicy {
   roles: readonly ModuleRole[];
   majors?: readonly string[];
@@ -25,6 +34,7 @@ export interface ModuleRouteDefinition {
   order?: number;
   dashboard?: { title: LocalizedText; iconId: ModuleIcon; order: number };
   navigation?: {
+    group: ModuleNavigationGroup;
     title?: LocalizedText;
     labelKey?: UiKey;
     iconId: ModuleIcon;
@@ -36,10 +46,11 @@ export interface ModuleRouteDefinition {
 export interface ModuleManifest {
   id: string;
   version: string;
-  apiVersion: 1;
+  apiVersion: 2;
+  kind: ModuleKind;
   title: LocalizedText;
   description?: LocalizedText;
-  category?: string;
+  category: ModuleCategory;
   keywords?: readonly string[];
   capabilities?: readonly string[];
   dependencies?: readonly string[];

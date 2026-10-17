@@ -8,11 +8,11 @@ import type { ModuleManifest } from '../contracts';
 const load = vi.fn(async () => ({ default: () => null }));
 function manifest(id = 'example', patch: Partial<ModuleManifest> = {}): ModuleManifest {
   return {
-    id, version: '1.0.0', apiVersion: 1,
+    id, version: '1.0.0', apiVersion: 2, kind: 'application', category: 'education',
     title: { en: id, ar: id },
     access: { roles: ['student', 'instructor', 'admin', 'super_admin'],
       majors: ['mathematics'], majorRestrictedRoles: ['student'] },
-    routes: [{ path: '/' + id, load, navigation: { iconId: 'box', order: 1 } }],
+    routes: [{ path: '/' + id, load, navigation: { group: 'applications', iconId: 'box', order: 1 } }],
     ...patch,
   };
 }
@@ -30,7 +30,7 @@ describe('module validation and dependency isolation', () => {
 
   it.each([
     undefined, {}, manifest('Uppercase'),
-    { ...manifest(), apiVersion: 2 },
+    { ...manifest(), apiVersion: 3 },
     { ...manifest(), version: 'next' },
     { ...manifest(), title: { en: 'Missing Arabic' } },
     { ...manifest(), access: { roles: ['owner'] } },
@@ -39,8 +39,8 @@ describe('module validation and dependency isolation', () => {
     { ...manifest(), routes: [{ path: '/example/', load }] },
     { ...manifest(), routes: [{ path: '/EXAMPLE', load }] },
     { ...manifest(), routes: [{ path: '/:id', load }] },
-    { ...manifest(), routes: [{ path: '/example', load, navigation: { iconId: 'bad', order: 0 } }] },
-    { ...manifest(), routes: [{ path: '/example', load, navigation: { iconId: 'box', order: 0, labelKey: 'missing-copy' } }] },
+    { ...manifest(), routes: [{ path: '/example', load, navigation: { group: 'applications', iconId: 'bad', order: 0 } }] },
+    { ...manifest(), routes: [{ path: '/example', load, navigation: { group: 'applications', iconId: 'box', order: 0, labelKey: 'missing-copy' } }] },
   ])('quarantines invalid manifests while preserving a healthy module: %j', bad => {
     const registry = createModuleRegistry({ bad, healthy: manifest('healthy') });
     expect(registry.modules.map(module => module.id)).toEqual(['healthy']);

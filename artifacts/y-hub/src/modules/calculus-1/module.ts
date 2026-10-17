@@ -21,7 +21,8 @@ export default {
     "اشتقاق"
   ],
   "version": "1.0.0",
-  "apiVersion": 1,
+  "apiVersion": 2,
+  "kind": "engine",
   "category": "mathematics",
   "access": {
     "roles": [
@@ -41,6 +42,6 @@ export default {
     path: "/calculus-1",
     order: 50,
     load: () => import('@/features/calculus-1'),
-    navigation: {"labelKey": "calculus1Solver", "iconId": "lineChart", "order": 10},
+    navigation: {"group": "tools", "labelKey": "calculus1Solver", "iconId": "lineChart", "order": 10},
   }],
 } satisfies ModuleManifest;
