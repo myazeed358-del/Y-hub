@@ -1,3 +1,25 @@
+# DELETE result follow-up
+
+1674 Vitest tests / 186 files (76.27s), 29 Python tests (1.271s), 26 isolated PostgreSQL tests (26.578s) plus immutable user-number SQL checks, eight boundary-check tests, workspace TypeScript, all architecture audits and production build (44.12s) passed. Both complete scripts exited 0; no failed/skipped tests in final runs.
+
+Exam/question handlers require the actual returned deleted ID. No migration changes; existing Draft PR #16 only. Deployment failure for 3c205833 is confirmed but its logs are inaccessible. See `docs/audit-log/DELETE_RESULT_REVIEW.md`.
+
+## Previous checkpoint
+
+# PR #16 security follow-up — current checkpoint
+
+Resumed `feature/central-audit-log` from verified local/remote/PR head `08ee5375dee6db0d8de785d499a4cd0dab609716`. Four focused corrections: role-revocation authorization for child content, event coverage for identity/time mutations, free-text value redaction, and database-error handling for exam/question deletion. Nine additional SQL cases passed (25 total plus user-number SQL checks); six frontend cases added. Full verification after handler changes passed: 1670 Vitest tests / 186 files, 29 Python tests, eight boundary-check tests, workspace TypeScript, architectural audits and production build. Review findings, negative controls and staging gate: `docs/audit-log/SECURITY_REVIEW.md`.
+
+PR #16 already exists; prior documentation about creating a PR is historical. Do not create another PR or merge. API access remains Forbidden; use branch push to update code and retry only PR #16 metadata editing when access is available.
+
+## Historical initial implementation progress
+
+# Central audit log — current feature task
+
+Started from main `9057222` on `feature/central-audit-log`. Prior architecture classification is already merged. Added transactional database audit/notification-intent stores, actor locks, privacy allowlists, read isolation and a bounded search RPC; migration 0022 does not alter historical migrations. Added real disposable PostgreSQL tests (16 passed, plus user-number SQL regression) and the API-2 audit UI (103 focused tests passed). Full checks passed: 185 Vitest files / 1664 tests, 29 Python tests, eight architecture-check tests, complete workspace TypeScript, architecture audits and production build. Database and UI packages pushed; final implementation remotely verified at `79cb47badef2e88be072f9740f3a58fc85dd470f`. A final documentation checkpoint records that evidence. Draft PR creation was attempted and blocked by `Forbidden` from GitHub GraphQL; no PR was created. Prepared description and retry command are in `docs/audit-log/`. See `docs/audit-log/ARCHITECTURE.md`.
+
+## Historical architecture progress
+
 # Refactor progress
 
 ## Focused classification update — PR #15

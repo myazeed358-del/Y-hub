@@ -1,3 +1,27 @@
+# Latest verification: DELETE outcomes
+
+1674 Vitest tests / 186 files (76.27s), 29 Python tests (1.271s), 26 isolated PostgreSQL tests (26.578s) plus immutable user-number SQL checks, eight boundary-check tests, workspace TypeScript, all architecture audits and production build (44.12s) passed. Both complete scripts exited 0; no failed/skipped tests in final runs.
+
+Exam/question handlers require the actual returned deleted ID. No migration changes; existing Draft PR #16 only. Deployment failure for 3c205833 is confirmed but its logs are inaccessible. See `docs/audit-log/DELETE_RESULT_REVIEW.md`.
+
+## Previous checkpoint
+
+# PR #16 security review — latest verification
+
+Recovered local/remote/PR head `08ee5375dee6db0d8de785d499a4cd0dab609716`. Four findings fixed with regression evidence: legacy child-content write authorization after demotion; untracked identity/time updates; free-text privacy leaks; and ignored delete errors. Final isolated PostgreSQL: **25 tests** (20.616s) plus immutable user-number SQL checks. Final complete verification: **186 Vitest files / 1670 tests** (74.50s), **29 Python tests** (0.996s), **eight boundary-check tests**, TypeScript across the workspace, all architectural audits and production build (42.81s). Both scripts exited 0; no final failed/skipped tests. No production writes or historical migration changes.
+
+Read [security review](../audit-log/SECURITY_REVIEW.md) for causal analysis, reviewed files, negative controls, limitations and the staging gate before recommending merge. Only update existing Draft PR #16; API metadata access remains Forbidden, but branch/PR-head verification works via Git.
+
+## Historical implementation verification
+
+# Central audit log verification — 2026-10-17
+
+Current task is `feature/central-audit-log` from main `9057222`. Full verification exited 0: **185 Vitest files / 1664 tests** (72.79s), **29 Python tests** (0.961s), **eight architecture-check tests**, complete workspace TypeScript and all architecture audits, production build (42.49s), and diff whitespace checks. Separately, **16 real isolated PostgreSQL SQL/RLS/integration tests** passed (12.830s), plus existing immutable user-number SQL checks. All migrations through 0022 applied locally. No production writes or migrations were run.
+
+Exact scope, warnings, coverage, file inventory and untested staging boundaries: [audit verification](../audit-log/VERIFICATION.md) and [security architecture](../audit-log/ARCHITECTURE.md). The historical classification report below is superseded for current task/branch instructions.
+
+## Historical classification verification
+
 # Final verification — 2026-10-17
 
 ## Focused module classification follow-up — PR #15

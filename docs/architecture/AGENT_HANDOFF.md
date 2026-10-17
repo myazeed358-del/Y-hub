@@ -1,3 +1,25 @@
+# Current checkpoint: DELETE result verification / existing Draft PR #16
+
+Resumed clean branch `feature/central-audit-log`; local, remote branch and PR head matched `3c205833c25e27433dbf3b0fb9f54fb8cce2685b`. Both delete handlers now require a matching returned ID via `.select('id')`; RLS-hidden/missing rows never advance success state. Tests cover actual PostgreSQL failures and successful deletion too. No migration change in this patch.
+
+1674 Vitest tests / 186 files (76.27s), 29 Python tests (1.271s), 26 isolated PostgreSQL tests (26.578s) plus immutable user-number SQL checks, eight boundary-check tests, workspace TypeScript, all architecture audits and production build (44.12s) passed. Both complete scripts exited 0; no failed/skipped tests in final runs.
+
+PR #16 Draft state verified through public GitHub HTML. Vercel Preview failure is confirmed for 3c205833; exact deployment URL and blocked-log evidence are in `docs/audit-log/DELETE_RESULT_REVIEW.md`. Root cause is unknown, not assumed to be Audit Log or the old bundle limit. GitHub API blocks description editing; the refreshed body is committed at `docs/audit-log/PR_DESCRIPTION.md`. Next: obtain deployment error text / API access, update only #16, then separately authorized isolated Supabase staging. Never create a new PR, merge or apply migrations to production.
+
+## Prior checkpoint (historical)
+
+# Current task: PR #16 audit security follow-up
+
+Branch: `feature/central-audit-log`; existing Draft PR: https://github.com/myazeed358-del/Y-hub/pull/16 (user-confirmed Draft; API unavailable). Do not create a PR or merge. Base main remains `9057222acc54c473e192a98507273ce49ac19aac`.
+
+Recovered clean tree; local head, remote branch and PR head all matched `08ee5375dee6db0d8de785d499a4cd0dab609716`. Reviewed audit code and authorization dependencies. Fixed role-revocation bypass in legacy child-content policies, identity/timestamp capture gaps, free-text major/difficulty disclosure, and ignored database errors in two audited delete handlers. See `docs/audit-log/SECURITY_REVIEW.md` for causal evidence and limits.
+
+Database final verification: 25 real isolated PostgreSQL tests passed, plus existing user-number SQL regression. Final full verification passed after handler fixes: 186 Vitest files / 1670 tests (74.50s), 29 Python tests (0.996s), eight boundary-check tests, full workspace TypeScript, architecture audits and build (42.81s). No production migration, permission changes or data operations. Only unmerged 0022 is amended; no historical migration edits.
+
+This checkpoint contains the complete verified security patch; establish its SHA from Git and verify remote branch/PR head. The previous verified remote checkpoint is 08ee5375dee6db0d8de785d499a4cd0dab609716. Next review gate is isolated Supabase staging and PR #16 review, not another implementation restart. GitHub API returns Forbidden; if body edit remains blocked, the committed PR_DESCRIPTION.md and security report are reviewable through the branch push. Require isolated real Supabase staging validation before approving merge; never confuse local PostgreSQL auth stand-ins with live JWT/RLS end-to-end evidence.
+
+## Historical handoff (superseded)
+
 # Agent handoff
 
 CURRENT PHASE: focused module classification complete, verified and pushed to existing PR #15.

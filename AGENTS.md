@@ -18,6 +18,6 @@ Never substitute a build for behavioral tests or claim anonymous Supabase reques
 Run node --test tools/check_module_boundaries.test.mjs and node tools/check_module_boundaries.mjs for compiler-resolved module/public-feature imports and runtime cycles. The complete suite is scripts/verify-architecture-refactor.sh (set PATH to pinned pnpm and YHUB_PYTHON to the prepared interpreter).
 
 ## Git checkpoints and recovery
-Use refactor/architecture-plug-and-play; inspect remote and local changes before switching. Do not overwrite unrelated work. Implement small packages, test, update progress/handoff, commit, push normally, and verify remote SHA using git ls-remote.
+Current task: centralized audit log on feature/central-audit-log, based on main 9057222. The prior classification work is merged. Inspect remote and local changes before switching. New migration/RLS code and isolated local database testing are explicitly authorized for this task; production application is not. Do not overwrite unrelated work. Implement small packages, test, update progress/handoff, commit, push normally, and verify remote SHA using git ls-remote.
 Record the previous verified remote SHA in the next checkpoint document; a commit cannot contain its own hash. Git history and ls-remote establish the newest checkpoint.
 PRs are for review; never automatically merge. If API or push access fails, document the exact limitation and continue safe independent work.
