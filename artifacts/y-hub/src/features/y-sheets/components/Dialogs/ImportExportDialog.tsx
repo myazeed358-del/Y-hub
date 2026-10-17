@@ -1,4 +1,6 @@
 import React, { useRef, useState } from 'react';
+import type { WorkbookData } from '../../types/workbook';
+import { replaceWorkbookContents } from '../../io/importIntoCurrentWorkbook';
 import { useWorkbook } from '../../state/workbookContext';
 import { exportWorkbookToXLSX, importWorkbookFromXLSX } from '../../io/xlsxAdapter';
 import { exportSheetToCSV, importCSVToSheet } from '../../io/csvAdapter';
@@ -12,15 +14,28 @@ interface Props {
 }
 
 export const ImportExportDialog: React.FC<Props> = ({ isOpen, onClose, defaultTab = 'export' }) => {
-  const { workbook, activeSheet, dispatch } = useWorkbook();
+  const { workbook, activeSheet, dispatch, canExport, canEdit } = useWorkbook();
   const [activeTab, setActiveTab] = useState<'export' | 'import'>(defaultTab);
   const [errorMsg, setErrorMsg] = useState('');
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const applyImport = (imported: WorkbookData): void => {
+    if (!window.confirm(
+      'Replace the contents of this workbook with the imported file?'
+    )) return;
+
+    dispatch({
+      type: 'SET_WORKBOOK',
+      payload: replaceWorkbookContents(workbook, imported),
+    });
+    onClose();
+  };
+
   if (!isOpen) return null;
 
   const handleExportXLSX = (): void => {
+    if (!canExport) { setErrorMsg('Export not permitted.'); return; }
     try {
       exportWorkbookToXLSX(workbook, `${workbook.name}.xlsx`);
       onClose();
@@ -30,6 +45,7 @@ export const ImportExportDialog: React.FC<Props> = ({ isOpen, onClose, defaultTa
   };
 
   const handleExportCSV = (): void => {
+    if (!canExport) { setErrorMsg('Export not permitted.'); return; }
     try {
       const csv = exportSheetToCSV(activeSheet);
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -48,6 +64,7 @@ export const ImportExportDialog: React.FC<Props> = ({ isOpen, onClose, defaultTa
   };
 
   const handleExportJSON = (): void => {
+    if (!canExport) { setErrorMsg('Export not permitted.'); return; }
     try {
       downloadWorkbookJSON(workbook);
       onClose();
@@ -59,6 +76,7 @@ export const ImportExportDialog: React.FC<Props> = ({ isOpen, onClose, defaultTa
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (!canEdit) { setErrorMsg('Import not permitted.'); return; }
 
     setLoading(true);
     setErrorMsg('');
@@ -69,8 +87,7 @@ export const ImportExportDialog: React.FC<Props> = ({ isOpen, onClose, defaultTa
       if (extension === 'xlsx' || extension === 'xls') {
         const buffer = await file.arrayBuffer();
         const importedWb = importWorkbookFromXLSX(buffer);
-        dispatch({ type: 'SET_WORKBOOK', payload: importedWb });
-        onClose();
+        applyImport(importedWb);
       } else if (extension === 'csv') {
         const text = await file.text();
         const importedSheet = importCSVToSheet(text, file.name.replace(/\.[^/.]+$/, ''));
@@ -81,13 +98,11 @@ export const ImportExportDialog: React.FC<Props> = ({ isOpen, onClose, defaultTa
           activeSheetId: importedSheet.id,
           version: 1,
         };
-        dispatch({ type: 'SET_WORKBOOK', payload: newWb });
-        onClose();
+        applyImport(newWb);
       } else if (extension === 'json') {
         const text = await file.text();
         const importedWb = parseWorkbookJSON(text);
-        dispatch({ type: 'SET_WORKBOOK', payload: importedWb });
-        onClose();
+        applyImport(importedWb);
       } else {
         setErrorMsg('Unsupported file format. Please upload .xlsx, .csv, or .json.');
       }
@@ -143,7 +158,15 @@ export const ImportExportDialog: React.FC<Props> = ({ isOpen, onClose, defaultTa
         )}
 
         {/* Tab 1: Export */}
-        {activeTab === 'export' ? (
+        {activeTab === 'export' && !canExport ? (
+          <p role="alert" className="p-4 text-sm">
+            Export is not permitted for this session.
+          </p>
+        ) : activeTab === 'import' && !canEdit ? (
+          <p role="alert" className="p-4 text-sm">
+            Import is not permitted in read-only mode.
+          </p>
+        ) : activeTab === 'export' ? (
           <div className="py-4 space-y-3">
             <div
               onClick={handleExportXLSX}

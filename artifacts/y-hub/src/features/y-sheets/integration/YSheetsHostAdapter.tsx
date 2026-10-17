@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { YSheetsIntegrationProps } from './hostContract';
 import { WorkbookData } from '../types/workbook';
 import { WorkbookProvider } from '../state/workbookContext';
@@ -13,12 +13,13 @@ import { Loader2 } from 'lucide-react';
 
 export const YSheetsHostAdapter: React.FC<YSheetsIntegrationProps> = ({
   user,
-  permissions = { canEdit: true, canExport: true, canCreateSheet: true, canDeleteSheet: true, canFormat: true },
+  permissions = { canEdit: false, canExport: false, canCreateSheet: false, canDeleteSheet: false, canFormat: false },
   theme = 'light',
   workbookId,
   initialWorkbook,
   storageAdapter,
   onSave,
+  onRequestNewWorkbook,
   onChange,
   onError,
   onTelemetry,
@@ -70,21 +71,23 @@ export const YSheetsHostAdapter: React.FC<YSheetsIntegrationProps> = ({
     };
   }, [workbookId, storageAdapter]);
 
-  const handleWorkbookChange = (wb: WorkbookData): void => {
+  const handleWorkbookChange = useCallback((wb: WorkbookData): void => {
     if (onChange) {
       onChange(wb);
     }
-    if (storageAdapter) {
-      storageAdapter.saveWorkbook(wb).catch((err) => {
-        if (onError) onError(err instanceof Error ? err : new Error(String(err)));
+    // The host save callback overrides direct storage persistence.
+    // Never write the same change through both paths.
+    const persist = onSave ??
+      (storageAdapter
+        ? (next: WorkbookData) => storageAdapter.saveWorkbook(next)
+        : undefined);
+
+    if (persist) {
+      void persist(wb).catch((err: unknown) => {
+        onError?.(err instanceof Error ? err : new Error(String(err)));
       });
     }
-    if (onSave) {
-      onSave(wb).catch((err) => {
-        if (onError) onError(err instanceof Error ? err : new Error(String(err)));
-      });
-    }
-  };
+  }, [onChange, storageAdapter, onSave, onError]);
 
   const resolvedTheme: 'light' | 'dark' =
     theme === 'system'
@@ -107,12 +110,10 @@ export const YSheetsHostAdapter: React.FC<YSheetsIntegrationProps> = ({
       <div className="flex flex-col items-center justify-center min-h-[300px] w-full p-6 bg-red-50 dark:bg-red-950 text-red-900 dark:text-red-200 border border-red-200 dark:border-red-800 rounded-lg m-4">
         <p className="text-sm font-bold mb-2">Error loading workbook from host</p>
         <p className="text-xs mb-4">{loadError}</p>
-        <button
-          onClick={() => setWorkbook(createDefaultWorkbook())}
-          className="px-3 py-1.5 bg-red-600 text-white rounded text-xs hover:bg-red-700"
-        >
-          Open Default Workspace
-        </button>
+        <p className="text-sm">
+          The cloud workbook was not loaded. Return to My Files
+          and retry. Your saved workbook has not been replaced.
+        </p>
       </div>
     );
   }
@@ -122,11 +123,14 @@ export const YSheetsHostAdapter: React.FC<YSheetsIntegrationProps> = ({
   return (
     <ErrorBoundary onError={onError}>
       <div
-        className={`flex flex-col h-full w-full overflow-hidden bg-white dark:bg-zinc-950 font-sans ${className}`}
+        className={`y-sheets-root flex flex-col h-full w-full overflow-hidden bg-white dark:bg-zinc-950 font-sans ${resolvedTheme === 'dark' ? 'dark' : ''} ${className}`}
         style={style}
       >
         <WorkbookProvider
+          key={workbook.id}
           initialWorkbook={workbook}
+          canEdit={permissions.canEdit === true}
+          permissions={permissions}
           theme={resolvedTheme}
           onWorkbookChange={handleWorkbookChange}
         >
@@ -142,7 +146,7 @@ export const YSheetsHostAdapter: React.FC<YSheetsIntegrationProps> = ({
             </div>
           )}
 
-          <Toolbar />
+          <Toolbar onNewWorkbook={onRequestNewWorkbook} />
           <FormulaBar />
           <div className="flex-1 relative overflow-hidden flex flex-col">
             <Grid />

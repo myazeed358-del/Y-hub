@@ -1,3 +1,5 @@
+import { canPerformWorkbookAction } from './workbookPermissions';
+import type { HostPermissions } from '../integration/hostContract';
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { WorkbookData } from '../types/workbook';
 import { WorksheetData, cellCoordToKey, keyToCellCoord } from '../types/sheet';
@@ -6,7 +8,6 @@ import { WorkbookAction } from './workbookActions';
 import { workbookReducer } from './workbookReducer';
 import { HistoryManager } from './historyManager';
 import { createDefaultWorkbook } from './defaultWorkbook';
-import { saveWorkbookLocally, loadWorkbookLocally } from '../io/localPersistence';
 
 export interface ClipboardData {
   range: CellRange;
@@ -23,6 +24,8 @@ export interface WorkbookContextType {
   editingCell: { position: CellPosition; initialValue: string } | null;
   clipboard: ClipboardData | null;
   theme: 'light' | 'dark';
+  canExport: boolean;
+  canEdit: boolean;
   canUndo: boolean;
   canRedo: boolean;
 
@@ -62,6 +65,8 @@ export interface WorkbookProviderProps {
   initialWorkbook?: WorkbookData;
   theme?: 'light' | 'dark';
   onWorkbookChange?: (wb: WorkbookData) => void;
+  canEdit?: boolean;
+  permissions?: HostPermissions;
 }
 
 export const WorkbookProvider: React.FC<WorkbookProviderProps> = ({
@@ -69,8 +74,10 @@ export const WorkbookProvider: React.FC<WorkbookProviderProps> = ({
   initialWorkbook,
   theme: initialTheme = 'light',
   onWorkbookChange,
+  canEdit = true,
+  permissions,
 }) => {
-  const initialData = initialWorkbook || loadWorkbookLocally() || createDefaultWorkbook();
+  const initialData = initialWorkbook || createDefaultWorkbook();
   const historyRef = useRef<HistoryManager>(new HistoryManager(initialData));
 
   const [workbook, setWorkbook] = useState<WorkbookData>(initialData);
@@ -83,24 +90,32 @@ export const WorkbookProvider: React.FC<WorkbookProviderProps> = ({
   // Active sheet lookup
   const activeSheet = workbook.sheets.find((s) => s.id === workbook.activeSheetId) || workbook.sheets[0]!;
 
-  // Auto-save debounced
-  useEffect(() => {
-    saveWorkbookLocally(workbook);
-    if (onWorkbookChange) {
-      onWorkbookChange(workbook);
-    }
-  }, [workbook, onWorkbookChange]);
+  // Notify the host only when workbook state actually changes.
+  // Never persist on initial mount or on unrelated rerenders.
+  const lastNotifiedWorkbookRef = useRef(workbook);
+  const onWorkbookChangeRef = useRef(onWorkbookChange);
+  const canEditRef = useRef(canEdit);
 
-  // Apply theme to document
+  onWorkbookChangeRef.current = onWorkbookChange;
+  canEditRef.current = canEdit;
+
   useEffect(() => {
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
+    if (lastNotifiedWorkbookRef.current === workbook) return;
+
+    lastNotifiedWorkbookRef.current = workbook;
+
+    if (canEditRef.current) {
+      onWorkbookChangeRef.current?.(workbook);
     }
-  }, [theme]);
+  }, [workbook]);
 
   const dispatch = useCallback((action: WorkbookAction, pushHistory = true) => {
+    if (!canEdit || !canPerformWorkbookAction(action, permissions ?? {
+      canEdit: true,
+      canCreateSheet: true,
+      canDeleteSheet: true,
+      canFormat: true,
+    })) return;
     setWorkbook((prevWb) => {
       const nextWb = workbookReducer(prevWb, action);
       if (pushHistory) {
@@ -108,9 +123,10 @@ export const WorkbookProvider: React.FC<WorkbookProviderProps> = ({
       }
       return nextWb;
     });
-  }, []);
+  }, [canEdit, permissions]);
 
   const undo = useCallback(() => {
+    if (!canEdit) return;
     const prev = historyRef.current.undo();
     if (prev) {
       setWorkbook(prev);
@@ -118,6 +134,7 @@ export const WorkbookProvider: React.FC<WorkbookProviderProps> = ({
   }, []);
 
   const redo = useCallback(() => {
+    if (!canEdit) return;
     const next = historyRef.current.redo();
     if (next) {
       setWorkbook(next);
@@ -148,12 +165,13 @@ export const WorkbookProvider: React.FC<WorkbookProviderProps> = ({
   }, [activeSheet.rowCount, activeSheet.colCount]);
 
   const startEditing = useCallback((pos?: CellPosition, initialValue?: string) => {
+    if (!canEdit) return;
     const targetPos = pos || activeCell;
     const key = cellCoordToKey(targetPos.row, targetPos.col);
     const cell = activeSheet.cells[key];
     const val = initialValue !== undefined ? initialValue : (cell?.raw ?? '');
     setEditingCell({ position: targetPos, initialValue: val });
-  }, [activeCell, activeSheet.cells]);
+  }, [activeCell, activeSheet.cells, canEdit]);
 
   const stopEditing = useCallback((saveValue?: string) => {
     if (editingCell && saveValue !== undefined) {
@@ -212,11 +230,13 @@ export const WorkbookProvider: React.FC<WorkbookProviderProps> = ({
   }, [selection, activeSheet]);
 
   const cutSelection = useCallback(() => {
+    if (!canEdit) return;
     copySelection();
     setClipboard((prev) => (prev ? { ...prev, isCut: true } : null));
-  }, [copySelection]);
+  }, [copySelection, canEdit]);
 
   const pasteSelection = useCallback(async () => {
+    if (!canEdit) return;
     if (!clipboard) return;
 
     const minRow = Math.min(selection.startRow, selection.endRow);
@@ -260,7 +280,7 @@ export const WorkbookProvider: React.FC<WorkbookProviderProps> = ({
         updates,
       },
     });
-  }, [clipboard, selection, activeSheet, dispatch]);
+  }, [clipboard, selection, activeSheet, dispatch, canEdit]);
 
   const clearSelection = useCallback(() => {
     const minRow = Math.min(selection.startRow, selection.endRow);
@@ -452,6 +472,8 @@ export const WorkbookProvider: React.FC<WorkbookProviderProps> = ({
     editingCell,
     clipboard,
     theme,
+    canExport: permissions?.canExport === true,
+    canEdit,
     canUndo: historyRef.current.canUndo(),
     canRedo: historyRef.current.canRedo(),
     setActiveCell,

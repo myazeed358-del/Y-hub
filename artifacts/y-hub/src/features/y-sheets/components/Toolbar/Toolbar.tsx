@@ -37,7 +37,9 @@ import { DataValidationDialog } from '../Dialogs/DataValidationDialog';
 import { ImportExportDialog } from '../Dialogs/ImportExportDialog';
 import { cellCoordToKey } from '../../types/sheet';
 
-export const Toolbar: React.FC = () => {
+export const Toolbar: React.FC<{
+  onNewWorkbook?: () => void;
+}> = ({ onNewWorkbook }) => {
   const {
     workbook,
     activeSheet,
@@ -106,6 +108,10 @@ export const Toolbar: React.FC = () => {
   };
 
   const handleNewWorkbook = (): void => {
+    if (onNewWorkbook) {
+      onNewWorkbook();
+      return;
+    }
     if (confirm('Create a new workbook? Unsaved changes will be replaced.')) {
       dispatch({ type: 'SET_WORKBOOK', payload: createDefaultWorkbook() });
     }

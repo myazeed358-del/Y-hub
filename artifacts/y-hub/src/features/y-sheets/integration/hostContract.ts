@@ -39,6 +39,7 @@ export interface YSheetsIntegrationProps {
   workbookId?: string;
   initialWorkbook?: WorkbookData;
   storageAdapter?: HostStorageAdapter;
+  onRequestNewWorkbook?: () => void;
   onSave?: (workbook: WorkbookData) => Promise<void>;
   onChange?: (workbook: WorkbookData) => void;
   onError?: (error: Error) => void;

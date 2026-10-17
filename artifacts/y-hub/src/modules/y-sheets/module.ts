@@ -28,9 +28,6 @@ export default {
 
   access: {
     roles: [
-      'student',
-      'instructor',
-      'admin',
       'super_admin',
     ],
   },
