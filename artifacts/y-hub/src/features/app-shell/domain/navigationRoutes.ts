@@ -1,23 +1,17 @@
-import {
-  getSidebarEngineRoutes,
-  type EngineAccessRole,
-} from '@/config/majorEngineAccess';
+import { moduleRegistry, getModuleNavigation, type ModuleRegistry, type LocalizedText, type ModuleIcon, type ModuleRole, type ModuleNavigationGroup } from '@/modules';
 
 import type { UiKey } from '@/i18n/uiCopy';
 
 export type NavigationIconId =
   | 'home'
   | 'brainCircuit'
-  | 'lineChart'
-  | 'box'
-  | 'calculator'
-  | 'flaskConical'
-  | 'grid2x2';
+  | ModuleIcon;
 
 export interface NavigationRouteItem {
   href: string;
   key: UiKey;
   iconId: NavigationIconId;
+  title?: LocalizedText;
 }
 
 export interface NavigationRouteGroup {
@@ -25,26 +19,26 @@ export interface NavigationRouteGroup {
   items: NavigationRouteItem[];
 }
 
-export function buildNavigationRouteGroups(
-  role: EngineAccessRole | null | undefined,
-  major?: string | null
-): NavigationRouteGroup[] {
-  const sidebarEngineRoutes = new Set(
-    getSidebarEngineRoutes(
-      role,
-      major
-    )
-  );
+/** Host presentation areas, not a module registration list. Kind never selects placement. */
+const MODULE_SECTIONS: { group: ModuleNavigationGroup; section: UiKey }[] = [
+  { group: 'tools', section: 'understandingTools' },
+  { group: 'applications', section: 'moduleApplications' },
+  { group: 'laboratories', section: 'moduleLaboratories' },
+];
 
-  const engineItems = [
-    { href: '/calculus-1', key: 'calculus1Solver' as UiKey, iconId: 'lineChart' as const },
-    { href: '/calculus', key: 'calculusPlotter' as UiKey, iconId: 'lineChart' as const },
-    { href: '/math-solver', key: 'calculus3Solver' as UiKey, iconId: 'box' as const },
-    { href: '/solver', key: 'solver' as UiKey, iconId: 'calculator' as const },
-    { href: '/lab', key: 'lab' as UiKey, iconId: 'flaskConical' as const },
-    { href: '/linear-algebra', key: 'linearAlgebra' as UiKey, iconId: 'grid2x2' as const },
-    { href: '/ode', key: 'odeSolver' as UiKey, iconId: 'lineChart' as const },
-  ].filter((item) => sidebarEngineRoutes.has(item.href));
+export function buildNavigationRouteGroups(
+  role: ModuleRole | null | undefined,
+  major?: string | null,
+  modules: ModuleRegistry = moduleRegistry,
+): NavigationRouteGroup[] {
+  const contributions = getModuleNavigation(modules, { role, major });
+  const itemsFor = (group: ModuleNavigationGroup): NavigationRouteItem[] => contributions
+    .filter(item => item.group === group).map(item => ({
+      href: item.href,
+      key: item.labelKey ?? 'understandingTools',
+      iconId: item.iconId,
+      ...(item.labelKey ? {} : { title: item.title }),
+    }));
 
   return [
     {
@@ -64,15 +58,12 @@ export function buildNavigationRouteGroups(
               ]
             : []
         ),
+        ...itemsFor('learning'),
       ],
     },
-    ...(engineItems.length > 0
-      ? [
-          {
-            section: 'understandingTools' as UiKey,
-            items: engineItems,
-          },
-        ]
-      : []),
+    ...MODULE_SECTIONS.flatMap(({ group, section }) => {
+      const items = itemsFor(group);
+      return items.length ? [{ section, items }] : [];
+    }),
   ];
 }

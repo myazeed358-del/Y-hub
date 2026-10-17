@@ -1,13 +1,7 @@
+import { moduleRegistry, getModuleNavigation } from '@/modules';
+import { MODULE_ICON_COMPONENTS } from '@/shared/ui/moduleIcons';
 import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
-import {
-  LayoutDashboard,
-  BookOpen,
-  Calculator,
-  FunctionSquare,
-  LineChart,
-  Activity,
-} from 'lucide-react';
 import { toast } from 'sonner';
 import { useLanguage } from '@/i18n/LanguageContext';
 
@@ -23,25 +17,30 @@ export function useStudentDashboard() {
   const { t, language } = useLanguage();
 
   useEffect(() => {
+    let active = true;
     async function loadData() {
-      const user = await repository.currentUser();
-      if (!user) {
-        setLocation('/login');
-        return;
-      }
-
-      const profileData = await repository.profile(user.id);
-      setProfile(profileData);
-
-      const coursesData = await repository.publishedCourses();
-      if (coursesData) setCourses(coursesData);
-
-      const enrollmentsData = await repository.activeEnrollments(user.id);
-      if (enrollmentsData) {
-        setEnrolledIds(new Set(enrollmentsData.map(e => e.course_id)));
+      try {
+        const user = await repository.currentUser();
+        if (!active) return;
+        if (!user) {
+          setLocation('/login');
+          return;
+        }
+        const [profileData, coursesData, enrollmentsData] = await Promise.all([
+          repository.profile(user.id), repository.publishedCourses(), repository.activeEnrollments(user.id),
+        ]);
+        if (!active) return;
+        setProfile(profileData);
+        setCourses(coursesData ?? []);
+        setEnrolledIds(new Set((enrollmentsData ?? []).map(enrollment => enrollment.course_id)));
+      } catch (error) {
+        if (!active) return;
+        console.error('Student dashboard load failed:', error);
+        toast.error('Unable to load dashboard / تعذر تحميل لوحة الطالب');
       }
     }
-    loadData();
+    void loadData();
+    return () => { active = false; };
   }, [setLocation]);
 
   const handleEnroll = async (courseId: string) => {
@@ -70,17 +69,8 @@ export function useStudentDashboard() {
     }
   };
 
-  const navItems = [
-    { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard', active: true },
-    { name: 'My Courses', icon: BookOpen, path: '/legacy-course', active: false },
-    { name: 'Math Lab', icon: Calculator, path: '/math-solver', active: false },
-  ];
-
-  const tools = [
-    { name: 'Graphing', icon: LineChart, path: '/calculus' },
-    { name: 'Equations', icon: FunctionSquare, path: '/solver' },
-    { name: 'Statistics', icon: Activity, path: '/lab' },
-  ];
+  const tools = getModuleNavigation(moduleRegistry, { role: 'student', major: profile?.major }, 'dashboard')
+    .map(item => ({ name: item.title[language], icon: MODULE_ICON_COMPONENTS[item.iconId], path: item.href }));
 
   const firstName = profile?.full_name?.split(' ')[0] || (language === 'ar' ? 'طالب' : 'Student');
 

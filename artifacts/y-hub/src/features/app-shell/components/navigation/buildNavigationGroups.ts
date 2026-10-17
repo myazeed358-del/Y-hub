@@ -1,16 +1,12 @@
+import { MODULE_ICON_COMPONENTS } from '@/shared/ui/moduleIcons';
+import type { LocalizedText, ModuleRole } from '@/modules';
 import type { LucideIcon } from 'lucide-react';
 
 import {
-  Box,
   BrainCircuit,
-  Calculator,
-  FlaskConical,
-  Grid2X2,
   Home as HomeIcon,
-  LineChart,
 } from 'lucide-react';
 
-import type { EngineAccessRole } from '@/config/majorEngineAccess';
 import type { UiKey } from '@/i18n/uiCopy';
 
 import {
@@ -22,6 +18,7 @@ export interface NavigationItem {
   href: string;
   key: UiKey;
   icon: LucideIcon;
+  title?: LocalizedText;
 }
 
 export interface NavigationGroup {
@@ -32,15 +29,11 @@ export interface NavigationGroup {
 const NAVIGATION_ICONS: Record<NavigationIconId, LucideIcon> = {
   home: HomeIcon,
   brainCircuit: BrainCircuit,
-  lineChart: LineChart,
-  box: Box,
-  calculator: Calculator,
-  flaskConical: FlaskConical,
-  grid2x2: Grid2X2,
+  ...MODULE_ICON_COMPONENTS,
 };
 
 export function buildNavigationGroups(
-  role: EngineAccessRole | null | undefined,
+  role: ModuleRole | null | undefined,
   major?: string | null
 ): NavigationGroup[] {
   return buildNavigationRouteGroups(role, major).map((group) => ({
@@ -49,6 +42,7 @@ export function buildNavigationGroups(
       href: item.href,
       key: item.key,
       icon: NAVIGATION_ICONS[item.iconId],
+      ...(item.title ? { title: item.title } : {}),
     })),
   }));
 }

@@ -10,6 +10,8 @@ import {
   LineChart,
 } from 'lucide-react';
 
+import { ENGINE_CATALOG } from '@/config/majorEngineAccess';
+
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
@@ -81,6 +83,17 @@ describe('navigationRoutes', () => {
       '/ode',
       ]);
     }
+  });
+
+  it('derives administrator engine links from catalog sidebar metadata', () => {
+    const expectedRoutes = ENGINE_CATALOG
+      .filter((engine) => engine.sidebar)
+      .slice()
+      .sort((a, b) => a.sidebar!.order - b.sidebar!.order)
+      .map((engine) => engine.route);
+
+    expect(paths('admin', null).slice(2)).toEqual(expectedRoutes);
+    expect(new Set(expectedRoutes).size).toBe(expectedRoutes.length);
   });
 
   it('provides serializable icon identifiers', () => {

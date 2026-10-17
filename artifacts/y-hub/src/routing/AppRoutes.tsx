@@ -12,45 +12,8 @@ import CourseManager from '@/pages/CourseManager';
 import StudentCourseView from '@/pages/StudentCourseView';
 import AIGenerator from '@/pages/AIGenerator';
 import ExamRunner from '@/pages/ExamRunner';
-import MathSolver from '@/pages/MathSolver';
-import CalculusSolver from '@/pages/CalculusSolver';
-import Solver from '@/pages/Solver';
-
-const Calculus1Page = React.lazy(
-  () => import('@/features/calculus-1/pages/Calculus1Page')
-);
-
-function Calculus1Route() {
-  return (
-    <React.Suspense fallback={<div role="status">جاري التحميل... / Loading...</div>}>
-      <Calculus1Page />
-    </React.Suspense>
-  );
-}
-
-const OdePage = React.lazy(
-  () => import('@/features/ode/pages/OdePage')
-);
-
-function OdeRoute() {
-  return (
-    <React.Suspense fallback={<div role="status">Loading ODE...</div>}>
-      <OdePage />
-    </React.Suspense>
-  );
-}
-
-const LinearAlgebraPage = React.lazy(
-  () => import('@/features/linear-algebra/pages/LinearAlgebraPage')
-);
-
-function LinearAlgebraRoute() {
-  return (
-    <React.Suspense fallback={<div role="status">جاري التحميل... / Loading...</div>}>
-      <LinearAlgebraPage />
-    </React.Suspense>
-  );
-}
+import { moduleRegistry, type ModuleRegistry } from '@/modules';
+import { ModulePage } from '@/modules/ModulePage';
 
 type AppRoutesProps = {
   Home: React.ComponentType;
@@ -59,15 +22,16 @@ type AppRoutesProps = {
   Lab: React.ComponentType;
   Quiz: React.ComponentType;
   NotFound: React.ComponentType;
+  modules?: ModuleRegistry;
 };
 
 export function AppRoutes({
   Home,
   CoursePlan,
   LessonPage,
-  Lab,
   Quiz,
   NotFound,
+  modules = moduleRegistry,
 }: AppRoutesProps) {
   const { user, loading } = useAuth();
   const { language, setLanguage } = useLanguage();
@@ -113,29 +77,15 @@ export function AppRoutes({
       <Route path="/course/:id/view">{(params) => <ProtectedRoute component={StudentCourseView} params={params} />}</Route>
       <Route path="/course/:id/ai-tutor">{(params) => <ProtectedRoute component={AIGenerator} params={params} />}</Route>
       <Route path="/exam/:id">{(params) => <ProtectedRoute component={ExamRunner} params={params} />}</Route>
-      <Route path="/ode">
-        {() => (
-          <ProtectedRoute component={OdeRoute} enginePath="/ode" />
-        )}
-      </Route>
-      <Route path="/linear-algebra">
-        {() => (
-          <ProtectedRoute
-            component={LinearAlgebraRoute}
-            enginePath="/linear-algebra"
-          />
-        )}
-      </Route>
-      <Route path="/math-solver">{() => <ProtectedRoute component={MathSolver} enginePath="/math-solver" />}</Route>
-      <Route path="/solver">{() => <ProtectedRoute component={Solver} enginePath="/solver" />}</Route>
-      <Route path="/calculus-1">
-        {() => <ProtectedRoute component={Calculus1Route} enginePath="/calculus-1" />}
-      </Route>
-      <Route path="/calculus">{() => <ProtectedRoute component={CalculusSolver} enginePath="/calculus" />}</Route>
+      {modules.routes.map(route => (
+        <Route key={route.path} path={route.path}>
+          {() => <ProtectedRoute component={ModulePage} route={route}
+            moduleAccess={route.module.access} />}
+        </Route>
+      ))}
       <Route path="/legacy-home">{() => <ProtectedRoute component={Home} />}</Route>
       <Route path="/legacy-course">{() => <ProtectedRoute component={CoursePlan} />}</Route>
       <Route path="/lesson/:slug">{(params) => <ProtectedRoute component={LessonPage} params={params} />}</Route>
-      <Route path="/lab">{() => <ProtectedRoute component={Lab} enginePath="/lab" />}</Route>
       <Route path="/quiz">{() => <ProtectedRoute component={Quiz} />}</Route>
       <Route component={NotFound} />
     </Switch>

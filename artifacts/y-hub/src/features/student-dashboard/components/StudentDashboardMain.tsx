@@ -1,3 +1,4 @@
+import type { StudentDashboardCourse } from '../types';
 import { Book } from 'lucide-react';
 import type { useLanguage } from '@/i18n/LanguageContext';
 import { CircularProgress } from './CircularProgress';
@@ -7,7 +8,7 @@ interface Props {
   t: ReturnType<typeof useLanguage>['t'];
   firstName: string;
   enrolledIds: Set<string>;
-  courses: any[];
+  courses: StudentDashboardCourse[];
   enrollingId: string | null;
   handleEnroll: (courseId: string) => Promise<void>;
   setLocation: (path: string) => void;

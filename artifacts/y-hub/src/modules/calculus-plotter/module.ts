@@ -1,0 +1,49 @@
+import type { ModuleManifest } from '../contracts';
+
+export default {
+  "id": "calculus-plotter",
+  "title": {
+    "ar": "التفاضل والتكامل 2",
+    "en": "Calculus II"
+  },
+  "description": {
+    "ar": "النهايات، الاشتقاق، التكامل، التطبيقات الهندسية والمتسلسلات مع خطوات الحل والرسوم البيانية.",
+    "en": "Limits, derivatives, integrals, geometric applications, and series with step-by-step solutions and graphs."
+  },
+  "keywords": [
+    "calculus",
+    "derivative",
+    "integral",
+    "plot",
+    "graph",
+    "تفاضل",
+    "تكامل",
+    "مشتقة",
+    "رسم"
+  ],
+  "version": "1.0.0",
+  "apiVersion": 2,
+  "kind": "engine",
+  "category": "mathematics",
+  "access": {
+    "roles": [
+      "student",
+      "instructor",
+      "admin",
+      "super_admin"
+    ],
+    "majors": [
+      "mathematics"
+    ],
+    "majorRestrictedRoles": [
+      "student"
+    ]
+  },
+  routes: [{
+    path: "/calculus",
+    order: 60,
+    load: () => import('@/features/calculus'),
+    dashboard: { title: { en: 'Graphing', ar: 'الرسوم البيانية' }, iconId: 'lineChart', order: 10 },
+    navigation: {"group": "tools", "labelKey": "calculusPlotter", "iconId": "lineChart", "order": 20},
+  }],
+} satisfies ModuleManifest;

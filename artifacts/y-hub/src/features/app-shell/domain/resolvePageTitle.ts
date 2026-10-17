@@ -1,3 +1,4 @@
+import { moduleRegistry } from '@/modules';
 import type {
   Language,
   UiKey,
@@ -11,8 +12,11 @@ export function resolvePageTitle(
   language: Language,
   t: PageTitleTranslator
 ): string {
-  if (location === '/calculus-1') {
-    return t('calculus1Solver');
+  const route = moduleRegistry.routes.find(item => item.path === location);
+  if (route) {
+    return route.navigation?.labelKey
+      ? t(route.navigation.labelKey)
+      : (route.navigation?.title ?? route.module.title)[language];
   }
 
   return (

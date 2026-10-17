@@ -1,3 +1,4 @@
+import type { LocalizedText } from '@/modules';
 import * as React from 'react';
 import type { LucideIcon } from 'lucide-react';
 import {
@@ -31,6 +32,7 @@ interface AppSidebarProps {
     items: {
       href: string;
       key: UiKey;
+      title?: LocalizedText;
       icon: LucideIcon;
     }[];
   }[];

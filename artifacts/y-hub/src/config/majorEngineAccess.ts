@@ -1,12 +1,30 @@
-export type EngineAccessRole =
-  | 'student'
-  | 'instructor'
-  | 'admin'
-  | 'super_admin';
+import { moduleRegistry, canAccessModule } from '@/modules';
+import type { ModuleIcon, ModuleRole, ModuleCategory, ModuleRegistry } from '@/modules';
+import type { UiKey } from '@/i18n/uiCopy';
+
+export type EngineAccessRole = ModuleRole;
+
+/**
+ * Serializable sidebar metadata for engines.
+ * Kept in the engine catalog so navigation never maintains a second
+ * hard-coded engine inventory.
+ */
+export type EngineSidebarIconId = ModuleIcon;
+
+/** Legacy alias accepts future localized engine labels too. */
+export type EngineSidebarLabelKey = UiKey;
+
+export interface EngineSidebarMetadata {
+  labelKey?: UiKey;
+  iconId: EngineSidebarIconId;
+  order: number;
+}
 
 export interface EngineDefinition {
   id: string;
   route: string;
+  category: ModuleCategory;
+  sidebar?: EngineSidebarMetadata;
   majors: readonly string[];
   title: {
     ar: string;
@@ -19,174 +37,21 @@ export interface EngineDefinition {
   keywords: readonly string[];
 }
 
-/**
- * Central catalog for every academic engine in Y HUB.
- *
- * Add future engines here once, then reuse this catalog for:
- * - Sidebar visibility
- * - Instructor engine search
- * - Route authorization
- * - Engine labels and metadata
- */
-export const ENGINE_CATALOG: readonly EngineDefinition[] = [
-  {
-    id: 'ode',
-    route: '/ode',
-    majors: ['mathematics'],
-    title: {
-      ar: 'المعادلات التفاضلية',
-      en: 'Differential Equations',
-    },
-    description: {
-      ar: 'حل المعادلات التفاضلية رمزيًا وعدديًا مع خطوات الحل.',
-      en: 'Symbolic and numerical ODE solving with steps.',
-    },
-    keywords: [
-      'ode', 'differential equations', 'euler',
-      'runge kutta', 'معادلات تفاضلية', 'تفاضلية',
-    ],
-  },
-  {
-    id: 'calculus-1',
-    route: '/calculus-1',
-    majors: ['mathematics'],
-    title: {
-      ar: 'التفاضل والتكامل 1',
-      en: 'Calculus I',
-    },
-    description: {
-      ar: 'حل النهايات والاشتقاق باستخدام محركات رياضية داخلية.',
-      en: 'Limits and derivatives using internal math engines.',
-    },
-    keywords: [
-      'calculus 1',
-      'calculus i',
-      'limits',
-      'derivatives',
-      'تفاضل وتكامل 1',
-      'كالك 1',
-      'نهايات',
-      'اشتقاق',
-    ],
-  },
-  {
-    id: 'linear-algebra',
-    route: '/linear-algebra',
-    majors: ['mathematics'],
-    title: {
-      ar: 'الجبر الخطي',
-      en: 'Linear Algebra',
-    },
-    description: {
-      ar: 'المصفوفات، المحددات، المعكوس، واختزال الصفوف وحل الأنظمة الخطية.',
-      en: 'Matrices, determinants, inverses, row reduction, and linear systems.',
-    },
-    keywords: [
-      'linear algebra',
-      'matrix',
-      'determinant',
-      'inverse',
-      'rref',
-      'جبر خطي',
-      'مصفوفات',
-      'محدد',
-    ],
-  },
-  {
-    id: 'calculus-plotter',
-    route: '/calculus',
-    majors: ['mathematics'],
-    title: {
-      ar: 'التفاضل والتكامل 2',
-      en: 'Calculus II',
-    },
-    description: {
-      ar: 'النهايات، الاشتقاق، التكامل، التطبيقات الهندسية والمتسلسلات مع خطوات الحل والرسوم البيانية.',
-      en: 'Limits, derivatives, integrals, geometric applications, and series with step-by-step solutions and graphs.',
-    },
-    keywords: [
-      'calculus',
-      'derivative',
-      'integral',
-      'plot',
-      'graph',
-      'تفاضل',
-      'تكامل',
-      'مشتقة',
-      'رسم',
-    ],
-  },
-  {
-    id: 'calculus-iii',
-    route: '/math-solver',
-    majors: ['mathematics'],
-    title: {
-      ar: 'التفاضل والتكامل 3',
-      en: 'Calculus III',
-    },
-    description: {
-      ar: 'المشتقات الجزئية، التدرج، التكاملات المتعددة، المتجهات والمسائل متعددة المتغيرات.',
-      en: 'Partial derivatives, gradients, multiple integrals, vectors, and multivariable calculus problems.',
-    },
-    keywords: [
-      'calculus 3',
-      'calculus iii',
-      'multivariable',
-      'vector calculus',
-      'تفاضل 3',
-      'تكامل 3',
-      'متعدد المتغيرات',
-    ],
-  },
-  {
-    id: 'fuzzy-logic-solver',
-    route: '/solver',
-    majors: ['mathematics'],
-    title: {
-      ar: 'المنطق الضبابي',
-      en: 'Fuzzy Logic',
-    },
-    description: {
-      ar: 'جرّب عمليات المنطق الضبابي وT-norm، وتحقق من النتائج مع خطوات توضيحية وتحديات عكسية.',
-      en: 'Explore fuzzy-logic and T-norm operations, validate results, and work through guided reverse challenges.',
-    },
-    keywords: [
-      'math',
-      'solver',
-      'equation',
-      'algebra',
-      'fuzzy logic',
-      't-norm',
-      'membership',
-      'logic solver',
-      'منطق ضبابي',
-      'دالة العضوية',
-      'تقاطع ضبابي',
-      'تي نورم',
-    ],
-  },
-  {
-    id: 'fuzzy-lab',
-    route: '/lab',
-    majors: ['mathematics'],
-    title: {
-      ar: 'مختبر المنطق الضبابي',
-      en: 'Fuzzy Logic Lab',
-    },
-    description: {
-      ar: 'استكشف دوال العضوية بصرياً، وعدّل المعلمات وشاهد تأثيرها على المنحنى ودرجة العضوية مباشرة.',
-      en: 'Explore membership functions visually, adjust their parameters, and see how the curve and membership degree change in real time.',
-    },
-    keywords: [
-      'fuzzy',
-      'membership',
-      'logic',
-      'ضبابي',
-      'منطق ضبابي',
-      'دالة العضوية',
-    ],
-  },
-] as const;
+/** Engine-only projection. Subject, capabilities, major and navigation group never imply kind. */
+export function getEngineCatalog(registry: ModuleRegistry = moduleRegistry): readonly EngineDefinition[] {
+  return registry.routes.filter(route => route.module.kind === 'engine').map(route => ({
+    id: route.module.routes.length === 1 ? route.module.id : route.module.id + ':' + route.path,
+    route: route.path,
+    category: route.module.category,
+    majors: route.module.access.majors ?? [],
+    title: route.navigation?.title ?? route.module.title,
+    description: route.module.description ?? route.module.title,
+    keywords: route.module.keywords ?? [],
+    sidebar: route.navigation,
+  }));
+}
+
+export const ENGINE_CATALOG = getEngineCatalog();
 
 export const ALL_ENGINE_ROUTES = ENGINE_CATALOG.map(
   (engine) => engine.route
@@ -197,11 +62,12 @@ export const ALL_ENGINE_ROUTES = ENGINE_CATALOG.map(
  * Used for the normal Student/Instructor sidebar.
  */
 export function getEnginesForMajor(
-  major?: string | null
+  major?: string | null,
+  registry: ModuleRegistry = moduleRegistry,
 ): readonly EngineDefinition[] {
   if (!major) return [];
 
-  return ENGINE_CATALOG.filter((engine) =>
+  return getEngineCatalog(registry).filter((engine) =>
     engine.majors.includes(major)
   );
 }
@@ -210,9 +76,10 @@ export function getEnginesForMajor(
  * Backwards-compatible helper used by the current UI.
  */
 export function getAllowedEngineRoutes(
-  major?: string | null
+  major?: string | null,
+  registry: ModuleRegistry = moduleRegistry,
 ): readonly string[] {
-  return getEnginesForMajor(major).map((engine) => engine.route);
+  return getEnginesForMajor(major, registry).map((engine) => engine.route);
 }
 
 /**
@@ -230,17 +97,19 @@ export function getAllowedEngineRoutes(
  */
 export function getSidebarEngineRoutes(
   role: EngineAccessRole | null | undefined,
-  major?: string | null
+  major?: string | null,
+  registry: ModuleRegistry = moduleRegistry,
 ): readonly string[] {
-  if (role === 'admin' || role === 'super_admin') {
-    return ALL_ENGINE_ROUTES;
-  }
-
-  return getAllowedEngineRoutes(major);
+  return registry.routes.filter(route =>
+    route.module.kind === 'engine' && canAccessModule(route.module.access, { role, major }) &&
+    (role === 'admin' || role === 'super_admin' ||
+      !route.module.access.majors?.length || Boolean(major && route.module.access.majors.includes(major)))
+  ).map(route => route.path);
 }
 
 /**
- * Real route authorization.
+ * Engine-specific frontend route eligibility; ProtectedRoute handles generic modules.
+ * Backend authorization remains mandatory.
  *
  * Student:
  *   strictly restricted to engines belonging to the student's major.
@@ -256,21 +125,11 @@ export function getSidebarEngineRoutes(
 export function canRoleAccessEngineRoute(
   role: EngineAccessRole | null | undefined,
   major: string | null | undefined,
-  route: string
+  route: string,
+  registry: ModuleRegistry = moduleRegistry,
 ): boolean {
-  if (
-    role === 'instructor' ||
-    role === 'admin' ||
-    role === 'super_admin'
-  ) {
-    return ALL_ENGINE_ROUTES.includes(route);
-  }
-
-  if (role === 'student') {
-    return getAllowedEngineRoutes(major).includes(route);
-  }
-
-  return false;
+  const registered = registry.routes.find(item => item.module.kind === 'engine' && item.path === route);
+  return Boolean(registered && canAccessModule(registered.module.access, { role, major }));
 }
 
 /**
@@ -279,9 +138,10 @@ export function canRoleAccessEngineRoute(
  */
 export function canAccessEngineRoute(
   major: string | null | undefined,
-  route: string
+  route: string,
+  registry: ModuleRegistry = moduleRegistry,
 ): boolean {
-  return getAllowedEngineRoutes(major).includes(route);
+  return getAllowedEngineRoutes(major, registry).includes(route);
 }
 
 /**
@@ -290,18 +150,20 @@ export function canAccessEngineRoute(
  */
 export function searchEngines(
   query: string,
-  language: 'ar' | 'en' = 'en'
+  language: 'ar' | 'en' = 'en',
+  registry: ModuleRegistry = moduleRegistry,
 ): readonly EngineDefinition[] {
   const normalizedQuery = query.trim().toLowerCase();
 
   if (!normalizedQuery) return [];
 
-  return ENGINE_CATALOG.filter((engine) => {
+  return getEngineCatalog(registry).filter((engine) => {
     const searchableText = [
       engine.title[language],
       engine.title.ar,
       engine.title.en,
       engine.description[language],
+      engine.category,
       ...engine.keywords,
       ...engine.majors,
     ]

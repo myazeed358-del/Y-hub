@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { canRoleAccessEngineRoute } from '@/config/majorEngineAccess';
 import Login from '@/pages/Login';
+import { canAccessModule, type ModuleAccessPolicy } from '@/modules';
 
 type RouteRole = NonNullable<ReturnType<typeof useAuth>['role']>;
 
@@ -13,6 +14,7 @@ type ProtectedRouteProps<Props extends object> = Props & {
   component: React.ComponentType<Props>;
   roleRequired?: RouteRole;
   enginePath?: string;
+  moduleAccess?: ModuleAccessPolicy;
   params?: Record<string, string | undefined>;
 };
 
@@ -20,6 +22,7 @@ export function ProtectedRoute<Props extends object>({
   component: Component,
   roleRequired,
   enginePath,
+  moduleAccess,
   ...rest
 }: ProtectedRouteProps<Props>) {
   const { user, role, profile, loading } = useAuth();
@@ -43,8 +46,8 @@ export function ProtectedRoute<Props extends object>({
   }
 
   if (
-    enginePath &&
-    !canRoleAccessEngineRoute(role, profile?.major, enginePath)
+    (moduleAccess && !canAccessModule(moduleAccess, { role, major: profile?.major })) ||
+    (enginePath && !canRoleAccessEngineRoute(role, profile?.major, enginePath))
   ) {
     return (
       <div className="flex min-h-[70vh] w-full flex-col items-center justify-center space-y-4 px-4 text-center">

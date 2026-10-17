@@ -23,12 +23,12 @@ export function StudentDashboardSidebar({
         <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
           <h3 className="text-lg font-semibold mb-4">{t('quickTools')}</h3>
           <div className="grid grid-cols-3 gap-2">
-            {tools.map((tool, i) => {
+            {tools.map((tool) => {
               const Icon = tool.icon;
               return (
-                <button key={i} onClick={() => setLocation(tool.path)} className="flex flex-col items-center justify-center p-3 rounded-xl bg-background hover:bg-accent/10 border border-border transition-colors gap-2">
+                <button key={tool.path} onClick={() => setLocation(tool.path)} className="flex flex-col items-center justify-center p-3 rounded-xl bg-background hover:bg-accent/10 border border-border transition-colors gap-2">
                   <Icon size={20} className="text-primary" />
-                  <span className="text-[10px] font-medium text-muted-foreground">{t(tool.name.toLowerCase() as any) || tool.name}</span>
+                  <span className="text-[10px] font-medium text-muted-foreground">{tool.name}</span>
                 </button>
               );
             })}
