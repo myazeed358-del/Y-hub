@@ -34,3 +34,16 @@ No runtime source outside the new feature/manifest was modified. No engine/Pytho
 ## Release limits
 
 See ARCHITECTURE.md for the read matrix, exact fields, redaction, role-lock retries, Storage non-atomicity, notification-intent scope and database-owner limits. Stage migration and authenticated permission checks, review performance/retention/backup policy, and configure notification monitoring before production. No actual external notification sender was introduced.
+
+## Git publication and remaining blocker
+
+Organized implementation commits: `231e99423c0b9392c74189201e78990b79403500` (database/security harness) and `79cb47badef2e88be072f9740f3a58fc85dd470f` (review UI/integration/documentation). Both were pushed to `feature/central-audit-log`; `git ls-remote origin refs/heads/feature/central-audit-log` confirmed the latter. This documentation-only checkpoint follows. No main commit, merge or production database action was performed.
+
+Draft PR creation **failed**: `gh pr create` returned `Post "https://api.github.com/graphql": Forbidden`; the repository API preflight was also Forbidden. Git transport works, but this environment cannot create the requested Draft PR under its current API access policy. No PR number/status is asserted. After enabling the API destination in environment settings, check for an existing PR first, then retry:
+
+```bash
+gh pr list --repo myazeed358-del/Y-hub --head feature/central-audit-log --state open
+gh pr create --repo myazeed358-del/Y-hub --draft --base main --head feature/central-audit-log --title "feat: centralized secure audit log" --body-file docs/audit-log/PR_DESCRIPTION.md
+```
+
+The implementation and full local verification are complete; staging verification/deployment and Draft PR creation remain separate outstanding steps. The prepared PR description is committed for review.

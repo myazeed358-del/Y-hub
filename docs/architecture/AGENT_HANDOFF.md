@@ -6,7 +6,9 @@ Implemented migration 0022, real isolated PostgreSQL SQL/RLS tests, and a separa
 
 Checkpoint status: complete implementation and full local verification passed: 185 Vitest files / 1664 tests, 29 Python tests, 16 isolated PostgreSQL tests plus user-number SQL regression, eight boundary-check tests, workspace TypeScript, architecture audits and production build. See `docs/audit-log/VERIFICATION.md` for exact results and limits.
 
-Last verified remote checkpoint: `231e99423c0b9392c74189201e78990b79403500` (database/test package). This UI/documentation checkpoint follows it. Push the current feature head and verify with `git ls-remote`; attempt a Draft PR to main. GitHub API preflight returned Forbidden, while Git HTTPS push works. Do not claim a PR exists without API evidence. Never merge or apply migration to production.
+Last verified remote implementation checkpoint: `79cb47badef2e88be072f9740f3a58fc85dd470f`. Database commit `231e99423c0b9392c74189201e78990b79403500` and this UI commit were both pushed normally and confirmed by `git ls-remote`. A final documentation-only checkpoint follows; Git establishes its SHA.
+
+Remaining external blocker: Draft PR creation was attempted with `gh pr create --draft --base main --head feature/central-audit-log`; GitHub GraphQL returned `Forbidden`. No Draft PR was created or claimed. Enable `api.github.com` access in the cloud environment and retry using `--body-file docs/audit-log/PR_DESCRIPTION.md` (full command in verification notes). Do not repeat implementation or tests unless source changes. Keep the PR Draft, never merge, and never apply migration to production as part of this task.
 
 ## Historical handoff (superseded)
 
