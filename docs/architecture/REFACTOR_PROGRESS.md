@@ -3,8 +3,8 @@
 Baseline/audit: complete for implementation planning; see ARCHITECTURE_AUDIT.md and TEST_BASELINE.md.
 Existing separation and math algorithms retained. Implementation packages pending:
 - Completed: reused the three engine-navigation-catalog commits, preserving authorship; 33 targeted tests and app typecheck passed.
-- Automatic module discovery, validated contracts, route/navigation integration and failure isolation.
-- Demonstration and authorization/dependency tests.
+- Completed: automatic discovery, validated metadata, transitive dependency quarantine, shared access policy, lazy routing/navigation and local failure isolation.
+- Completed: disabled discovery example tested through real router/sidebar; 50 new registry/integration checks. Full suite: 180 files / 1609 tests passed; typecheck, architecture checks and build passed.
 - Concrete boundary improvements and verified cleanup.
 - Full regression, final documentation, remote checkpoints and PR.
 

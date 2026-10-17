@@ -1,3 +1,6 @@
+import { moduleRegistry, canAccessModule } from '@/modules';
+import type { UiKey } from '@/i18n/uiCopy';
+
 export type EngineAccessRole =
   | 'student'
   | 'instructor'
@@ -26,7 +29,7 @@ export type EngineSidebarLabelKey =
   | 'odeSolver';
 
 export interface EngineSidebarMetadata {
-  labelKey: EngineSidebarLabelKey;
+  labelKey?: UiKey;
   iconId: EngineSidebarIconId;
   order: number;
 }
@@ -47,181 +50,16 @@ export interface EngineDefinition {
   keywords: readonly string[];
 }
 
-/**
- * Central catalog for every academic engine in Y HUB.
- *
- * Add future engines here once, then reuse this catalog for:
- * - Sidebar visibility
- * - Instructor engine search
- * - Route authorization
- * - Engine labels and metadata
- */
-export const ENGINE_CATALOG: readonly EngineDefinition[] = [
-  {
-    id: 'ode',
-    route: '/ode',
-    sidebar: { labelKey: 'odeSolver', iconId: 'lineChart', order: 70 },
-    majors: ['mathematics'],
-    title: {
-      ar: 'المعادلات التفاضلية',
-      en: 'Differential Equations',
-    },
-    description: {
-      ar: 'حل المعادلات التفاضلية رمزيًا وعدديًا مع خطوات الحل.',
-      en: 'Symbolic and numerical ODE solving with steps.',
-    },
-    keywords: [
-      'ode', 'differential equations', 'euler',
-      'runge kutta', 'معادلات تفاضلية', 'تفاضلية',
-    ],
-  },
-  {
-    id: 'calculus-1',
-    route: '/calculus-1',
-    sidebar: { labelKey: 'calculus1Solver', iconId: 'lineChart', order: 10 },
-    majors: ['mathematics'],
-    title: {
-      ar: 'التفاضل والتكامل 1',
-      en: 'Calculus I',
-    },
-    description: {
-      ar: 'حل النهايات والاشتقاق باستخدام محركات رياضية داخلية.',
-      en: 'Limits and derivatives using internal math engines.',
-    },
-    keywords: [
-      'calculus 1',
-      'calculus i',
-      'limits',
-      'derivatives',
-      'تفاضل وتكامل 1',
-      'كالك 1',
-      'نهايات',
-      'اشتقاق',
-    ],
-  },
-  {
-    id: 'linear-algebra',
-    route: '/linear-algebra',
-    sidebar: { labelKey: 'linearAlgebra', iconId: 'grid2x2', order: 60 },
-    majors: ['mathematics'],
-    title: {
-      ar: 'الجبر الخطي',
-      en: 'Linear Algebra',
-    },
-    description: {
-      ar: 'المصفوفات، المحددات، المعكوس، واختزال الصفوف وحل الأنظمة الخطية.',
-      en: 'Matrices, determinants, inverses, row reduction, and linear systems.',
-    },
-    keywords: [
-      'linear algebra',
-      'matrix',
-      'determinant',
-      'inverse',
-      'rref',
-      'جبر خطي',
-      'مصفوفات',
-      'محدد',
-    ],
-  },
-  {
-    id: 'calculus-plotter',
-    route: '/calculus',
-    sidebar: { labelKey: 'calculusPlotter', iconId: 'lineChart', order: 20 },
-    majors: ['mathematics'],
-    title: {
-      ar: 'التفاضل والتكامل 2',
-      en: 'Calculus II',
-    },
-    description: {
-      ar: 'النهايات، الاشتقاق، التكامل، التطبيقات الهندسية والمتسلسلات مع خطوات الحل والرسوم البيانية.',
-      en: 'Limits, derivatives, integrals, geometric applications, and series with step-by-step solutions and graphs.',
-    },
-    keywords: [
-      'calculus',
-      'derivative',
-      'integral',
-      'plot',
-      'graph',
-      'تفاضل',
-      'تكامل',
-      'مشتقة',
-      'رسم',
-    ],
-  },
-  {
-    id: 'calculus-iii',
-    route: '/math-solver',
-    sidebar: { labelKey: 'calculus3Solver', iconId: 'box', order: 30 },
-    majors: ['mathematics'],
-    title: {
-      ar: 'التفاضل والتكامل 3',
-      en: 'Calculus III',
-    },
-    description: {
-      ar: 'المشتقات الجزئية، التدرج، التكاملات المتعددة، المتجهات والمسائل متعددة المتغيرات.',
-      en: 'Partial derivatives, gradients, multiple integrals, vectors, and multivariable calculus problems.',
-    },
-    keywords: [
-      'calculus 3',
-      'calculus iii',
-      'multivariable',
-      'vector calculus',
-      'تفاضل 3',
-      'تكامل 3',
-      'متعدد المتغيرات',
-    ],
-  },
-  {
-    id: 'fuzzy-logic-solver',
-    route: '/solver',
-    sidebar: { labelKey: 'solver', iconId: 'calculator', order: 40 },
-    majors: ['mathematics'],
-    title: {
-      ar: 'المنطق الضبابي',
-      en: 'Fuzzy Logic',
-    },
-    description: {
-      ar: 'جرّب عمليات المنطق الضبابي وT-norm، وتحقق من النتائج مع خطوات توضيحية وتحديات عكسية.',
-      en: 'Explore fuzzy-logic and T-norm operations, validate results, and work through guided reverse challenges.',
-    },
-    keywords: [
-      'math',
-      'solver',
-      'equation',
-      'algebra',
-      'fuzzy logic',
-      't-norm',
-      'membership',
-      'logic solver',
-      'منطق ضبابي',
-      'دالة العضوية',
-      'تقاطع ضبابي',
-      'تي نورم',
-    ],
-  },
-  {
-    id: 'fuzzy-lab',
-    route: '/lab',
-    sidebar: { labelKey: 'lab', iconId: 'flaskConical', order: 50 },
-    majors: ['mathematics'],
-    title: {
-      ar: 'مختبر المنطق الضبابي',
-      en: 'Fuzzy Logic Lab',
-    },
-    description: {
-      ar: 'استكشف دوال العضوية بصرياً، وعدّل المعلمات وشاهد تأثيرها على المنحنى ودرجة العضوية مباشرة.',
-      en: 'Explore membership functions visually, adjust their parameters, and see how the curve and membership degree change in real time.',
-    },
-    keywords: [
-      'fuzzy',
-      'membership',
-      'logic',
-      'ضبابي',
-      'منطق ضبابي',
-      'دالة العضوية',
-    ],
-  },
-] as const;
+/** Compatibility projection: manifests own metadata, routes and access policy. */
+export const ENGINE_CATALOG: readonly EngineDefinition[] = moduleRegistry.routes.map(route => ({
+  id: route.module.routes.length === 1 ? route.module.id : route.module.id + ':' + route.path,
+  route: route.path,
+  majors: route.module.access.majors ?? [],
+  title: route.navigation?.title ?? route.module.title,
+  description: route.module.description ?? route.module.title,
+  keywords: route.module.keywords ?? [],
+  sidebar: route.navigation,
+}));
 
 export const ALL_ENGINE_ROUTES = ENGINE_CATALOG.map(
   (engine) => engine.route
@@ -267,11 +105,11 @@ export function getSidebarEngineRoutes(
   role: EngineAccessRole | null | undefined,
   major?: string | null
 ): readonly string[] {
-  if (role === 'admin' || role === 'super_admin') {
-    return ALL_ENGINE_ROUTES;
-  }
-
-  return getAllowedEngineRoutes(major);
+  return moduleRegistry.routes.filter(route =>
+    canAccessModule(route.module.access, { role, major }) &&
+    (role === 'admin' || role === 'super_admin' ||
+      !route.module.access.majors?.length || Boolean(major && route.module.access.majors.includes(major)))
+  ).map(route => route.path);
 }
 
 /**
@@ -293,19 +131,8 @@ export function canRoleAccessEngineRoute(
   major: string | null | undefined,
   route: string
 ): boolean {
-  if (
-    role === 'instructor' ||
-    role === 'admin' ||
-    role === 'super_admin'
-  ) {
-    return ALL_ENGINE_ROUTES.includes(route);
-  }
-
-  if (role === 'student') {
-    return getAllowedEngineRoutes(major).includes(route);
-  }
-
-  return false;
+  const registered = moduleRegistry.routes.find(item => item.path === route);
+  return Boolean(registered && canAccessModule(registered.module.access, { role, major }));
 }
 
 /**

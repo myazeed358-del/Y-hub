@@ -1,3 +1,4 @@
+import type { LocalizedText } from '@/modules';
 import type { LucideIcon } from 'lucide-react';
 
 import {
@@ -22,6 +23,7 @@ export interface NavigationItem {
   href: string;
   key: UiKey;
   icon: LucideIcon;
+  title?: LocalizedText;
 }
 
 export interface NavigationGroup {
@@ -49,6 +51,7 @@ export function buildNavigationGroups(
       href: item.href,
       key: item.key,
       icon: NAVIGATION_ICONS[item.iconId],
+      ...(item.title ? { title: item.title } : {}),
     })),
   }));
 }

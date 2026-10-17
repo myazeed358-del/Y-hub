@@ -1,16 +1,16 @@
 # Agent handoff
 
-CURRENT PHASE: audit/baseline complete; implementation next.
-CURRENT WORK PACKAGE: reuse existing navigation catalog work.
-LAST COMPLETED TASK: inspected main, existing refactor history, feature/math boundaries and verified baseline.
+CURRENT PHASE: module integration implemented; boundary/cleanup work next.
+CURRENT WORK PACKAGE: verified module discovery and route/navigation integration.
+LAST COMPLETED TASK: seven existing engines moved to metadata manifests and public entry points; demonstration and failure-isolation tests passed.
 CURRENT BRANCH: refactor/architecture-plug-and-play
-LAST VERIFIED REMOTE COMMIT SHA: 3caa3b525c51ad330efb249b1809a3d955555a81 (verified refactor branch checkpoint).
-FILES MODIFIED: new AGENTS.md and architecture audit/baseline/progress/handoff documents.
-FILES DELETED: none.
-TESTS EXECUTED: baseline commands in TEST_BASELINE.md plus three navigation/search suites (33 tests) and app typecheck.
-TEST RESULTS: 1558 TS/JS tests, 29 Python tests; workspace typecheck, main build and architecture checks passed.
-KNOWN FAILURES: GitHub API PR list returns Forbidden; Supabase anonymous tables reject reads.
-UNFINISHED WORK: implementation packages in REFACTOR_PROGRESS.md.
-NEXT EXACT STEP: implement typed module manifests and discovery; navigation commits 578e18e, d0fe224, d10ecb2 have been reused as fd66dff, e6b2bfa, c1507b0.
-RECOVERY COMMANDS: git status --short --branch; git log -8 --oneline; git ls-remote origin refs/heads/refactor/architecture-plug-and-play; read AGENTS.md and progress before editing.
-IMPORTANT RISKS: preserve migrations, RLS, identifiers, themes, public math APIs; no authenticated backend verification; never reset unknown changes.
+LAST VERIFIED REMOTE COMMIT SHA: 749097edb0a8c54b8703922e90e6b1f718d1d77f (previous verified checkpoint; compare branch tip after pushing this package).
+FILES MODIFIED: src/modules added; seven feature index.ts entry points; majorEngineAccess projection; AppRoutes, ProtectedRoute, shell navigation/title adapters; route guard tests; contract/target docs.
+FILES DELETED: none yet; duplicate central registrations removed in place.
+TESTS EXECUTED: full Vitest; main app typecheck/build; static architecture and math boundary scripts.
+TEST RESULTS: 180 files / 1609 tests passed; 359 focused module/routing/navigation tests passed; compiler/build/audits pass. Python baseline remains 29 passing tests (no Python changes).
+KNOWN FAILURES: GitHub API Forbidden (Git push succeeds); anonymous Supabase tables denied; large bundle/PDF.js/Starlette warnings remain.
+UNFINISHED WORK: student dashboard must consume module contributions; search must filter module-specific roles; add module boundary enforcement, concrete service isolation improvements and verified cleanup; final regression and PR.
+NEXT EXACT STEP: inspect student dashboard tools and unused navItems, use shared module selection, enforce manifest/public API boundaries, inspect safe cleanup candidates.
+RECOVERY COMMANDS: git status --short --branch; git log -8 --oneline; git ls-remote origin refs/heads/refactor/architecture-plug-and-play; read AGENTS.md, REFACTOR_PROGRESS.md and PLUGIN_CONTRACT.md.
+IMPORTANT RISKS: module permissions without resource grants fail closed; no authenticated backend-security proof; metadata modules must be side-effect-free; do not migrate/delete production data or overwrite unrelated work.

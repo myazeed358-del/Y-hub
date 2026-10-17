@@ -1,3 +1,4 @@
+import type { LocalizedText } from '@/modules';
 import * as React from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { Info } from 'lucide-react';
@@ -16,6 +17,7 @@ interface SidebarNavigationProps {
     items: {
       href: string;
       key: UiKey;
+      title?: LocalizedText;
       icon: LucideIcon;
     }[];
   }[];
@@ -68,7 +70,7 @@ export function SidebarNavigation({
                     <Link
                       href={item.href}
                       onClick={() => onCloseMobileNav()}
-                      data-testid={`link-nav-${item.key}`}
+                      data-testid={`link-nav-${item.title ? item.href.slice(1) : item.key}`}
                       className={`group relative flex items-center gap-3 overflow-hidden rounded-2xl border px-3.5 py-3 pe-12 text-sm font-semibold transition-all duration-200 ${
                         active
                           ? 'border-cyan-300/80 bg-gradient-to-r from-cyan-100 to-violet-100/60 text-[#172B45] shadow-sm dark:border-cyan-400/20 dark:from-cyan-400/[0.12] dark:to-violet-500/[0.08] dark:text-white dark:shadow-[0_10px_30px_rgba(0,0,0,0.18)]'
@@ -94,7 +96,7 @@ export function SidebarNavigation({
                       </span>
 
                       <span className="min-w-0 flex-1 truncate">
-                        {t(item.key)}
+                        {item.title?.[language] ?? t(item.key)}
                       </span>
                     </Link>
 

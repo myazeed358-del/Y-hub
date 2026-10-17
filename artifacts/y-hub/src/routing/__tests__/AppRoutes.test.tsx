@@ -1,3 +1,4 @@
+import type { ModuleAccessPolicy } from '@/modules';
 import * as React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -54,17 +55,19 @@ vi.mock('wouter', () => ({
 vi.mock('@/routing/ProtectedRoute', () => ({
   ProtectedRoute: ({
     roleRequired,
-    enginePath,
+    moduleAccess,
     params,
   }: {
     roleRequired?: string;
-    enginePath?: string;
+    moduleAccess?: ModuleAccessPolicy;
     params?: Record<string, string>;
   }) => (
     <span
       data-protected="true"
       data-required-role={roleRequired}
-      data-engine-path={enginePath}
+      data-major-restrictions={moduleAccess?.majors?.join(',')}
+      data-module-roles={moduleAccess?.roles.join(',')}
+      data-restricted-roles={moduleAccess?.majorRestrictedRoles?.join(',')}
       data-param-id={params?.id}
       data-param-slug={params?.slug}
     />
@@ -171,10 +174,10 @@ describe('AppRoutes', () => {
       '/solver',
       '/calculus-1',
       '/calculus',
+      '/lab',
       '/legacy-home',
       '/legacy-course',
       '/lesson/:slug',
-      '/lab',
       '/quiz',
       '*',
     ]);
@@ -223,8 +226,10 @@ describe('AppRoutes', () => {
     '/lab',
   ])('applies the engine guard for %s', (path) => {
     expect(getRoute(path)).toContain(
-      `data-engine-path="${path}"`
+      'data-major-restrictions="mathematics"'
     );
+    expect(getRoute(path)).toContain('data-module-roles="student,instructor,admin,super_admin"');
+    expect(getRoute(path)).toContain('data-restricted-roles="student"');
   });
 
   it.each([
