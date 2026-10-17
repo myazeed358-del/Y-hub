@@ -1,3 +1,9 @@
+# Central audit log — current feature task
+
+Started from main `9057222` on `feature/central-audit-log`. Prior architecture classification is already merged. Added transactional database audit/notification-intent stores, actor locks, privacy allowlists, read isolation and a bounded search RPC; migration 0022 does not alter historical migrations. Added real disposable PostgreSQL tests (16 passed, plus user-number SQL regression) and the API-2 audit UI (103 focused tests passed). Full checks and publication are pending at this checkpoint. See `docs/audit-log/ARCHITECTURE.md`.
+
+## Historical architecture progress
+
 # Refactor progress
 
 ## Focused classification update — PR #15

@@ -1,3 +1,13 @@
+# Current task: centralized audit log
+
+Branch: `feature/central-audit-log`, based on latest fetched main `9057222acc54c473e192a98507273ce49ac19aac`. The prior classification task below is historical and merged; do not resume PR #15.
+
+Implemented migration 0022, real isolated PostgreSQL SQL/RLS tests, and a separately discovered API-2 audit application. Read `docs/audit-log/ARCHITECTURE.md` for the security contract and limitations. Historical migrations, math algorithms and existing domain policies are unchanged. No production database operations are authorized.
+
+Checkpoint status: 16 PostgreSQL integration/security tests plus existing immutable user-number SQL checks passed; 103 focused Vitest tests passed. Full verification is running. Finish full checks, record results, commit UI/docs, push the feature branch and create a Draft PR to main. Do not merge. Remote SHA must be checked after push; no audit commit has been pushed at this documentation stage.
+
+## Historical handoff (superseded)
+
 # Agent handoff
 
 CURRENT PHASE: focused module classification complete, verified and pushed to existing PR #15.
