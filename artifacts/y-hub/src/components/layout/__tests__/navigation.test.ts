@@ -60,12 +60,13 @@ describe('Y-Hub navigation', () => {
   });
 
   it.each(['admin', 'super_admin'] as const)(
-    'shows all engines to %s',
+    'shows all engines and the audit application to %s',
     (role) => {
       expect(visibleRoutes(role, null)).toEqual([
         '/',
         '/quiz',
         ...mathEngines,
+        '/audit-log',
       ]);
     }
   );

@@ -103,7 +103,7 @@ describe('independent module classification', () => {
 describe('classification presentation and compatibility', () => {
   it('places application/laboratory contributions in their declared areas and keeps dashboard independent', () => {
     const groups = buildNavigationRouteGroups('admin');
-    expect(groups.find(group => group.section === 'moduleApplications')?.items.map(item => item.href)).toEqual(['/fixture-application']);
+    expect(groups.find(group => group.section === 'moduleApplications')?.items.map(item => item.href)).toEqual(['/audit-log', '/fixture-application']);
     expect(groups.find(group => group.section === 'moduleLaboratories')?.items.map(item => item.href)).toEqual(['/fixture-laboratory']);
     const dashboard = getModuleNavigation(moduleRegistry, { role: 'admin' }, 'dashboard');
     expect(dashboard.filter(item => item.href.startsWith('/fixture-'))).toHaveLength(4);

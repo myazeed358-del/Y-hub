@@ -4,7 +4,9 @@ Branch: `feature/central-audit-log`, based on latest fetched main `9057222acc54c
 
 Implemented migration 0022, real isolated PostgreSQL SQL/RLS tests, and a separately discovered API-2 audit application. Read `docs/audit-log/ARCHITECTURE.md` for the security contract and limitations. Historical migrations, math algorithms and existing domain policies are unchanged. No production database operations are authorized.
 
-Checkpoint status: 16 PostgreSQL integration/security tests plus existing immutable user-number SQL checks passed; 103 focused Vitest tests passed. Full verification is running. Finish full checks, record results, commit UI/docs, push the feature branch and create a Draft PR to main. Do not merge. Remote SHA must be checked after push; no audit commit has been pushed at this documentation stage.
+Checkpoint status: complete implementation and full local verification passed: 185 Vitest files / 1664 tests, 29 Python tests, 16 isolated PostgreSQL tests plus user-number SQL regression, eight boundary-check tests, workspace TypeScript, architecture audits and production build. See `docs/audit-log/VERIFICATION.md` for exact results and limits.
+
+Last verified remote checkpoint: `231e99423c0b9392c74189201e78990b79403500` (database/test package). This UI/documentation checkpoint follows it. Push the current feature head and verify with `git ls-remote`; attempt a Draft PR to main. GitHub API preflight returned Forbidden, while Git HTTPS push works. Do not claim a PR exists without API evidence. Never merge or apply migration to production.
 
 ## Historical handoff (superseded)
 

@@ -1,3 +1,11 @@
+# Central audit log verification — 2026-10-17
+
+Current task is `feature/central-audit-log` from main `9057222`. Full verification exited 0: **185 Vitest files / 1664 tests** (72.79s), **29 Python tests** (0.961s), **eight architecture-check tests**, complete workspace TypeScript and all architecture audits, production build (42.49s), and diff whitespace checks. Separately, **16 real isolated PostgreSQL SQL/RLS/integration tests** passed (12.830s), plus existing immutable user-number SQL checks. All migrations through 0022 applied locally. No production writes or migrations were run.
+
+Exact scope, warnings, coverage, file inventory and untested staging boundaries: [audit verification](../audit-log/VERIFICATION.md) and [security architecture](../audit-log/ARCHITECTURE.md). The historical classification report below is superseded for current task/branch instructions.
+
+## Historical classification verification
+
 # Final verification — 2026-10-17
 
 ## Focused module classification follow-up — PR #15

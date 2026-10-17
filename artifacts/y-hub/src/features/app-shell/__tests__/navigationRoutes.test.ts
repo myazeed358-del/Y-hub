@@ -80,7 +80,8 @@ describe('navigationRoutes', () => {
         '/solver',
         '/lab',
         '/linear-algebra',
-      '/ode',
+        '/ode',
+        '/audit-log',
       ]);
     }
   });
@@ -92,7 +93,7 @@ describe('navigationRoutes', () => {
       .sort((a, b) => a.sidebar!.order - b.sidebar!.order)
       .map((engine) => engine.route);
 
-    expect(paths('admin', null).slice(2)).toEqual(expectedRoutes);
+    expect(buildNavigationRouteGroups('admin', null).find(group => group.section === 'understandingTools')?.items.map(item => item.href)).toEqual(expectedRoutes);
     expect(new Set(expectedRoutes).size).toBe(expectedRoutes.length);
   });
 

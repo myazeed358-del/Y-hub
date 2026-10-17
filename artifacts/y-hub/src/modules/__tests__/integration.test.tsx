@@ -21,6 +21,7 @@ vi.mock('@/contexts/AuthContext', () => ({ useAuth: () => auth }));
 vi.mock('@/i18n/LanguageContext', () => ({
   useLanguage: () => ({ language: 'en', setLanguage: vi.fn(), t: (key: string) => key }),
 }));
+vi.mock('@/features/audit-log', () => ({ default: () => <p>Audit review page</p> }));
 vi.mock('@/pages/Login', () => ({ default: () => <p>Sign in required</p> }));
 vi.mock('@/pages/ResetPassword', () => ({ default: () => null }));
 vi.mock('@/pages/GuestLanding', () => ({ default: () => <p>Guest landing</p> }));
@@ -61,6 +62,18 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
 describe('real host module integration', () => {
+  it.each(['student', 'instructor', 'admin', 'super_admin'] as const)('enforces the audit module role guard for %s', async role => {
+    auth.role = role;
+    mount(createModuleRegistry(discoveredModules), '/audit-log');
+    if (role === 'admin' || role === 'super_admin') {
+      expect(await screen.findByText('Audit review page')).toBeTruthy();
+      expect(screen.getByRole('link', { name: 'Audit log' })).toBeTruthy();
+    } else {
+      expect(screen.getByText('This tool is not available for your account')).toBeTruthy();
+      expect(screen.queryByRole('link', { name: 'Audit log' })).toBeNull();
+    }
+  });
+
   it.each(['math', 'science', 'application', 'laboratory'])('discovers and lazy-loads the %s fixture through actual navigation', async name => {
     const fixtures = import.meta.glob('./fixtures/*/module.ts', { eager: true, import: 'default' });
     const registry = createModuleRegistry(fixtures);
