@@ -2,7 +2,7 @@
 
 Baseline/audit: complete for implementation planning; see ARCHITECTURE_AUDIT.md and TEST_BASELINE.md.
 Existing separation and math algorithms retained. Implementation packages pending:
-- Reuse unmerged engine-navigation catalog work.
+- Completed: reused the three engine-navigation-catalog commits, preserving authorship; 33 targeted tests and app typecheck passed.
 - Automatic module discovery, validated contracts, route/navigation integration and failure isolation.
 - Demonstration and authorization/dependency tests.
 - Concrete boundary improvements and verified cleanup.
