@@ -123,7 +123,7 @@ BEGIN
       END IF;
     END IF;
   END LOOP;
-  -- Profiles: only role/major are tracked; unrelated personal updates are intentionally omitted.
+  -- Profiles: only identity/role/major are tracked; unrelated personal updates are intentionally omitted.
   IF TG_OP = 'UPDATE' AND cardinality(v_changed) = 0 THEN RETURN NULL; END IF;
   IF v_actor IS NULL THEN v_role := 'system'; v_name := 'System';
   ELSIF TG_TABLE_NAME = 'users' AND (v_old->>'id')::uuid = v_actor THEN
@@ -174,12 +174,20 @@ BEGIN
     ('courses','instructor_id,title,description,course_code,is_published,enrollment_open,syllabus_source','instructor_id,is_published,enrollment_open,syllabus_source','ordinary'),
     ('course_materials','course_id,title,type,url','course_id,type','ordinary'),
     ('exams','course_id,title,time_limit_minutes,is_published','course_id,time_limit_minutes,is_published','ordinary'),
-    ('questions','course_id,exam_id,type,content,options,correct_answer,difficulty,points','course_id,exam_id,type,difficulty,points','ordinary'),
+    ('questions','course_id,exam_id,type,content,options,correct_answer,difficulty,points','course_id,exam_id,type,points','ordinary'),
     ('course_enrollments','course_id,student_id,status','course_id,student_id,status','ordinary'),
     ('syllabus_units','course_id,title,sort_order','course_id,sort_order','ordinary'),
     ('syllabus_sections','unit_id,title,sort_order','unit_id,sort_order','ordinary'),
-    ('users','role,major','role,major','reserved')
+    ('users','role,major','role','reserved')
   ) AS t(entity,fields,visible,visibility) LOOP
+    -- Row identity and domain timestamps are writable under existing grants. Their
+    -- changes must not bypass capture. Do not broaden profile PII collection.
+    r.fields := 'id,' || r.fields;
+    r.visible := 'id,' || r.visible;
+    IF r.entity <> 'users' THEN
+      r.fields := r.fields || CASE WHEN r.entity = 'course_enrollments' THEN ',enrolled_at' ELSE ',created_at' END;
+      r.visible := r.visible || CASE WHEN r.entity = 'course_enrollments' THEN ',enrolled_at' ELSE ',created_at' END;
+    END IF;
     EXECUTE format('CREATE TRIGGER audit_block_truncate BEFORE TRUNCATE ON public.%I FOR EACH STATEMENT EXECUTE FUNCTION yhub_audit_private.reject_truncate()',r.entity);
     EXECUTE format('CREATE TRIGGER audit_lock_actor BEFORE INSERT OR UPDATE OR DELETE ON public.%I FOR EACH STATEMENT EXECUTE FUNCTION yhub_audit_private.lock_actor()',r.entity);
     EXECUTE format('CREATE TRIGGER audit_capture AFTER INSERT OR UPDATE OR DELETE ON public.%I FOR EACH ROW EXECUTE FUNCTION yhub_audit_private.capture(%L,%L,%L)',r.entity,r.fields,r.visible,r.visibility);
@@ -187,6 +195,21 @@ BEGIN
 END;
 $$;
 REVOKE ALL ON ALL FUNCTIONS IN SCHEMA yhub_audit_private FROM PUBLIC, anon, authenticated, service_role;
+
+-- Historical child-content policies check ownership without the current role.
+-- A demoted instructor must not retain administrative writes through that ownership.
+-- Restrictive write-only policies compose with existing ownership/enrollment rules;
+-- they grant nothing and do not alter student SELECT access.
+DO $$
+DECLARE v_table text;
+BEGIN
+  FOREACH v_table IN ARRAY ARRAY['course_materials','exams','questions'] LOOP
+    EXECUTE format('CREATE POLICY audit_manager_insert ON public.%I AS RESTRICTIVE FOR INSERT TO authenticated WITH CHECK (public.auth_can_manage_content())',v_table);
+    EXECUTE format('CREATE POLICY audit_manager_update ON public.%I AS RESTRICTIVE FOR UPDATE TO authenticated USING (public.auth_can_manage_content()) WITH CHECK (public.auth_can_manage_content())',v_table);
+    EXECUTE format('CREATE POLICY audit_manager_delete ON public.%I AS RESTRICTIVE FOR DELETE TO authenticated USING (public.auth_can_manage_content())',v_table);
+  END LOOP;
+END;
+$$;
 
 -- Keyset pagination: bounded pages, RLS applies equally to RPC and direct table reads.
 CREATE FUNCTION public.search_audit_events(

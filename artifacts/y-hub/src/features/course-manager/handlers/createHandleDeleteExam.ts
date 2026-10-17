@@ -3,6 +3,7 @@ import type {
   SetStateAction,
 } from 'react';
 import { supabase } from '@/utils/supabaseClient';
+import { toast } from 'sonner';
 
 interface DeleteExamDependencies {
   selectedExam: any | null;
@@ -17,7 +18,11 @@ export function createHandleDeleteExam({
 }: DeleteExamDependencies) {
   return async (id: string) => {
     if (confirm('تأكيد الحذف؟')) {
-      await supabase.from('exams').delete().eq('id', id);
+      const { error } = await supabase.from('exams').delete().eq('id', id);
+      if (error) {
+        toast.error('تعذر حذف الامتحان. حاول مرة أخرى.');
+        return;
+      }
       if (selectedExam?.id === id) setSelectedExam(null);
       loadData();
     }

@@ -87,7 +87,9 @@ class AuditTests(unittest.TestCase):
                 "SELECT public.requeue_audit_notifications()",
             ):
                 with self.subTest(actor=actor, sql=sql):
-                    self.assertNotEqual(run(sql, actor, check=False).returncode, 0)
+                    result = run(sql, actor, check=False)
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertIn('permission denied', result.stderr)
         self.assertEqual(events(cid)[0]['actor_name'], 'Audit Tester 1')
 
     def test_role_change_reserved_and_snapshot(self):
@@ -147,6 +149,7 @@ class AuditTests(unittest.TestCase):
         self.assertEqual(events(enrollment, A), [])
         material = str(uuid.uuid4())
         run(f"INSERT INTO public.course_materials(id,course_id,title,type,url) VALUES('{material}','{cid}','Protected','link','https://example.invalid')", I)
+        self.assertEqual(len(query(f"SELECT id FROM public.course_materials WHERE id='{material}'", STUDENT)), 1)
         result = run(f"DELETE FROM public.course_materials WHERE course_id='{cid}'", OTHER)
         self.assertEqual(result.returncode, 0)  # RLS hides other owners' rows.
         self.assertEqual(len(query(f"SELECT id FROM public.course_materials WHERE id='{material}'")), 1)
@@ -251,3 +254,147 @@ class AuditTests(unittest.TestCase):
             before = len(events(target))
             self.assertNotEqual(run(f"SELECT public.admin_set_user_role('{target}','{role}')", actor, check=False).returncode, 0)
             self.assertEqual(len(events(target)), before)
+
+    def test_identity_and_timestamp_only_changes_are_audited(self):
+        cid, replacement = course(), str(uuid.uuid4())
+        run(f"UPDATE public.courses SET id='{replacement}' WHERE id='{cid}'", I)
+        renamed = events(replacement, A)
+        self.assertEqual(len(renamed), 1, 'Primary-key-only mutation must not bypass audit')
+        self.assertEqual(renamed[0]['old_values']['id'], cid)
+        self.assertEqual(renamed[0]['new_values']['id'], replacement)
+        run(f"UPDATE public.courses SET created_at='2001-01-01Z' WHERE id='{replacement}'", I)
+        self.assertIn('created_at', events(replacement)[-1]['new_values'])
+        enrollment = str(uuid.uuid4())
+        run(f"INSERT INTO public.course_enrollments(id,course_id,student_id) VALUES('{enrollment}','{replacement}','{STUDENT}')", STUDENT)
+        run(f"UPDATE public.course_enrollments SET enrolled_at='2002-01-01Z' WHERE id='{enrollment}'")
+        self.assertIn('enrolled_at', events(enrollment)[-1]['new_values'])
+
+    def test_free_text_major_is_redacted_at_creation_and_change(self):
+        target = str(uuid.uuid4())
+        run(f"INSERT INTO auth.users(id,email,raw_user_meta_data) VALUES('{target}','privacy@example.invalid','{{\"major\":\"secret-api-key\"}}')")
+        run(f"UPDATE public.users SET major='another-private-token' WHERE id='{target}'")
+        ev = events(target, S)
+        self.assertEqual(len(ev), 2)
+        self.assertNotIn('secret-api-key', json.dumps(ev))
+        self.assertNotIn('another-private-token', json.dumps(ev))
+        self.assertEqual(ev[1]['old_values']['major'], '[REDACTED]')
+        self.assertEqual(ev[1]['new_values']['major'], '[REDACTED]')
+        self.assertIn('access_changed', ev[1]['actions'])
+
+    def test_question_difficulty_is_free_text_not_a_safe_enum(self):
+        cid, qid = course(), str(uuid.uuid4())
+        run(f"INSERT INTO public.questions(id,course_id,type,content,correct_answer,difficulty) VALUES('{qid}','{cid}','tf','Private','true','secret-difficulty-token')", I)
+        run(f"UPDATE public.questions SET difficulty='other-secret' WHERE id='{qid}'", I)
+        ev = events(qid, A)
+        self.assertEqual(ev[1]['old_values']['difficulty'], '[REDACTED]')
+        self.assertEqual(ev[1]['new_values']['difficulty'], '[REDACTED]')
+        self.assertNotIn('secret', json.dumps(ev))
+
+    def test_security_definers_ignore_temp_objects_and_claimed_application_role(self):
+        cid = course()
+        result = run(f"""CREATE TEMP TABLE users(id uuid,role text);
+          INSERT INTO users VALUES('{I}','super_admin');
+          CREATE TEMP TABLE audit_events(id uuid);
+          SET LOCAL search_path=pg_temp,public;
+          SET LOCAL request.jwt.claim.role='super_admin';
+          SELECT public.audit_reader_role();
+          SELECT count(*) FROM public.search_audit_events();""", I)
+        self.assertEqual(result.stdout.strip().splitlines(), ['instructor', '0'])
+        self.assertEqual(len(events(cid, A)), 1)
+        functions = query("SELECT proname,prosecdef,proconfig FROM pg_proc WHERE pronamespace='yhub_audit_private'::regnamespace OR (pronamespace='public'::regnamespace AND proname IN ('audit_reader_role','search_audit_events','requeue_audit_notifications','admin_set_user_role'))")
+        for function in functions:
+            self.assertIn('search_path=""', function['proconfig'])
+            if function['proname'] == 'search_audit_events':
+                self.assertFalse(function['prosecdef'])
+
+    def test_cascade_audit_failure_rolls_back_children_and_notifications(self):
+        cid, mid = course(), str(uuid.uuid4())
+        run(f"INSERT INTO public.course_materials(id,course_id,title,type,url) VALUES('{mid}','{cid}','Material','link','https://example.invalid')", I)
+        before = len(query('SELECT event_id FROM public.audit_notifications'))
+        try:
+            run("CREATE FUNCTION public.fail_child_audit_test() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.operation='DELETE' AND NEW.entity_type='course_materials' THEN RAISE EXCEPTION 'required child audit unavailable'; END IF; RETURN NEW; END $$; CREATE TRIGGER fail_child_audit BEFORE INSERT ON public.audit_events FOR EACH ROW EXECUTE FUNCTION public.fail_child_audit_test()")
+            result = run(f"DELETE FROM public.courses WHERE id='{cid}'", I, check=False)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn('required child audit unavailable', result.stderr)
+            self.assertEqual(len(query(f"SELECT id FROM public.courses WHERE id='{cid}'")), 1)
+            self.assertEqual(len(query(f"SELECT id FROM public.course_materials WHERE id='{mid}'")), 1)
+            self.assertEqual(len(events(cid)), 1)
+            self.assertEqual(len(events(mid)), 1)
+            self.assertEqual(len(query('SELECT event_id FROM public.audit_notifications')), before)
+        finally:
+            run('DROP TRIGGER IF EXISTS fail_child_audit ON public.audit_events; DROP FUNCTION IF EXISTS public.fail_child_audit_test()')
+
+    def test_account_deletion_retains_actor_snapshot_and_system_cascade(self):
+        target = str(uuid.uuid4())
+        run(f"INSERT INTO auth.users(id,email,raw_user_meta_data) VALUES('{target}','gone@example.invalid','{{\"full_name\":\"Retained Actor\"}}')")
+        run(f"SELECT public.admin_set_user_role('{target}','instructor')", S)
+        cid = course(target)
+        run(f"DELETE FROM auth.users WHERE id='{target}'")
+        ev = events(cid, S)
+        self.assertEqual(ev[0]['actor_id'], target)
+        self.assertEqual(ev[0]['actor_name'], 'Retained Actor')
+        self.assertEqual(ev[1]['actor_role'], 'system')
+        self.assertIsNone(ev[1]['actor_id'])
+        self.assertEqual(ev[1]['operation'], 'DELETE')
+        self.assertEqual(len(events(cid, A)), 1)
+        self.assertEqual(events(target, S)[-1]['operation'], 'DELETE')
+
+    def test_all_domain_columns_have_an_explicit_audit_classification(self):
+        # A future schema addition must be deliberately tracked/redacted; no silent gaps.
+        rows = query("SELECT c.relname,encode(t.tgargs,'escape') AS args FROM pg_trigger t JOIN pg_class c ON c.oid=t.tgrelid WHERE t.tgname='audit_capture'")
+        self.assertEqual(len(rows), 8)
+        for row in rows:
+            tracked = set(row['args'].split('\\000')[0].split(','))
+            if row['relname'] == 'users':
+                self.assertEqual(tracked, {'id', 'role', 'major'})
+                continue
+            columns = query(f"SELECT column_name FROM information_schema.columns WHERE table_schema='public' AND table_name='{row['relname']}'")
+            self.assertEqual(tracked, {column['column_name'] for column in columns})
+
+    def test_demotion_committing_before_write_prevents_stale_role_authorization(self):
+        cid = course(OTHER)
+        holder = subprocess.Popen(BASE, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        holder.stdin.write(command(f"SELECT public.admin_set_user_role('{OTHER}','student'); SELECT pg_advisory_xact_lock(333333); SELECT pg_sleep(2)", S))
+        holder.stdin.close()
+        try:
+            deadline = time.monotonic()+8
+            while time.monotonic()<deadline:
+                if query("SELECT 1 FROM pg_locks WHERE locktype='advisory' AND objid=333333 AND granted"):
+                    break
+                time.sleep(.05)
+            else:
+                self.fail('Role-changing transaction did not acquire marker lock')
+            # Statement starts while its old role is still visible, then waits for actor lock.
+            result = run(f"UPDATE public.courses SET is_published=false WHERE id='{cid}'", OTHER, check=False)
+            holder.wait(timeout=8)
+            self.assertEqual(holder.returncode, 0, holder.stderr.read())
+            self.assertTrue(query(f"SELECT is_published FROM public.courses WHERE id='{cid}'")[0]['is_published'])
+            self.assertEqual(len(events(cid)), 1)
+        finally:
+            holder.wait(timeout=10)
+            holder.stdout.close(); holder.stderr.close()
+            run(f"SELECT public.admin_set_user_role('{OTHER}','instructor')", S)
+
+    def test_demoted_owner_cannot_mutate_academic_content(self):
+        target, mid, eid, qid = [str(uuid.uuid4()) for _ in range(4)]
+        run(f"INSERT INTO auth.users(id,email) VALUES('{target}','demoted@example.invalid')")
+        run(f"SELECT public.admin_set_user_role('{target}','instructor')", S)
+        cid = course(target)
+        run(f"""INSERT INTO public.course_materials(id,course_id,title,type,url) VALUES('{mid}','{cid}','Original','link','https://example.invalid');
+          INSERT INTO public.exams(id,course_id,title) VALUES('{eid}','{cid}','Original');
+          INSERT INTO public.questions(id,course_id,exam_id,type,content,correct_answer) VALUES('{qid}','{cid}','{eid}','tf','Original','true');""", target)
+        run(f"SELECT public.admin_set_user_role('{target}','student')", S)
+        for table, key, field in (('course_materials',mid,'title'), ('exams',eid,'title'), ('questions',qid,'content')):
+            with self.subTest(table=table):
+                run(f"UPDATE public.{table} SET {field}='Unauthorized' WHERE id='{key}'", target, check=False)
+                self.assertEqual(query(f"SELECT {field} AS value FROM public.{table} WHERE id='{key}'")[0]['value'], 'Original')
+                run(f"DELETE FROM public.{table} WHERE id='{key}'", target, check=False)
+                self.assertEqual(len(query(f"SELECT id FROM public.{table} WHERE id='{key}'")), 1)
+                self.assertEqual(len(events(key)), 1)
+        for statement in (
+            f"INSERT INTO public.course_materials(course_id,title,type,url) VALUES('{cid}','Forged','link','https://example.invalid')",
+            f"INSERT INTO public.exams(course_id,title) VALUES('{cid}','Forged')",
+            f"INSERT INTO public.questions(course_id,type,content,correct_answer) VALUES('{cid}','tf','Forged','true')",
+        ):
+            with self.subTest(statement=statement):
+                self.assertNotEqual(run(statement, target, check=False).returncode, 0)

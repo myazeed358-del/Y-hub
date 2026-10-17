@@ -1,3 +1,11 @@
+# PR #16 security follow-up — latest results
+
+Reviewed from `08ee5375dee6db0d8de785d499a4cd0dab609716`, matching local HEAD, remote branch and PR #16 head. Fixed four findings: demoted-owner child-content writes, identity/time audit gaps, unredacted free-text major/difficulty, and ignored database errors in audited delete handlers. Final: **25 PostgreSQL tests** (20.616s) plus user-number SQL regression; **1670 Vitest tests / 186 files** (74.50s), **29 Python tests** (0.996s), **eight boundary-check tests**, TypeScript/architecture checks and production build (42.81s), all passed. No production operations. Full analysis and merge gate: [SECURITY_REVIEW.md](SECURITY_REVIEW.md).
+
+PR #16 already exists and is Draft according to the user. Never create another PR. GitHub API metadata/edit access returns Forbidden; push updates the existing PR code, while a direct body update must be retried when API access is enabled. Use `gh pr edit 16 --repo myazeed358-del/Y-hub --body-file docs/audit-log/PR_DESCRIPTION.md`.
+
+## Historical initial implementation results
+
 # Central audit log verification — 2026-10-17
 
 Base: main `9057222acc54c473e192a98507273ce49ac19aac`. Feature branch: `feature/central-audit-log`. Existing classification is merged and was not rebuilt.
@@ -29,7 +37,7 @@ Known existing warnings: PDF.js requests its legacy Node build; Vite reports lar
 - Updated expected-route/role/classification tests: layout navigation, app-shell navigationRoutes, modules registry/classification/integration, routing AppRoutes.
 - Documentation: `AGENTS.md`, architecture handoff/progress/final verification, and `docs/audit-log/` architecture/verification notes.
 
-No runtime source outside the new feature/manifest was modified. No engine/Python algorithm/design-system/lockfile changes. Existing domain authorization remains intact. The role-management function is replaced only in the new migration to add transactional role locking and preserve its checks.
+No runtime source outside the new feature/manifest was modified. No engine/Python algorithm/design-system/lockfile changes. Existing domain ownership and read authorization remain intact; the security follow-up adds restrictive current-manager-role checks on three child-content tables. The role-management function is replaced only in the new migration to add transactional role locking and preserve its checks.
 
 ## Release limits
 
@@ -39,11 +47,4 @@ See ARCHITECTURE.md for the read matrix, exact fields, redaction, role-lock retr
 
 Organized implementation commits: `231e99423c0b9392c74189201e78990b79403500` (database/security harness) and `79cb47badef2e88be072f9740f3a58fc85dd470f` (review UI/integration/documentation). Both were pushed to `feature/central-audit-log`; `git ls-remote origin refs/heads/feature/central-audit-log` confirmed the latter. This documentation-only checkpoint follows. No main commit, merge or production database action was performed.
 
-Draft PR creation **failed**: `gh pr create` returned `Post "https://api.github.com/graphql": Forbidden`; the repository API preflight was also Forbidden. Git transport works, but this environment cannot create the requested Draft PR under its current API access policy. No PR number/status is asserted. After enabling the API destination in environment settings, check for an existing PR first, then retry:
-
-```bash
-gh pr list --repo myazeed358-del/Y-hub --head feature/central-audit-log --state open
-gh pr create --repo myazeed358-del/Y-hub --draft --base main --head feature/central-audit-log --title "feat: centralized secure audit log" --body-file docs/audit-log/PR_DESCRIPTION.md
-```
-
-The implementation and full local verification are complete; staging verification/deployment and Draft PR creation remain separate outstanding steps. The prepared PR description is committed for review.
+At the initial checkpoint PR creation was blocked by API access. The user subsequently created existing Draft PR #16; that old creation blocker is resolved. API read/edit access remains blocked in this environment; only update #16, never create a replacement.

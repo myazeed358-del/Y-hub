@@ -1,14 +1,12 @@
-# Current task: centralized audit log
+# Current task: PR #16 audit security follow-up
 
-Branch: `feature/central-audit-log`, based on latest fetched main `9057222acc54c473e192a98507273ce49ac19aac`. The prior classification task below is historical and merged; do not resume PR #15.
+Branch: `feature/central-audit-log`; existing Draft PR: https://github.com/myazeed358-del/Y-hub/pull/16 (user-confirmed Draft; API unavailable). Do not create a PR or merge. Base main remains `9057222acc54c473e192a98507273ce49ac19aac`.
 
-Implemented migration 0022, real isolated PostgreSQL SQL/RLS tests, and a separately discovered API-2 audit application. Read `docs/audit-log/ARCHITECTURE.md` for the security contract and limitations. Historical migrations, math algorithms and existing domain policies are unchanged. No production database operations are authorized.
+Recovered clean tree; local head, remote branch and PR head all matched `08ee5375dee6db0d8de785d499a4cd0dab609716`. Reviewed audit code and authorization dependencies. Fixed role-revocation bypass in legacy child-content policies, identity/timestamp capture gaps, free-text major/difficulty disclosure, and ignored database errors in two audited delete handlers. See `docs/audit-log/SECURITY_REVIEW.md` for causal evidence and limits.
 
-Checkpoint status: complete implementation and full local verification passed: 185 Vitest files / 1664 tests, 29 Python tests, 16 isolated PostgreSQL tests plus user-number SQL regression, eight boundary-check tests, workspace TypeScript, architecture audits and production build. See `docs/audit-log/VERIFICATION.md` for exact results and limits.
+Database final verification: 25 real isolated PostgreSQL tests passed, plus existing user-number SQL regression. Final full verification passed after handler fixes: 186 Vitest files / 1670 tests (74.50s), 29 Python tests (0.996s), eight boundary-check tests, full workspace TypeScript, architecture audits and build (42.81s). No production migration, permission changes or data operations. Only unmerged 0022 is amended; no historical migration edits.
 
-Last verified remote implementation checkpoint: `79cb47badef2e88be072f9740f3a58fc85dd470f`. Database commit `231e99423c0b9392c74189201e78990b79403500` and this UI commit were both pushed normally and confirmed by `git ls-remote`. A final documentation-only checkpoint follows; Git establishes its SHA.
-
-Remaining external blocker: Draft PR creation was attempted with `gh pr create --draft --base main --head feature/central-audit-log`; GitHub GraphQL returned `Forbidden`. No Draft PR was created or claimed. Enable `api.github.com` access in the cloud environment and retry using `--body-file docs/audit-log/PR_DESCRIPTION.md` (full command in verification notes). Do not repeat implementation or tests unless source changes. Keep the PR Draft, never merge, and never apply migration to production as part of this task.
+This checkpoint contains the complete verified security patch; establish its SHA from Git and verify remote branch/PR head. The previous verified remote checkpoint is 08ee5375dee6db0d8de785d499a4cd0dab609716. Next review gate is isolated Supabase staging and PR #16 review, not another implementation restart. GitHub API returns Forbidden; if body edit remains blocked, the committed PR_DESCRIPTION.md and security report are reviewable through the branch push. Require isolated real Supabase staging validation before approving merge; never confuse local PostgreSQL auth stand-ins with live JWT/RLS end-to-end evidence.
 
 ## Historical handoff (superseded)
 

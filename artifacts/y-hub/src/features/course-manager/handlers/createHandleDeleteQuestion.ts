@@ -1,4 +1,5 @@
 import { supabase } from '@/utils/supabaseClient';
+import { toast } from 'sonner';
 
 interface DeleteQuestionDependencies {
   selectedExam: any | null;
@@ -11,7 +12,11 @@ export function createHandleDeleteQuestion({
 }: DeleteQuestionDependencies) {
   return async (id: string) => {
     if (confirm('حذف السؤال؟')) {
-      await supabase.from('questions').delete().eq('id', id);
+      const { error } = await supabase.from('questions').delete().eq('id', id);
+      if (error) {
+        toast.error('تعذر حذف السؤال. حاول مرة أخرى.');
+        return;
+      }
       if (selectedExam) loadQuestions(selectedExam.id);
     }
   };
