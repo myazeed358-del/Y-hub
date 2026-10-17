@@ -33,3 +33,11 @@ Large code is primarily course content, generated UI, and mathematical algorithm
 5. Full verification, contract documentation, remote checkpoints and review PR.
 
 Keep Supabase configuration, applied migrations, student identifiers, themes, content ownership and core algorithms unchanged. No live backend-security claim follows from passing local tests.
+
+## Implemented resolution
+
+The table above records the initial baseline, not current missing work. The navigation-catalog branch was reused; module registration now comes from validated `modules/*/module.ts` metadata. AppRoutes, sidebar, dashboard and compatibility engine access derive from accepted contributions. A real-router demonstration proves automatic integration and local failures. Dashboard repository errors are now typed/propagated and stale loads are ignored.
+
+Compiler-resolved import checks supplement the original static audit. After removal of the proven unused scaffold, 483 production application files remain; there are no detected static runtime cycles or forbidden imports. All 143 math modules remain unchanged. Cleanup evidence and retained uncertain/public contracts are recorded separately. Final regression: 182 Vitest files / 1622 tests, 29 Python tests, eight architecture-check tests, all workspace typechecks and production build passed.
+
+The main remaining uncertainty is external: authenticated RLS/course ownership/admin flows and real-browser validation. Heavy bundles, AuthContext coupling, package deprecations and the alternate Python service are documented follow-up debt. These limits prevent an unqualified production-readiness claim; they do not invalidate the tested source-module extension contract.
