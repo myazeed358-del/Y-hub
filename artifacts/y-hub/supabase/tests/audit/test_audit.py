@@ -398,3 +398,24 @@ class AuditTests(unittest.TestCase):
         ):
             with self.subTest(statement=statement):
                 self.assertNotEqual(run(statement, target, check=False).returncode, 0)
+
+    def test_delete_returning_distinguishes_success_from_zero_rows_and_sql_failure(self):
+        cid, eid, qid = course(), str(uuid.uuid4()), str(uuid.uuid4())
+        run(f"INSERT INTO public.exams(id,course_id,title) VALUES('{eid}','{cid}','Delete result'); INSERT INTO public.questions(id,course_id,type,content,correct_answer) VALUES('{qid}','{cid}','tf','Delete result','true')", I)
+        for table, key in (('questions', qid), ('exams', eid)):
+            with self.subTest(table=table):
+                def deletion(actor, target=key, check=True):
+                    return run(f"WITH deleted AS (DELETE FROM public.{table} WHERE id='{target}' RETURNING id) SELECT coalesce(jsonb_agg(id),'[]') FROM deleted", actor, check=check)
+                self.assertEqual(json.loads(deletion(OTHER).stdout), [])  # RLS denial is not a SQL error.
+                self.assertEqual(json.loads(deletion(I, str(uuid.uuid4())).stdout), [])  # Missing row.
+                self.assertEqual(len(events(key)), 1)
+                try:
+                    run("CREATE FUNCTION public.fail_delete_audit_test() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'simulated required audit failure'; END $$; CREATE TRIGGER fail_delete_audit BEFORE INSERT ON public.audit_events FOR EACH ROW EXECUTE FUNCTION public.fail_delete_audit_test()")
+                    failure = deletion(I, check=False)
+                    self.assertNotEqual(failure.returncode, 0)
+                    self.assertIn('simulated required audit failure', failure.stderr)
+                    self.assertEqual(len(query(f"SELECT id FROM public.{table} WHERE id='{key}'")), 1)
+                finally:
+                    run('DROP TRIGGER IF EXISTS fail_delete_audit ON public.audit_events; DROP FUNCTION IF EXISTS public.fail_delete_audit_test()')
+                self.assertEqual(json.loads(deletion(I).stdout), [key])
+                self.assertEqual(events(key)[-1]['operation'], 'DELETE')

@@ -1,14 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createHandleDeleteExam } from '../createHandleDeleteExam';
 import { createHandleDeleteQuestion } from '../createHandleDeleteQuestion';
-const { eq, from, errorToast } = vi.hoisted(() => ({ eq: vi.fn(), from: vi.fn(), errorToast: vi.fn() }));
+const { eq, select, from, errorToast } = vi.hoisted(() => ({ eq: vi.fn(), select: vi.fn(), from: vi.fn(), errorToast: vi.fn() }));
 vi.mock('@/utils/supabaseClient', () => ({ supabase: { from } }));
 vi.mock('sonner', () => ({ toast: { error: errorToast } }));
 beforeEach(() => {
   vi.clearAllMocks();
   vi.stubGlobal('confirm', vi.fn(() => true));
   from.mockReturnValue({ delete: () => ({ eq }) });
-  eq.mockResolvedValue({ error: null });
+  eq.mockReturnValue({ select });
+  select.mockImplementation(async () => ({ data: [{ id: eq.mock.lastCall?.[1] }], error: null }));
 });
 afterEach(() => vi.unstubAllGlobals());
 
@@ -22,11 +23,21 @@ describe.each(['exam', 'question'] as const)('%s deletion database outcome', kin
     return { handler, reload, clear, id: kind === 'exam' ? 'exam-id' : 'question-id' };
   }
   it('surfaces a rolled-back audit failure without clearing or reloading as success', async () => {
-    eq.mockResolvedValue({ error: { message: 'private SQL audit failure detail', code: 'P0001' } });
+    select.mockResolvedValue({ data: null, error: { message: 'private SQL audit failure detail', code: 'P0001' } });
     const { handler, reload, clear, id } = setup();
     await handler(id);
     expect(errorToast).toHaveBeenCalledOnce();
     expect(errorToast.mock.calls[0][0]).not.toContain('private SQL');
+    expect(reload).not.toHaveBeenCalled();
+    expect(clear).not.toHaveBeenCalled();
+  });
+  // PostgREST deliberately makes these cases indistinguishable to the client.
+  it.each(['RLS hides the row', 'row does not exist'])('does not report deletion when %s', async () => {
+    select.mockResolvedValue({ data: [], error: null });
+    const { handler, reload, clear, id } = setup();
+    await handler(id);
+    expect(select).toHaveBeenCalledWith('id');
+    expect(errorToast).toHaveBeenCalledOnce();
     expect(reload).not.toHaveBeenCalled();
     expect(clear).not.toHaveBeenCalled();
   });
@@ -35,6 +46,7 @@ describe.each(['exam', 'question'] as const)('%s deletion database outcome', kin
     await handler(id);
     expect(from).toHaveBeenCalledWith(kind === 'exam' ? 'exams' : 'questions');
     expect(eq).toHaveBeenCalledWith('id', id);
+    expect(select).toHaveBeenCalledWith('id');
     expect(reload).toHaveBeenCalledOnce();
     if (kind === 'exam') expect(clear).toHaveBeenCalledWith(null);
     expect(errorToast).not.toHaveBeenCalled();

@@ -1,3 +1,13 @@
+# Current checkpoint: DELETE result verification / existing Draft PR #16
+
+Resumed clean branch `feature/central-audit-log`; local, remote branch and PR head matched `3c205833c25e27433dbf3b0fb9f54fb8cce2685b`. Both delete handlers now require a matching returned ID via `.select('id')`; RLS-hidden/missing rows never advance success state. Tests cover actual PostgreSQL failures and successful deletion too. No migration change in this patch.
+
+1674 Vitest tests / 186 files (76.27s), 29 Python tests (1.271s), 26 isolated PostgreSQL tests (26.578s) plus immutable user-number SQL checks, eight boundary-check tests, workspace TypeScript, all architecture audits and production build (44.12s) passed. Both complete scripts exited 0; no failed/skipped tests in final runs.
+
+PR #16 Draft state verified through public GitHub HTML. Vercel Preview failure is confirmed for 3c205833; exact deployment URL and blocked-log evidence are in `docs/audit-log/DELETE_RESULT_REVIEW.md`. Root cause is unknown, not assumed to be Audit Log or the old bundle limit. GitHub API blocks description editing; the refreshed body is committed at `docs/audit-log/PR_DESCRIPTION.md`. Next: obtain deployment error text / API access, update only #16, then separately authorized isolated Supabase staging. Never create a new PR, merge or apply migrations to production.
+
+## Prior checkpoint (historical)
+
 # Current task: PR #16 audit security follow-up
 
 Branch: `feature/central-audit-log`; existing Draft PR: https://github.com/myazeed358-del/Y-hub/pull/16 (user-confirmed Draft; API unavailable). Do not create a PR or merge. Base main remains `9057222acc54c473e192a98507273ce49ac19aac`.

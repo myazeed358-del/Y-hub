@@ -1,3 +1,11 @@
+# DELETE result follow-up
+
+1674 Vitest tests / 186 files (76.27s), 29 Python tests (1.271s), 26 isolated PostgreSQL tests (26.578s) plus immutable user-number SQL checks, eight boundary-check tests, workspace TypeScript, all architecture audits and production build (44.12s) passed. Both complete scripts exited 0; no failed/skipped tests in final runs.
+
+Exam/question handlers require the actual returned deleted ID. No migration changes; existing Draft PR #16 only. Deployment failure for 3c205833 is confirmed but its logs are inaccessible. See `docs/audit-log/DELETE_RESULT_REVIEW.md`.
+
+## Previous checkpoint
+
 # PR #16 security follow-up — current checkpoint
 
 Resumed `feature/central-audit-log` from verified local/remote/PR head `08ee5375dee6db0d8de785d499a4cd0dab609716`. Four focused corrections: role-revocation authorization for child content, event coverage for identity/time mutations, free-text value redaction, and database-error handling for exam/question deletion. Nine additional SQL cases passed (25 total plus user-number SQL checks); six frontend cases added. Full verification after handler changes passed: 1670 Vitest tests / 186 files, 29 Python tests, eight boundary-check tests, workspace TypeScript, architectural audits and production build. Review findings, negative controls and staging gate: `docs/audit-log/SECURITY_REVIEW.md`.

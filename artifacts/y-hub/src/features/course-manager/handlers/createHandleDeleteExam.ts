@@ -18,8 +18,10 @@ export function createHandleDeleteExam({
 }: DeleteExamDependencies) {
   return async (id: string) => {
     if (confirm('تأكيد الحذف؟')) {
-      const { error } = await supabase.from('exams').delete().eq('id', id);
-      if (error) {
+      const { data, error } = await supabase.from('exams').delete().eq('id', id).select('id');
+      // RLS-hidden and absent rows both return an empty successful response.
+      // Advance the UI only when PostgreSQL confirms this exact row was deleted.
+      if (error || data?.length !== 1 || data[0].id !== id) {
         toast.error('تعذر حذف الامتحان. حاول مرة أخرى.');
         return;
       }

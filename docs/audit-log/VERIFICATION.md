@@ -1,3 +1,11 @@
+# Latest: confirmed DELETE outcomes
+
+1674 Vitest tests / 186 files (76.27s), 29 Python tests (1.271s), 26 isolated PostgreSQL tests (26.578s) plus immutable user-number SQL checks, eight boundary-check tests, workspace TypeScript, all architecture audits and production build (44.12s) passed. Both complete scripts exited 0; no failed/skipped tests in final runs.
+
+Zero-row DELETE outcomes now fail safely in both handlers. Actual Draft status verified through public GitHub HTML; Vercel deployment failure confirmed for 3c205833, root cause blocked on deployment logs. See [DELETE_RESULT_REVIEW.md](DELETE_RESULT_REVIEW.md). No migration changes in this patch.
+
+## Previous security-review checkpoint
+
 # PR #16 security follow-up — latest results
 
 Reviewed from `08ee5375dee6db0d8de785d499a4cd0dab609716`, matching local HEAD, remote branch and PR #16 head. Fixed four findings: demoted-owner child-content writes, identity/time audit gaps, unredacted free-text major/difficulty, and ignored database errors in audited delete handlers. Final: **25 PostgreSQL tests** (20.616s) plus user-number SQL regression; **1670 Vitest tests / 186 files** (74.50s), **29 Python tests** (0.996s), **eight boundary-check tests**, TypeScript/architecture checks and production build (42.81s), all passed. No production operations. Full analysis and merge gate: [SECURITY_REVIEW.md](SECURITY_REVIEW.md).

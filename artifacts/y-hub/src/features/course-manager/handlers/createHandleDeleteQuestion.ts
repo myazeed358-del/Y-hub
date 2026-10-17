@@ -12,8 +12,10 @@ export function createHandleDeleteQuestion({
 }: DeleteQuestionDependencies) {
   return async (id: string) => {
     if (confirm('حذف السؤال؟')) {
-      const { error } = await supabase.from('questions').delete().eq('id', id);
-      if (error) {
+      const { data, error } = await supabase.from('questions').delete().eq('id', id).select('id');
+      // RLS-hidden and absent rows both return an empty successful response.
+      // Advance the UI only when PostgreSQL confirms this exact row was deleted.
+      if (error || data?.length !== 1 || data[0].id !== id) {
         toast.error('تعذر حذف السؤال. حاول مرة أخرى.');
         return;
       }
