@@ -257,6 +257,9 @@ importers:
       remark-math:
         specifier: ^6.0.0
         version: 6.0.0
+      xlsx:
+        specifier: 0.18.5
+        version: 0.18.5
     devDependencies:
       '@supabase/supabase-js':
         specifier: ^2.45.0
@@ -270,6 +273,9 @@ importers:
       '@tanstack/react-query':
         specifier: 'catalog:'
         version: 5.103.2(react@19.1.0)
+      '@testing-library/jest-dom':
+        specifier: ^6.6.2
+        version: 6.9.1
       '@testing-library/react':
         specifier: ^16.0.0
         version: 16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -534,6 +540,9 @@ importers:
         version: 7.3.6(@types/node@25.9.8)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(tsx@4.23.15)
 
 packages:
+
+  '@adobe/css-tools@4.5.0':
+    resolution: {integrity: sha512-6OzddxPio9UiWTCemp4N8cYLV2ZN1ncRnV1cVGtve7dhPOtRkleRyx32GQCYSwDYgaHU3USMm84tNsvKzRCa1Q==}
 
   '@asamuzakjp/css-color@3.2.0':
     resolution: {integrity: sha512-K1A6z8tS3XsmCMM86xoWdn7Fkdn9m6RSVtocUrJYIwZnFVkng/PvkEoWtOWmP+Scc6saYWHWZYbndEEXxl24jw==}
@@ -2030,6 +2039,10 @@ packages:
     resolution: {integrity: sha512-yzr2S9HyAIdhz2/6qHgbs665Q7PKVcDF05vsOlHPxG1mo36gKVesdYVeDLnXgfjJ03CrKRk08knc6+E/9m8v2Q==}
     engines: {node: '>=18'}
 
+  '@testing-library/jest-dom@6.9.1':
+    resolution: {integrity: sha512-zIcONa+hVtVSSep9UT3jZ5rizo2BsxgyDYU7WFD5eICBE7no3881HGeb/QkGfsJs6JTkY1aQhT7rIPC7e+0nnA==}
+    engines: {node: '>=14', npm: '>=6', yarn: '>=1'}
+
   '@testing-library/react@16.3.3':
     resolution: {integrity: sha512-Uo193NgQbPMz6lrrhtRQQFcMC6Re/ELLFbbuVL30WDlZxlpZf9/lMHTAVxPRLw1q1iu9OJmR1c2BLiENRstdBg==}
     engines: {node: '>=18'}
@@ -2284,6 +2297,10 @@ packages:
     engines: {node: '>=0.4.0'}
     hasBin: true
 
+  adler-32@1.3.1:
+    resolution: {integrity: sha512-ynZ4w/nUUv5rrsR8UUGoe1VC9hZj6V5hU9Qw1HlMDJGEJw5S7TfTErWTjMys6M7vr0YWcPqs3qAr4ss0nDfP+A==}
+    engines: {node: '>=0.8'}
+
   agent-base@7.1.4:
     resolution: {integrity: sha512-MnA+YT8fwfJPgBx3m60MNqakm30XOkyIoH1y6huTQvC0PwZG7ki8NacLBcrPbNoo8vEZy7Jpuk7+jMO+CUovTQ==}
     engines: {node: '>= 14'}
@@ -2399,6 +2416,10 @@ packages:
   ccount@2.0.1:
     resolution: {integrity: sha512-eyrF0jiFpY+3drT6383f1qhkbGsLSifNAjA61IUjZjmLCWjItY6LB9ft9YhoDgwfmclB2zhu51Lc7+95b8NRAg==}
 
+  cfb@1.2.2:
+    resolution: {integrity: sha512-KfdUZsSOw19/ObEWasvBP/Ac4reZvAGauZhs6S/gqNhXhI7cKwvlH7ulj+dOEYnca4bm4SGo8C1bTAQvnTjgQA==}
+    engines: {node: '>=0.8'}
+
   chai@5.3.3:
     resolution: {integrity: sha512-4zNhdJD/iOjSH0A05ea+Ke6MU5mmpQcbQsSOkgdaUMJ9zTlDTD/GYlwohmIE2u0gaxHYiVHEn1Fw9mZ/ktJWgw==}
     engines: {node: '>=18'}
@@ -2442,6 +2463,10 @@ packages:
     peerDependencies:
       react: ^18 || ^19 || ^19.0.0-rc
       react-dom: ^18 || ^19 || ^19.0.0-rc
+
+  codepage@1.15.0:
+    resolution: {integrity: sha512-3g6NUTPd/YtuuGrhMnOMRjFc+LJw/bnMp3+0r/Wcz3IXUuCosKRJvMphm5+Q+bvTVGcJJuRvVLuYba+WojaFaA==}
+    engines: {node: '>=0.8'}
 
   color-alpha@1.0.4:
     resolution: {integrity: sha512-lr8/t5NPozTSqli+duAN+x+no/2WaKTeWvxhHGN+aXT6AJ8vPlzLa7UriyjWak0pSC2jHol9JgjBYnnHsGha9A==}
@@ -2500,6 +2525,11 @@ packages:
   country-regex@1.1.0:
     resolution: {integrity: sha512-iSPlClZP8vX7MC3/u6s3lrDuoQyhQukh5LyABJ3hvfzbQ3Yyayd4fp04zjLnfi267B/B2FkumcWWgrbban7sSA==}
 
+  crc-32@1.2.2:
+    resolution: {integrity: sha512-ROmzCKrTnOwybPcJApAA6WBWij23HVfGVNKqqrZpuyZOHqK2CwHSvpGuyt/UNNvaIjEd8X5IFGp4Mh+Ie1IHJQ==}
+    engines: {node: '>=0.8'}
+    hasBin: true
+
   css-font-size-keywords@1.0.0:
     resolution: {integrity: sha512-Q+svMDbMlelgCfH/RVDKtTDaf5021O486ZThQPIpahnIjUkMUslC+WuOQSWTgGSrNCH08Y7tYNEmmy0hkfMI8Q==}
 
@@ -2535,6 +2565,9 @@ packages:
 
   css-system-font-keywords@1.0.0:
     resolution: {integrity: sha512-1umTtVd/fXS25ftfjB71eASCrYhilmEsvDEI6wG/QplnmlfmVM5HkZ/ZX46DT5K3eblFPgLUHt5BRCb0YXkSFA==}
+
+  css.escape@1.5.1:
+    resolution: {integrity: sha512-YUifsXXuknHlUsmlgyY0PKzgPOr7/FjCePfHNt0jxm83wHZi44VDMQ7/fGNkjY3/jV1MC+1CmZbaHzugyeRtpg==}
 
   csscolorparser@1.0.3:
     resolution: {integrity: sha512-umPSgYwZkdFoUrH5hIq5kf0wPSXiro51nPw0j2K/c83KflkPSTBGMz6NJvMB+07VlL0y7VPo6QJcDjcgKTTm3w==}
@@ -2719,6 +2752,9 @@ packages:
 
   dom-accessibility-api@0.5.16:
     resolution: {integrity: sha512-X7BJ2yElsnOJ30pZF4uIIDfBEVgF4XEBxL9Bxhy6dnrm5hkzqmsWHGTiHqRiITNhMyFLyAiWndIJP7Z1NTteDg==}
+
+  dom-accessibility-api@0.6.3:
+    resolution: {integrity: sha512-7ZgogeTnjuHbo+ct10G9Ffp0mif17idi0IyWNVA/wcwcm7NPOD/WEHVP3n7n3MhXqxoIYm8d6MuZohYWIZ4T3w==}
 
   dom-helpers@5.2.1:
     resolution: {integrity: sha512-nRCa7CK3VTrM2NmGkIy4cbK7IZlgBE/PYMn55rrXefr5xXDP0LdtfPnblFDoVdcAfslJ7or6iqAUnx0CCGIWQA==}
@@ -2941,6 +2977,10 @@ packages:
   form-data@4.0.6:
     resolution: {integrity: sha512-vKatAh4SlVfgbv+YtmhiRjhEMJsYpsG1Y2rMQtR+SVSbytsSD1YGzDIcrAJmdFec88u/+VoGmxnl+80gL1tRCQ==}
     engines: {node: '>= 6'}
+
+  frac@1.1.2:
+    resolution: {integrity: sha512-w/XBfkibaTl3YDqASwfDUqkna4Z2p9cFSr1aHDt0WoMTECnRfBOv2WArlZILlqgWlmdIlALXGpM2AOhEk5W3IA==}
+    engines: {node: '>=0.8'}
 
   fraction.js@4.3.7:
     resolution: {integrity: sha512-ZsDfxO51wGAXREY55a7la9LScWpwv9RxIrYABrlvOFBlH/ShPnrtsXeuUIfXKKOVicNxQ+o8JTbJvjS4M89yew==}
@@ -3172,6 +3212,10 @@ packages:
 
   ieee754@1.2.1:
     resolution: {integrity: sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA==}
+
+  indent-string@4.0.0:
+    resolution: {integrity: sha512-EdDDZu4A2OyIK7Lr/2zG+w5jmbuk1DVBnEwREQvBzspBJkCEbRa8GxU1lghYcaGJCnRWibjDXlq779X1/y5xwg==}
+    engines: {node: '>=8'}
 
   inherits@2.0.4:
     resolution: {integrity: sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==}
@@ -3574,6 +3618,10 @@ packages:
   mime-types@2.1.35:
     resolution: {integrity: sha512-ZDY+bPm5zTTF+YpCrAU9nK0UgICYPT0QtT1NZWFv4s++TNkcgVaT0g6+4R2uI4MjQjzysHB1zxuWL50hzaeXiw==}
     engines: {node: '>= 0.6'}
+
+  min-indent@1.0.1:
+    resolution: {integrity: sha512-I9jwMn07Sy/IwOj3zVkVik2JTvgpaykDZEigL6Rx6N9LbMywwUSMtxET+7lVoDLLd3O3IXwJwvuuns8UB/HeAg==}
+    engines: {node: '>=4'}
 
   minimist@1.2.8:
     resolution: {integrity: sha512-2yyAR8qBkN3YuheJanUpWC5U3bb5osDywNB8RzDVlDwDHbocAJveqqj1u8+SVD7jkWT4yvsHCpWqqWqAxb0zCA==}
@@ -3984,6 +4032,10 @@ packages:
       react: ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
       react-dom: ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
+  redent@3.0.0:
+    resolution: {integrity: sha512-6tDA8g98We0zd0GvVeMT9arEOnTw9qM03L9cJXaCjrip1OO764RDBLBfrB4cwzNGDj5OA5ioymC9GkizgWJDUg==}
+    engines: {node: '>=8'}
+
   regenerator-runtime@0.13.11:
     resolution: {integrity: sha512-kY1AZVr2Ra+t+piVaJ4gxaFaReZVH40AKNo7UCX6W+dEwBo/2oZJzqfuN1qLq1oL45o56cPaTXELwrTh8Fpggg==}
 
@@ -4130,6 +4182,10 @@ packages:
   space-separated-tokens@2.0.2:
     resolution: {integrity: sha512-PEGlAwrG8yXGXRjW32fGbg66JAlOAwbObuqVoJpv/mRgoWDQfgH1wDPvtzWyUSNAXBGSk8h755YDbbcEy3SH2Q==}
 
+  ssf@0.11.2:
+    resolution: {integrity: sha512-+idbmIXoYET47hH+d7dfm2epdOMUDjqcB4648sTZ+t2JwoyBFL/insLfB/racrDmsKB3diwsDA696pZMieAC5g==}
+    engines: {node: '>=0.8'}
+
   stack-trace@0.0.9:
     resolution: {integrity: sha512-vjUc6sfgtgY0dxCdnc40mK6Oftjo9+2K8H/NG81TMhgL392FtiPA9tn9RLyTxXmTLPJPjF3VyzFp6bsWFLisMQ==}
 
@@ -4163,6 +4219,10 @@ packages:
 
   stringify-entities@4.0.4:
     resolution: {integrity: sha512-IwfBptatlO+QCJUo19AqvrPNqlVMpW9YEL2LIVY+Rpv2qsjCGxaDLNRgeGsQWJhfItebuJhsGSLjaBbNSQ+ieg==}
+
+  strip-indent@3.0.0:
+    resolution: {integrity: sha512-laJTa3Jb+VQpaC6DseHhF7dXVqHTfJPCRDaEbid/drOhgitgYku/letMUqOXFoWV0zIIUbjpdH2t+tYj4bQMRQ==}
+    engines: {node: '>=8'}
 
   strongly-connected-components@1.0.1:
     resolution: {integrity: sha512-i0TFx4wPcO0FwX+4RkLJi1MxmcTv90jNZgxMu9XRnMXMeFUY1VJlIoXpZunPUvUUqbCT1pg5PEkFqqpcaElNaA==}
@@ -4592,6 +4652,14 @@ packages:
     engines: {node: '>=8'}
     hasBin: true
 
+  wmf@1.0.2:
+    resolution: {integrity: sha512-/p9K7bEh0Dj6WbXg4JG0xvLQmIadrner1bi45VMJTfnbVHsc7yIajZyoSoK60/dtVBs12Fm6WkUI5/3WAVsNMw==}
+    engines: {node: '>=0.8'}
+
+  word@0.3.0:
+    resolution: {integrity: sha512-OELeY0Q61OXpdUfTp+oweA/vtLVg5VDOXh+3he3PNzLGG/y0oylSOC1xRVj0+l4vQ3tj/bB1HVHv1ocXkQceFA==}
+    engines: {node: '>=0.8'}
+
   world-calendars@1.0.4:
     resolution: {integrity: sha512-VGRnLJS+xJmGDPodgJRnGIDwGu0s+Cr9V2HB3EzlDZ5n0qb8h5SJtGUEkjrphZYAglEiXZ6kiXdmk0H/h/uu/w==}
 
@@ -4614,6 +4682,11 @@ packages:
         optional: true
       utf-8-validate:
         optional: true
+
+  xlsx@0.18.5:
+    resolution: {integrity: sha512-dmg3LCjBPHZnQp5/F/+nnTa+miPJxUXB6vtk42YjBBKayDNagxGEeIdWApkYPOf3Z3pm3k62Knjzp7lMeTEtFQ==}
+    engines: {node: '>=0.8'}
+    hasBin: true
 
   xml-name-validator@5.0.0:
     resolution: {integrity: sha512-EvGK8EJ3DhaHfbRlETOWAS5pO9MZITeauHKJyb8wyajUfQUenkIg2MvLDTZ4T/TgIcm3HU0TFBgWWboAZ30UHg==}
@@ -4640,6 +4713,8 @@ packages:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
 
 snapshots:
+
+  '@adobe/css-tools@4.5.0': {}
 
   '@asamuzakjp/css-color@3.2.0':
     dependencies:
@@ -6008,6 +6083,15 @@ snapshots:
       picocolors: 1.1.1
       pretty-format: 27.5.1
 
+  '@testing-library/jest-dom@6.9.1':
+    dependencies:
+      '@adobe/css-tools': 4.5.0
+      aria-query: 5.3.0
+      css.escape: 1.5.1
+      dom-accessibility-api: 0.6.3
+      picocolors: 1.1.1
+      redent: 3.0.0
+
   '@testing-library/react@16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
     dependencies:
       '@babel/runtime': 7.29.7
@@ -6318,6 +6402,8 @@ snapshots:
 
   acorn@8.18.0: {}
 
+  adler-32@1.3.1: {}
+
   agent-base@7.1.4: {}
 
   ajv-formats@3.0.1(ajv@8.20.0):
@@ -6422,6 +6508,11 @@ snapshots:
 
   ccount@2.0.1: {}
 
+  cfb@1.2.2:
+    dependencies:
+      adler-32: 1.3.1
+      crc-32: 1.2.2
+
   chai@5.3.3:
     dependencies:
       assertion-error: 2.0.1
@@ -6465,6 +6556,8 @@ snapshots:
     transitivePeerDependencies:
       - '@types/react'
       - '@types/react-dom'
+
+  codepage@1.15.0: {}
 
   color-alpha@1.0.4:
     dependencies:
@@ -6529,6 +6622,8 @@ snapshots:
 
   country-regex@1.1.0: {}
 
+  crc-32@1.2.2: {}
+
   css-font-size-keywords@1.0.0: {}
 
   css-font-stretch-keywords@1.0.1: {}
@@ -6569,6 +6664,8 @@ snapshots:
       webpack: 5.111.1(lightningcss@1.32.0)(postcss@8.5.28)
 
   css-system-font-keywords@1.0.0: {}
+
+  css.escape@1.5.1: {}
 
   csscolorparser@1.0.3: {}
 
@@ -6718,6 +6815,8 @@ snapshots:
       dequal: 2.0.3
 
   dom-accessibility-api@0.5.16: {}
+
+  dom-accessibility-api@0.6.3: {}
 
   dom-helpers@5.2.1:
     dependencies:
@@ -6997,6 +7096,8 @@ snapshots:
       es-set-tostringtag: 2.1.0
       hasown: 2.0.4
       mime-types: 2.1.35
+
+  frac@1.1.2: {}
 
   fraction.js@4.3.7: {}
 
@@ -7329,6 +7430,8 @@ snapshots:
       postcss: 8.5.28
 
   ieee754@1.2.1: {}
+
+  indent-string@4.0.0: {}
 
   inherits@2.0.4: {}
 
@@ -7885,6 +7988,8 @@ snapshots:
     dependencies:
       mime-db: 1.52.0
 
+  min-indent@1.0.1: {}
+
   minimist@1.2.8: {}
 
   minimizer-webpack-plugin@5.11.0(lightningcss@1.32.0)(postcss@8.5.28)(webpack@5.111.1(lightningcss@1.32.0)(postcss@8.5.28)):
@@ -8311,6 +8416,11 @@ snapshots:
       tiny-invariant: 1.3.3
       victory-vendor: 36.9.2
 
+  redent@3.0.0:
+    dependencies:
+      indent-string: 4.0.0
+      strip-indent: 3.0.0
+
   regenerator-runtime@0.13.11:
     optional: true
 
@@ -8517,6 +8627,10 @@ snapshots:
 
   space-separated-tokens@2.0.2: {}
 
+  ssf@0.11.2:
+    dependencies:
+      frac: 1.1.2
+
   stack-trace@0.0.9: {}
 
   stackback@0.0.2: {}
@@ -8552,6 +8666,10 @@ snapshots:
     dependencies:
       character-entities-html4: 2.1.0
       character-entities-legacy: 3.0.0
+
+  strip-indent@3.0.0:
+    dependencies:
+      min-indent: 1.0.1
 
   strongly-connected-components@1.0.1: {}
 
@@ -9002,6 +9120,10 @@ snapshots:
       siginfo: 2.0.0
       stackback: 0.0.2
 
+  wmf@1.0.2: {}
+
+  word@0.3.0: {}
+
   world-calendars@1.0.4:
     dependencies:
       object-assign: 4.1.1
@@ -9015,6 +9137,16 @@ snapshots:
   wrappy@1.0.2: {}
 
   ws@8.21.3: {}
+
+  xlsx@0.18.5:
+    dependencies:
+      adler-32: 1.3.1
+      cfb: 1.2.2
+      codepage: 1.15.0
+      crc-32: 1.2.2
+      ssf: 0.11.2
+      wmf: 1.0.2
+      word: 0.3.0
 
   xml-name-validator@5.0.0: {}
 

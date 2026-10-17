@@ -129,6 +129,7 @@ describe('NavigationPresentationBoundary', () => {
       FlaskConical,
       Grid2X2,
       LineChart,
+      Grid2X2,
     ]);
   });
 

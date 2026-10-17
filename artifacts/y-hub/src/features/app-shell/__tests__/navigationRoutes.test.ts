@@ -46,6 +46,7 @@ describe('navigationRoutes', () => {
       '/lab',
       '/linear-algebra',
       '/ode',
+      '/y-sheets',
     ]);
   });
 
@@ -53,6 +54,7 @@ describe('navigationRoutes', () => {
     expect(paths('student', 'medicine')).toEqual([
       '/',
       '/quiz',
+      '/y-sheets',
     ]);
   });
 
@@ -66,6 +68,7 @@ describe('navigationRoutes', () => {
       '/lab',
       '/linear-algebra',
       '/ode',
+      '/y-sheets',
     ]);
   });
 
@@ -81,7 +84,8 @@ describe('navigationRoutes', () => {
         '/lab',
         '/linear-algebra',
         '/ode',
-        '/audit-log',
+      '/audit-log',
+        '/y-sheets',
       ]);
     }
   });
@@ -113,6 +117,7 @@ describe('navigationRoutes', () => {
       'flaskConical',
       'grid2x2',
       'lineChart',
+      'grid2x2',
     ]);
 
     expect(
@@ -167,6 +172,7 @@ describe('navigationRoutes', () => {
       FlaskConical,
       Grid2X2,
       LineChart,
+      Grid2X2,
     ]);
   });
 

@@ -29,6 +29,7 @@ describe('Y-Hub navigation', () => {
       '/',
       '/quiz',
       ...mathEngines,
+      '/y-sheets',
     ]);
   });
 
@@ -36,6 +37,7 @@ describe('Y-Hub navigation', () => {
     expect(visibleRoutes('student', 'medicine')).toEqual([
       '/',
       '/quiz',
+      '/y-sheets',
     ]);
   });
 
@@ -43,6 +45,7 @@ describe('Y-Hub navigation', () => {
     expect(visibleRoutes('student', null)).toEqual([
       '/',
       '/quiz',
+      '/y-sheets',
     ]);
   });
 
@@ -50,12 +53,14 @@ describe('Y-Hub navigation', () => {
     expect(visibleRoutes('instructor', 'mathematics')).toEqual([
       '/',
       ...mathEngines,
+      '/y-sheets',
     ]);
   });
 
   it('limits instructor sidebar to their teaching major', () => {
     expect(visibleRoutes('instructor', 'medicine')).toEqual([
       '/',
+      '/y-sheets',
     ]);
   });
 
@@ -66,7 +71,8 @@ describe('Y-Hub navigation', () => {
         '/',
         '/quiz',
         ...mathEngines,
-        '/audit-log',
+      '/audit-log',
+        '/y-sheets',
       ]);
     }
   );

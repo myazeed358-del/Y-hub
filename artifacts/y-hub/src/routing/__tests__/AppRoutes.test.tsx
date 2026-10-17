@@ -175,6 +175,7 @@ describe('AppRoutes', () => {
       '/calculus-1',
       '/calculus',
       '/lab',
+      '/y-sheets',
       '/audit-log',
       '/legacy-home',
       '/legacy-course',
