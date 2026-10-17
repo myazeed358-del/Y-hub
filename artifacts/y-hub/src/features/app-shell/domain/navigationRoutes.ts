@@ -1,6 +1,8 @@
 import {
+  ENGINE_CATALOG,
   getSidebarEngineRoutes,
   type EngineAccessRole,
+  type EngineSidebarIconId,
 } from '@/config/majorEngineAccess';
 
 import type { UiKey } from '@/i18n/uiCopy';
@@ -8,11 +10,7 @@ import type { UiKey } from '@/i18n/uiCopy';
 export type NavigationIconId =
   | 'home'
   | 'brainCircuit'
-  | 'lineChart'
-  | 'box'
-  | 'calculator'
-  | 'flaskConical'
-  | 'grid2x2';
+  | EngineSidebarIconId;
 
 export interface NavigationRouteItem {
   href: string;
@@ -36,15 +34,21 @@ export function buildNavigationRouteGroups(
     )
   );
 
-  const engineItems = [
-    { href: '/calculus-1', key: 'calculus1Solver' as UiKey, iconId: 'lineChart' as const },
-    { href: '/calculus', key: 'calculusPlotter' as UiKey, iconId: 'lineChart' as const },
-    { href: '/math-solver', key: 'calculus3Solver' as UiKey, iconId: 'box' as const },
-    { href: '/solver', key: 'solver' as UiKey, iconId: 'calculator' as const },
-    { href: '/lab', key: 'lab' as UiKey, iconId: 'flaskConical' as const },
-    { href: '/linear-algebra', key: 'linearAlgebra' as UiKey, iconId: 'grid2x2' as const },
-    { href: '/ode', key: 'odeSolver' as UiKey, iconId: 'lineChart' as const },
-  ].filter((item) => sidebarEngineRoutes.has(item.href));
+  // Source engine links from catalog metadata, not a second route inventory.
+  const engineItems: NavigationRouteItem[] = ENGINE_CATALOG
+    .filter((engine) => sidebarEngineRoutes.has(engine.route))
+    .flatMap((engine) =>
+      engine.sidebar
+        ? [{
+            href: engine.route,
+            key: engine.sidebar.labelKey as UiKey,
+            iconId: engine.sidebar.iconId,
+            order: engine.sidebar.order,
+          }]
+        : []
+    )
+    .sort((left, right) => left.order - right.order)
+    .map(({ href, key, iconId }) => ({ href, key, iconId }));
 
   return [
     {
