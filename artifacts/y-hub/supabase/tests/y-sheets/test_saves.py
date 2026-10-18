@@ -73,3 +73,27 @@ class Saves(unittest.TestCase):
         self.assertNotEqual(result.returncode,0)
         self.assertIn('Session changed',result.stderr)
         self.assertEqual(run(f"SELECT count(*) FROM public.y_sheets_workbooks WHERE id='{id}'").stdout.strip(),'0')
+
+    def test_all_platform_roles_keep_workbooks_private(self):
+        actors=[str(uuid.uuid4()) for _ in range(4)]
+        roles=['student','instructor','admin','super_admin']
+        for actor,role in zip(actors,roles):
+            run(f"INSERT INTO auth.users(id) VALUES('{actor}'); UPDATE public.users SET role='{role}' WHERE id='{actor}'")
+        for owner in actors:
+            id,request=str(uuid.uuid4()),str(uuid.uuid4())
+            self.assertEqual(save(id,request,0,owner).stdout.strip(),'1')
+            self.assertEqual(run(f"SELECT count(*) FROM public.y_sheets_workbooks WHERE id='{id}'",owner).stdout.strip(),'1')
+            for other in actors:
+                if other==owner: continue
+                self.assertEqual(run(f"SELECT count(*) FROM public.y_sheets_workbooks WHERE id='{id}'",other).stdout.strip(),'0')
+                self.assertNotEqual(save(id,str(uuid.uuid4()),1,other,check=False).returncode,0)
+                self.assertNotEqual(run(f"SELECT public.delete_y_sheets_workbook('{id}',1)",other,False).returncode,0)
+            self.assertEqual(run(f"SELECT public.delete_y_sheets_workbook('{id}',1)",owner).stdout.strip(),id)
+
+    def test_missing_session_claim_cannot_create_or_save(self):
+        id,request=str(uuid.uuid4()),str(uuid.uuid4())
+        data=json.dumps(content(id))
+        result=run(f"SET LOCAL ROLE authenticated; SELECT public.save_y_sheets_workbook('{id}','{request}',0,'{data}','{A}')",check=False)
+        self.assertNotEqual(result.returncode,0)
+        self.assertIn('not authenticated',result.stderr)
+        self.assertEqual(run(f"SELECT count(*) FROM public.y_sheets_workbooks WHERE id='{id}'").stdout.strip(),'0')
