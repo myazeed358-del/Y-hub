@@ -33,7 +33,7 @@ export function createSupabaseWorkbookStorage(ownerId: string,
     await requireSession();
     const intent = checkpoint.intent!;
     const { data, error } = await supabase.rpc('save_y_sheets_workbook', {
-      p_id: id, p_request_id: intent.requestId, p_expected_revision: checkpoint.revision, p_content: intent.workbook,
+      p_expected_owner_id: ownerId, p_id: id, p_request_id: intent.requestId, p_expected_revision: checkpoint.revision, p_content: intent.workbook,
     });
     if (error) {
       const kind = error.code === '40001' || error.code === 'P0002' ? 'conflict'

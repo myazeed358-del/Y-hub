@@ -1,0 +1,15 @@
+<!doctype html>
+<html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:8px"><div id="host" class="flex" style="display:grid">Unchanged Y-Hub host</div><div id="root" style="height:700px;width:100%"></div>
+<script type="module">
+import '/src/index.css';
+import React from 'react';
+import {createRoot} from 'react-dom/client';
+import {YSheetsHostAdapter} from '../integration/YSheetsHostAdapter.tsx';
+import {runExcelTask,importWorkbookFromXLSX} from '../io/xlsxAdapter.ts';
+const workbook={id:crypto.randomUUID(),name:'Browser smoke',version:1,activeSheetId:'s',sheets:[{id:'s',name:'Sheet 1',rowCount:100,colCount:26,cells:{},columnWidths:{},rowHeights:{},mergedCells:[],conditionalFormats:[],validations:{}}]};
+const root=createRoot(document.getElementById('root'));
+window.renderTheme=theme=>root.render(React.createElement(YSheetsHostAdapter,{initialWorkbook:workbook,theme,permissions:{canEdit:true,canExport:true,canCreateSheet:true,canDeleteSheet:true,canFormat:true},onSave:async wb=>{window.saved=wb},onDraftChange:draft=>{window.draft=draft}}));
+window.excelSmoke=async()=>{const wb=structuredClone(workbook);wb.sheets[0].cells['0,0']={raw:'=1+2',computed:3};const bytes=await runExcelTask({kind:'export',workbook:wb});const imported=await importWorkbookFromXLSX(bytes);return imported.sheets[0].cells['0,0'];};
+window.renderTheme('light');
+</script></body></html>

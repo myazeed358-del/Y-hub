@@ -135,6 +135,8 @@ export const ImportExportDialog: React.FC<Props> = ({ isOpen, onClose, defaultTa
 
 <p className="text-xs mt-3">Excel: values, formulas, merges, dimensions and basic number formats. Fonts, colors, charts, macros, validation and conditional formats are not preserved in Excel files. Use JSON for full Y-Sheets formatting. Import only files you trust. Limits: 5 MiB, 32 sheets, 10,000 rows, 256 columns and 50,000 populated cells.</p>
 
+        <a href={`${import.meta.env.BASE_URL}licenses/y-sheets-third-party.txt`} target="_blank" rel="noopener noreferrer" className="text-xs underline">Spreadsheet library licenses</a>
+
         {/* Tabs */}
         <div className="flex border-b border-zinc-200 dark:border-zinc-700 mt-3">
           <button

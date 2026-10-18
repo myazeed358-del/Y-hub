@@ -6,20 +6,24 @@ CREATE TABLE y_sheets_private.save_receipts (
   owner_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   workbook_id uuid NOT NULL, -- Retain receipt after workbook deletion: no resurrection on retry.
   request_id uuid NOT NULL,
-  expected_revision bigint NOT NULL,
-  payload_hash bytea NOT NULL,
-  result_revision bigint NOT NULL,
+  expected_revision bigint NOT NULL CHECK(expected_revision >= 0),
+  payload_hash bytea NOT NULL CHECK(octet_length(payload_hash) = 32),
+  result_revision bigint NOT NULL CHECK(result_revision > 0),
   PRIMARY KEY(owner_id, workbook_id, request_id)
 );
+CREATE INDEX save_receipts_workbook_idx ON y_sheets_private.save_receipts(workbook_id);
 REVOKE ALL ON y_sheets_private.save_receipts FROM PUBLIC, anon, authenticated, service_role;
 REVOKE INSERT, UPDATE, DELETE ON public.y_sheets_workbooks FROM PUBLIC, anon, authenticated;
 
-CREATE FUNCTION public.save_y_sheets_workbook(p_id uuid, p_request_id uuid, p_expected_revision bigint, p_content jsonb)
+CREATE FUNCTION public.save_y_sheets_workbook(p_id uuid, p_request_id uuid, p_expected_revision bigint, p_content jsonb, p_expected_owner_id uuid)
 RETURNS bigint LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE v_actor uuid := auth.uid(); v_row public.y_sheets_workbooks; v_receipt y_sheets_private.save_receipts;
   v_hash bytea; v_revision bigint;
 BEGIN
-  IF v_actor IS NULL THEN RAISE EXCEPTION 'Not authenticated' USING ERRCODE='42501'; END IF;
+  -- The owner hint is a session-race precondition, never an identity source.
+  IF v_actor IS NULL OR v_actor IS DISTINCT FROM p_expected_owner_id THEN
+    RAISE EXCEPTION 'Session changed or not authenticated' USING ERRCODE='42501';
+  END IF;
   IF p_id IS NULL OR p_request_id IS NULL OR p_expected_revision IS NULL OR p_expected_revision < 0
     OR p_content IS NULL OR jsonb_typeof(p_content) IS DISTINCT FROM 'object'
     OR p_content->>'id' IS DISTINCT FROM p_id::text
@@ -66,8 +70,8 @@ BEGIN
   RETURN v_revision;
 END;
 $$;
-REVOKE ALL ON FUNCTION public.save_y_sheets_workbook(uuid,uuid,bigint,jsonb) FROM PUBLIC,anon,service_role;
-GRANT EXECUTE ON FUNCTION public.save_y_sheets_workbook(uuid,uuid,bigint,jsonb) TO authenticated;
+REVOKE ALL ON FUNCTION public.save_y_sheets_workbook(uuid,uuid,bigint,jsonb,uuid) FROM PUBLIC,anon,service_role;
+GRANT EXECUTE ON FUNCTION public.save_y_sheets_workbook(uuid,uuid,bigint,jsonb,uuid) TO authenticated;
 
 CREATE FUNCTION public.delete_y_sheets_workbook(p_id uuid,p_expected_revision bigint)
 RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$

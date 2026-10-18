@@ -15,7 +15,7 @@ def content(id,name='Book'):
     return dict(id=id,name=name,sheets=[dict(id='s')],activeSheetId='s')
 def save(id,request,revision,actor=A,name='Book',check=True):
     data=json.dumps(content(id,name)).replace("'","''")
-    return run(f"SELECT public.save_y_sheets_workbook('{id}','{request}',{revision},'{data}')",actor,check)
+    return run(f"SELECT public.save_y_sheets_workbook('{id}','{request}',{revision},'{data}','{actor}')",actor,check)
 def new():
     id,request=str(uuid.uuid4()),str(uuid.uuid4())
     save(id,request,0)
@@ -54,8 +54,10 @@ class Saves(unittest.TestCase):
         self.assertNotEqual(save(id,request,0,check=False).returncode,0)
         self.assertNotEqual(save(id,str(uuid.uuid4()),0,check=False).returncode,0)
     def test_unauthenticated_and_bad_payload_rejected(self):
-        self.assertNotEqual(run("SET LOCAL ROLE anon; SELECT public.save_y_sheets_workbook(null,null,0,'{}')",check=False).returncode,0)
-        self.assertNotEqual(run("SELECT public.save_y_sheets_workbook(gen_random_uuid(),gen_random_uuid(),0,'{}')",A,False).returncode,0)
+        self.assertNotEqual(run("SET LOCAL ROLE anon; SELECT public.save_y_sheets_workbook(null,null,0,'{}',null)",check=False).returncode,0)
+        invalid=run(f"SELECT public.save_y_sheets_workbook(gen_random_uuid(),gen_random_uuid(),0,'{{}}','{A}')",A,False)
+        self.assertNotEqual(invalid.returncode,0)
+        self.assertIn('Invalid workbook',invalid.stderr)
     def test_failed_receipt_rolls_back_workbook(self):
         id,_=new()
         try:
@@ -63,3 +65,11 @@ class Saves(unittest.TestCase):
             self.assertNotEqual(save(id,str(uuid.uuid4()),1,name='Must roll back',check=False).returncode,0)
             self.assertEqual(run(f"SELECT name FROM public.y_sheets_workbooks WHERE id='{id}'",A).stdout.strip(),'Book')
         finally: run('DROP TRIGGER fail_test ON y_sheets_private.save_receipts; DROP FUNCTION y_sheets_private.fail_test()')
+
+    def test_account_switch_between_session_check_and_create_cannot_mix_owners(self):
+        id,request=str(uuid.uuid4()),str(uuid.uuid4())
+        data=json.dumps(content(id,'Account A private content'))
+        result=run(f"SELECT public.save_y_sheets_workbook('{id}','{request}',0,'{data}','{A}')",B,False)
+        self.assertNotEqual(result.returncode,0)
+        self.assertIn('Session changed',result.stderr)
+        self.assertEqual(run(f"SELECT count(*) FROM public.y_sheets_workbooks WHERE id='{id}'").stdout.strip(),'0')

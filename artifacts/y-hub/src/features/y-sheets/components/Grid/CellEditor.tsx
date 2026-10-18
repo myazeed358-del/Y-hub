@@ -24,6 +24,7 @@ export const CellEditor: React.FC<Props> = ({
 }) => {
   const { activeSheet, stopEditing, reportDraft } = useWorkbook();
   const [value, setValue] = useState(initialValue);
+  const finished = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const selectRef = useRef<HTMLSelectElement>(null);
 
@@ -50,6 +51,7 @@ export const CellEditor: React.FC<Props> = ({
   }, [validationRule]);
 
   const handleCommit = (valToCommit = value): void => {
+    if(finished.current) return;
     // Validate if rule present
     if (validationRule) {
       const result = validateCellValue(valToCommit, validationRule);
@@ -58,6 +60,7 @@ export const CellEditor: React.FC<Props> = ({
         return;
       }
     }
+    finished.current=true;
     stopEditing(valToCommit);
   };
 
@@ -67,6 +70,7 @@ export const CellEditor: React.FC<Props> = ({
       handleCommit();
     } else if (e.key === 'Escape') {
       e.preventDefault();
+      finished.current=true;
       stopEditing(); // cancel
     } else if (e.key === 'Tab') {
       e.preventDefault();
@@ -114,6 +118,7 @@ export const CellEditor: React.FC<Props> = ({
     <input
       ref={inputRef}
       type="text"
+      maxLength={32767}
       value={value}
       onChange={(e) => changeValue(e.target.value)}
       onBlur={() => handleCommit()}

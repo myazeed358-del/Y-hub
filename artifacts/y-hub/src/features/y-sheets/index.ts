@@ -1,1 +1,1 @@
-export { WorkbookWorkspace } from './workspace/WorkbookWorkspace';
+export { WorkbookWorkspace } from "./workspace/WorkbookWorkspace";

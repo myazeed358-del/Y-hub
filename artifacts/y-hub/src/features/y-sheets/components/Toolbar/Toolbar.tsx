@@ -45,6 +45,7 @@ export const Toolbar: React.FC<{
     activeSheet,
     activeCell,
     selection,
+    canEdit,
     canUndo,
     canRedo,
     theme,
@@ -122,8 +123,8 @@ export const Toolbar: React.FC<{
   return (
     <div className="bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 select-none">
       {/* Top Bar: Title & Primary Actions */}
-      <div className="flex items-center justify-between px-4 py-2 border-b border-zinc-100 dark:border-zinc-800">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-wrap gap-2 items-center justify-between px-4 py-2 border-b border-zinc-100 dark:border-zinc-800">
+        <div className="flex flex-wrap items-center gap-3 min-w-0">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white font-black text-lg shadow-sm">
               Y
@@ -133,6 +134,10 @@ export const Toolbar: React.FC<{
                 <span className="text-xs font-black text-emerald-700 dark:text-emerald-400">Y-Sheets</span>
                 <input
                   type="text"
+                  aria-label="Workbook name"
+                  readOnly={!canEdit}
+                  maxLength={200}
+                  style={{width:"clamp(80px, 35vw, 200px)"}}
                   value={workbook.name}
                   onChange={(e) => dispatch({ type: 'SET_WORKBOOK_NAME', payload: e.target.value })}
                   className="text-sm font-bold bg-transparent border-b border-transparent hover:border-zinc-300 dark:hover:border-zinc-700 focus:border-emerald-500 rounded px-1 outline-none text-zinc-900 dark:text-zinc-100"

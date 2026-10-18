@@ -1,4 +1,4 @@
-import type { PendingCellEdit } from '../io/recoveryJournal';
+import type { PendingCellEdit } from '../types/workbook';
 import { WorkbookData } from '../types/workbook';
 
 export interface HostUser {

@@ -32,11 +32,8 @@ export class DependencyGraph {
       }
     }
 
-    if (precedentIds.length === 0) {
-      this.dependencies.delete(cellId);
-      return;
-    }
-
+    // An empty precedent set still represents a formula (for example =1+2).
+    // Only removeCell removes a non-formula from calculation planning.
     const precSet = new Set(precedentIds);
     this.dependencies.set(cellId, precSet);
 
@@ -110,7 +107,7 @@ export class DependencyGraph {
       allAffected.add(d);
     }
 
-    // Filter to only cells that actually have formulas (i.e. have dependencies)
+    // Filter to only cells that are registered formulas (including constant formulas)
     const formulaCells = new Set<string>();
     for (const id of allAffected) {
       if (this.dependencies.has(id)) {

@@ -22,6 +22,7 @@ export const FormulaBar: React.FC = () => {
   const [inputValue, setInputValue] = useState(currentRaw);
   const [isFocused, setIsFocused] = useState(false);
   const [showFxMenu, setShowFxMenu] = useState(false);
+  const ignoreBlur=useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -38,6 +39,7 @@ export const FormulaBar: React.FC = () => {
     : formatCellReference(activeCell.row, activeCell.col);
 
   const handleCommit = (): void => {
+    ignoreBlur.current=true;
     dispatch({
       type: 'SET_CELL_RAW',
       payload: {
@@ -52,6 +54,7 @@ export const FormulaBar: React.FC = () => {
   };
 
   const handleCancel = (): void => {
+    ignoreBlur.current=true;
     reportDraft(null);
     setInputValue(currentRaw);
     setIsFocused(false);
@@ -163,14 +166,18 @@ export const FormulaBar: React.FC = () => {
         <input
           ref={inputRef}
           type="text"
+          maxLength={32767}
           value={inputValue}
           readOnly={!canEdit}
           onChange={(e) => {
             setInputValue(e.target.value);
             reportDraft({sheetId:activeSheet.id,...activeCell,raw:e.target.value});
           }}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => { if (inputValue === currentRaw) setIsFocused(false); }}
+          onFocus={() => {ignoreBlur.current=false;setIsFocused(true);}}
+          onBlur={() => {
+            if(!ignoreBlur.current && inputValue!==currentRaw) handleCommit();
+            ignoreBlur.current=false;setIsFocused(false);
+          }}
           onKeyDown={handleKeyDown}
           placeholder="Enter a value or formula (=SUM, =AVERAGE, etc.)"
           className="w-full px-2.5 py-1 text-sm bg-transparent border-0 focus:ring-1 focus:ring-emerald-500 rounded text-zinc-900 dark:text-zinc-100 outline-none font-mono"
