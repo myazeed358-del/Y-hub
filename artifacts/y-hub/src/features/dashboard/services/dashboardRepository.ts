@@ -30,7 +30,7 @@ export const dashboardRepository = {
   },
 
   deleteCourse(id: string) {
-    return supabase.from('courses').delete().eq('id', id);
+    return supabase.rpc('delete_course_confirmed', { p_course_id: id });
   },
 
   setPublished(id: string, published: boolean) {
