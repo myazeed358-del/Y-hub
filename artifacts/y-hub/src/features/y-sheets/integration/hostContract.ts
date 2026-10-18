@@ -1,3 +1,4 @@
+import type { PendingCellEdit } from '../io/recoveryJournal';
 import { WorkbookData } from '../types/workbook';
 
 export interface HostUser {
@@ -49,6 +50,7 @@ export interface YSheetsIntegrationProps {
   storageAdapter?: HostStorageAdapter;
   onRequestNewWorkbook?: () => void;
   onSave?: (workbook: WorkbookData) => Promise<void>;
+  onDraftChange?: (draft: PendingCellEdit | null) => void;
   onChange?: (workbook: WorkbookData) => void;
   onError?: (error: Error) => void;
   onTelemetry?: (event: HostTelemetryEvent) => void;

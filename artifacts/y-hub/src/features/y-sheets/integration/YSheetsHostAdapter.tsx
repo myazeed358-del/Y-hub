@@ -21,6 +21,7 @@ export const YSheetsHostAdapter: React.FC<YSheetsIntegrationProps> = ({
   onSave,
   onRequestNewWorkbook,
   onChange,
+  onDraftChange,
   onError,
   onTelemetry,
   className = '',
@@ -133,6 +134,7 @@ export const YSheetsHostAdapter: React.FC<YSheetsIntegrationProps> = ({
           permissions={permissions}
           theme={resolvedTheme}
           onWorkbookChange={handleWorkbookChange}
+          onDraftChange={onDraftChange}
         >
           {/* Host User / Permission Banner if restricted */}
           {user && (

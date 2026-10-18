@@ -1,3 +1,4 @@
+import { validateWorkbook } from '../io/workbookValidation';
 import { supabase } from '@/utils/supabaseClient';
 import { createDefaultWorkbook } from '../state/defaultWorkbook';
 import type { WorkbookData } from '../types/workbook';
@@ -26,7 +27,7 @@ export function createSupabaseWorkbookStorage(ownerId: string,
     // Loading must never acknowledge or replace an outstanding save intent.
     if (checkpoints.get(id)?.intent) throw new WorkbookStorageError('conflict', 'Workbook has an unresolved save.');
     setCheckpoint(id, { revision: data.revision });
-    return { ...data.content, id: data.id, name: data.name } as WorkbookData;
+    return validateWorkbook({ ...data.content, id: data.id, name: data.name });
   };
   const send = async (id: string, checkpoint: SaveCheckpoint) => {
     await requireSession();
@@ -43,7 +44,7 @@ export function createSupabaseWorkbookStorage(ownerId: string,
     setCheckpoint(id, { revision: data });
   };
   const saveWorkbook = async (workbook: WorkbookData) => {
-    const snapshot = structuredClone(workbook);
+    const snapshot = validateWorkbook(workbook);
     const previous = pending.get(snapshot.id) ?? Promise.resolve();
     const operation = previous.catch(() => {}).then(async () => {
       let checkpoint = checkpoints.get(snapshot.id);

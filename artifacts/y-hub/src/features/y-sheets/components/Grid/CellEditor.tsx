@@ -22,10 +22,19 @@ export const CellEditor: React.FC<Props> = ({
   height,
   initialValue,
 }) => {
-  const { activeSheet, stopEditing } = useWorkbook();
+  const { activeSheet, stopEditing, reportDraft } = useWorkbook();
   const [value, setValue] = useState(initialValue);
   const inputRef = useRef<HTMLInputElement>(null);
   const selectRef = useRef<HTMLSelectElement>(null);
+
+  useEffect(() => {
+    reportDraft({sheetId:activeSheet.id,row,col,raw:initialValue});
+  }, []);
+
+  const changeValue = (raw: string) => {
+    setValue(raw);
+    reportDraft({sheetId:activeSheet.id,row,col,raw});
+  };
 
   const cellKey = cellCoordToKey(row, col);
   const validationRule = activeSheet.validations?.[cellKey];
@@ -76,7 +85,7 @@ export const CellEditor: React.FC<Props> = ({
         ref={selectRef}
         value={value}
         onChange={(e) => {
-          setValue(e.target.value);
+          changeValue(e.target.value);
           handleCommit(e.target.value);
         }}
         onBlur={() => handleCommit()}
@@ -106,7 +115,7 @@ export const CellEditor: React.FC<Props> = ({
       ref={inputRef}
       type="text"
       value={value}
-      onChange={(e) => setValue(e.target.value)}
+      onChange={(e) => changeValue(e.target.value)}
       onBlur={() => handleCommit()}
       onKeyDown={handleKeyDown}
       style={{
