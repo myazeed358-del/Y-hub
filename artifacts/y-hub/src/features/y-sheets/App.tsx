@@ -16,7 +16,7 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen w-screen overflow-hidden bg-zinc-50 dark:bg-zinc-950 font-sans">
+    <div className="y-sheets-root flex flex-col h-screen w-screen overflow-hidden bg-zinc-50 dark:bg-zinc-950 font-sans">
       {/* Top Banner indicating Independent Standalone vs Simulated Y-Hub Host */}
       <div className="flex items-center justify-between px-3 py-1 bg-zinc-800 text-zinc-300 text-xs border-b border-zinc-700">
         <div className="flex items-center gap-2">

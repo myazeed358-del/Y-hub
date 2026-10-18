@@ -1,3 +1,4 @@
+import '../App.css';
 import React, { useState, useEffect, useCallback } from 'react';
 import { YSheetsIntegrationProps } from './hostContract';
 import { WorkbookData } from '../types/workbook';

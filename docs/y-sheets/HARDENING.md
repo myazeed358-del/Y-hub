@@ -23,3 +23,9 @@ Verified: 88 Y-Sheets Vitest tests across 13 files; application TypeScript passe
 Workspace now creates explicit blank documents, opens existing files, renames using the same revision-checked save protocol, deletes only after confirmation and an exact revision acknowledgment, searches names server-side and loads 50-row pages with modification timestamps. Pending local recovery blocks rename/delete until recovered or explicitly discarded; failed deletes remain visible. Recovery copies can be downloaded or explicitly discarded without touching cloud data. Existing import/export remains available from the editor; format hardening follows in phase 5.
 
 Verified: 93 Y-Sheets Vitest tests, including confirmation/cancellation, rename, pending recovery guards, failed deletion, server search and pagination. Listing uses stable ordering and offset pages; refresh reconciles files reordered by concurrent writes. Actual Supabase integration is still a staging gate.
+
+## Phase 4: stylesheet isolation
+
+All Y-Sheets selectors (including resets, variables, dark variants and scrollbars) are scoped to `.y-sheets-root`; keyframes are namespaced. The lazy host adapter imports the scoped stylesheet. Root dimensions fit the host container. The provider follows host light/dark changes without changing the document theme.
+
+Verified: seven focused CSS/UI tests, including a complete stylesheet selector walk, unchanged host body/utilities, theme changes and existing grid/toolbar rendering. Mobile flex wrapping and host sizing are retained; automated DOM checks are not a substitute for staging browser/device visual review.
