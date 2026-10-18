@@ -1,3 +1,7 @@
+## Current focused work: Phase 1 production safety
+
+Independent exam, course deletion and dependency security branches preserve the existing Plug-and-Play/math boundaries. Y-Sheets PR #18 was already merged and has been reverified with additional role-isolation SQL coverage. Full verification evidence, branch checkpoints, unresolved dependency/deployment findings and staging PENDING gates are in `docs/production-safety/FINAL_REPORT.md`. No production migration or automatic merge was performed. The older completed architectural-refactoring history below is retained, not restarted.
+
 # DELETE result follow-up
 
 1674 Vitest tests / 186 files (76.27s), 29 Python tests (1.271s), 26 isolated PostgreSQL tests (26.578s) plus immutable user-number SQL checks, eight boundary-check tests, workspace TypeScript, all architecture audits and production build (44.12s) passed. Both complete scripts exited 0; no failed/skipped tests in final runs.

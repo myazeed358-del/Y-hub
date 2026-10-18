@@ -1,3 +1,15 @@
+# Current checkpoint: Phase 1 production safety (2026-10-18)
+
+Resume from `docs/production-safety/FINAL_REPORT.md` and `CHANGED_FILES.md`; preserve the independent implementation branches. Main is `57f3103b273285c27802e35f47189e16a8318035`: PR #18 was already merged before this task. Do not repeat Y-Sheets hardening or act on the historical PR #16 instructions below.
+
+Verified remote implementations: exams `e6a41004e899da4e1321cc9c10448cbfb63b4bd6` on `feature/exam-attempt-integrity`; courses `8f32d6eb20f60a0581617e56119f760b186a63fd` on `feature/course-deletion-integrity`; dependency fix `ac778eec4b1671a74b3e3f49e1ce9be811a4fef3` on `fix/mathjs-parser-security`. Current verification/report branch is `verify/y-sheets-release-gates`; Git/ls-remote establishes the final documentation commit (prior local SQL-test checkpoint `3de4b24`).
+
+The user explicitly confirmed no staging. All writes/migrations were local, disposable and network-disabled. No main merge, production change or PR #14 modification. Local implementation/suites are complete; next external gates are GitHub API access/PR creation, Vercel error logs and authorized isolated Supabase staging with real JWT/accounts/devices. Do not call the release production-ready. Existing health HTTP 200 is not RLS or migration evidence. Do not invoke attempt/status RPCs as read-only production probes: they can persist expiry.
+
+The dependency branch pins mathjs 15.2.0 without engine implementation edits. When switching between branches, align node_modules with the branch's frozen lockfile before testing. The optional combined-source verification script requires dependencies prepared from the security branch; it exports a temporary source tree without merging Git branches.
+
+## Historical checkpoints (superseded task instructions)
+
 # Current checkpoint: DELETE result verification / existing Draft PR #16
 
 Resumed clean branch `feature/central-audit-log`; local, remote branch and PR head matched `3c205833c25e27433dbf3b0fb9f54fb8cce2685b`. Both delete handlers now require a matching returned ID via `.select('id')`; RLS-hidden/missing rows never advance success state. Tests cover actual PostgreSQL failures and successful deletion too. No migration change in this patch.
