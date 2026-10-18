@@ -1,3 +1,4 @@
+import { isConflict, WorkbookStorageError } from './storageErrors';
 import type { WorkbookData } from '../types/workbook';
 
 export type SaveStatus =
@@ -12,12 +13,14 @@ export class WorkbookSaveCoordinator {
   private running: Promise<void> | null = null;
   private timer: ReturnType<typeof setTimeout> | null = null;
   private blocked = false;
+  private disposed = false;
   private currentStatus: SaveStatus = 'saved';
 
   constructor(
     private readonly save: (workbook: WorkbookData) => Promise<void>,
     private readonly onStatus: (status: SaveStatus) => void,
     private readonly debounceMs = 700,
+    private readonly onSaved: (workbook: WorkbookData) => void = () => {},
   ) {}
 
   get status(): SaveStatus {
@@ -33,12 +36,13 @@ export class WorkbookSaveCoordinator {
   private setStatus(status: SaveStatus): void {
     if (this.currentStatus !== status) {
       this.currentStatus = status;
-      this.onStatus(status);
+      if (!this.disposed) this.onStatus(status);
     }
   }
 
   enqueue(workbook: WorkbookData): void {
-    this.pending = workbook;
+    if (this.disposed) throw new Error('Save coordinator disposed.');
+    this.pending = structuredClone(workbook);
 
     if (this.blocked) return;
 
@@ -65,11 +69,9 @@ export class WorkbookSaveCoordinator {
         await this.save(workbook);
         return;
       } catch (error) {
-        const conflict = String(error)
-          .toLowerCase()
-          .includes('conflict');
+        const conflict = isConflict(error);
 
-        if (conflict || attempt === 2) {
+        if (this.disposed || conflict || (error instanceof WorkbookStorageError && error.kind !== 'network') || attempt === 2) {
           throw error;
         }
 
@@ -81,20 +83,19 @@ export class WorkbookSaveCoordinator {
   }
 
   private async drain(): Promise<void> {
-    while (this.pending !== null) {
+    while (this.pending !== null && !this.disposed) {
       const snapshot = this.pending;
       this.pending = null;
       this.setStatus('saving');
 
       try {
         await this.persist(snapshot);
+        this.onSaved(snapshot);
       } catch (error) {
         // Preserve newer edits rather than replacing them.
         this.pending ??= snapshot;
 
-        const conflict = String(error)
-          .toLowerCase()
-          .includes('conflict');
+        const conflict = isConflict(error);
 
         if (conflict) this.blocked = true;
 
@@ -106,7 +107,13 @@ export class WorkbookSaveCoordinator {
     this.setStatus('saved');
   }
 
+  dispose(): void {
+    this.disposed = true;
+    this.clearTimer();
+  }
+
   flush(): Promise<void> {
+    if (this.disposed) return Promise.reject(new Error('Save coordinator disposed.'));
     this.clearTimer();
 
     if (this.blocked) {
