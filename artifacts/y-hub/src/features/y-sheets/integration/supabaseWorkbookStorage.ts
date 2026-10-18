@@ -78,10 +78,14 @@ export function createSupabaseWorkbookStorage(ownerId: string,
       await saveWorkbook(workbook);
       return workbook;
     },
-    listWorkbooks: async () => {
+    listWorkbooks: async (options = {}) => {
       await requireSession();
-      const { data, error } = await supabase.from('y_sheets_workbooks').select('id, name, updated_at, revision')
-        .eq('owner_id', ownerId).order('updated_at', { ascending: false });
+      const offset = options.offset ?? 0;
+      if (!Number.isSafeInteger(offset) || offset < 0) throw new Error('Invalid file page.');
+      let query = supabase.from('y_sheets_workbooks').select('id, name, updated_at, revision')
+        .eq('owner_id', ownerId).order('updated_at', { ascending: false }).order('id');
+      if (options.search?.trim()) query = query.ilike('name', '%' + options.search.trim().replace(/[\\%_]/g, '\\$&') + '%');
+      const { data, error } = await query.range(offset, offset + 49);
       if (error) throw new Error('Unable to load workbooks.');
       return (data ?? []).map(row => ({ id: row.id, name: row.name, updatedAt: row.updated_at, revision: row.revision }));
     },

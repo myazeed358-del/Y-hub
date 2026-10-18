@@ -17,6 +17,8 @@ export function useWorkbookWorkspace(ownerId: string) {
   const storage = useMemo(() => createSupabaseWorkbookStorage(ownerId,(id,cp) => journal.checkpoint(id,cp)),[ownerId,journal]);
   const [files,setFiles] = useState<Array<{id:string;name:string;updatedAt:string;revision?:number}>>([]);
   const [recoveries,setRecoveries] = useState<RecoveryEntry[]>([]);
+  const [hasMore,setHasMore] = useState(false);
+  const search = useRef('');
   const [corrupt,setCorrupt] = useState(0);
   const [active,setActive] = useState<WorkbookData | null>(null);
   const [status,setStatus] = useState<SaveStatus>('saved');
@@ -31,8 +33,8 @@ export function useWorkbookWorkspace(ownerId: string) {
   },[journal]);
   const refresh = useCallback(async () => {
     refreshLocal();
-    const result = await storage.listWorkbooks!();
-    if (alive.current) setFiles(result);
+    const result = await storage.listWorkbooks!({search:search.current});
+    if (alive.current) { setFiles(result); setHasMore(result.length === 50); }
   },[refreshLocal,storage]);
   useEffect(() => {
     alive.current = true;
@@ -94,12 +96,39 @@ export function useWorkbookWorkspace(ownerId: string) {
   const keepAndLeave = () => run(async () => {
     session.current?.keepRecovery(); session.current?.dispose(); session.current=null; setActive(null); await refresh();
   });
+  const searchFiles = (value: string) => run(async () => { search.current=value; await refresh(); });
+  const more = () => run(async () => {
+    const next = await storage.listWorkbooks!({search:search.current,offset:files.length});
+    if (alive.current) { setFiles([...files,...next.filter(f => !files.some(old => old.id===f.id))]); setHasMore(next.length===50); }
+  });
+  const rename = (id: string) => run(async () => {
+    if (journal.list().entries.some(e => e.record.workbook.id===id)) throw new Error('Recover pending local edits before renaming this file.');
+    const wb=await storage.loadWorkbook(id);
+    const name=window.prompt('New workbook name:',wb.name);
+    if (name === null || name.trim()===wb.name) return;
+    if (!name.trim() || name.trim().length>200) throw new Error('Workbook name must contain 1 to 200 characters.');
+    const renamed={...wb,name:name.trim()};
+    await storage.saveWorkbook(renamed);
+    journal.acknowledge(renamed);
+    await refresh();
+  });
+  const remove = (file: {id:string;name:string;revision?:number}) => run(async () => {
+    if (journal.list().entries.some(e => e.record.workbook.id===file.id)) throw new Error('Recover or explicitly discard local edits before deleting this file.');
+    if (!window.confirm(`Delete "${file.name}" permanently? This cannot be undone.`)) return;
+    if (file.revision === undefined) throw new Error('Refresh files before deleting.');
+    await storage.deleteWorkbook!(file.id,file.revision);
+    await refresh();
+  });
+  const discardRecovery = (entry: RecoveryEntry) => run(async () => {
+    if (!window.confirm(`Discard this local recovery of "${entry.record.workbook.name}"? Download it first if needed. The cloud file will not be changed.`)) return;
+    journal.removeUnchanged(entry); refreshLocal();
+  });
   const change = useCallback(async (wb: WorkbookData) => {
     try { session.current?.change(wb); } catch (e) { setStatus('error'); report(e); }
   },[report]);
   const draft = useCallback((edit: PendingCellEdit | null) => {
     try { session.current?.editDraft(edit); } catch (e) { setStatus('error'); report(e); }
   },[report]);
-  return {storage,journal,files,recoveries,corrupt,active,status,error,busy,session,run,activate,leave,refresh,
+  return {storage,journal,files,hasMore,searchFiles,more,rename,remove,discardRecovery,recoveries,corrupt,active,status,error,busy,session,run,activate,leave,refresh,
     open,restore,myFiles,keepAndLeave,change,draft,report, retry: () => run(async () => { await session.current?.flush(); })};
 }

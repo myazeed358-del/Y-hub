@@ -28,7 +28,7 @@ export interface HostStorageAdapter {
 
   loadWorkbook(id: string): Promise<WorkbookData>;
   saveWorkbook(workbook: WorkbookData): Promise<void>;
-  listWorkbooks?(): Promise<Array<{ id: string; name: string; updatedAt: string; revision?: number }>>;
+  listWorkbooks?(options?: { offset?: number; search?: string }): Promise<Array<{ id: string; name: string; updatedAt: string; revision?: number }>>;
   createWorkbook?(name: string, initial?: WorkbookData): Promise<WorkbookData>;
 }
 

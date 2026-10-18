@@ -57,12 +57,15 @@ export function WorkbookWorkspace({user}: {user: HostUser}) {
           <span>{entry.record.workbook.name} — {new Date(entry.record.updatedAt).toLocaleString()}</span>
           <button disabled={w.busy} onClick={() => void w.restore(entry)} className="border rounded px-2 py-1">Recover</button>
           <button onClick={() => downloadWorkbookJSON(entry.record.workbook)} className="border rounded px-2 py-1">Download</button>
+          <button disabled={w.busy} onClick={() => void w.discardRecovery(entry)} className="border rounded px-2 py-1">Discard Local Copy</button>
         </div>)}
       </section>}
-      <input aria-label="Search workbooks" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search workbooks" className="border rounded px-3 py-2 bg-background" />
-      <div className="grid gap-2">{w.files.filter(f => f.name.toLocaleLowerCase().includes(search.toLocaleLowerCase())).map(file => <div key={file.id} className="border rounded-lg p-3">
+      <form onSubmit={e => { e.preventDefault(); void w.searchFiles(search); }} className="flex gap-2"><input aria-label="Search workbooks" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search workbooks" className="border rounded px-3 py-2 bg-background" /><button disabled={w.busy} className="border rounded px-3">Search</button></form>
+      <div className="grid gap-2">{w.files.map(file => <div key={file.id} className="border rounded-lg p-3">
         <button disabled={w.busy} onClick={() => void w.open(file.id)} className="text-left w-full"><span className="block font-medium">{file.name}</span><span className="text-xs opacity-60">Updated: {new Date(file.updatedAt).toLocaleString()}</span></button>
+        <div className="flex gap-3 mt-2"><button disabled={w.busy} onClick={() => void w.rename(file.id)} className="border rounded px-2 py-1">Rename</button><button disabled={w.busy} onClick={() => void w.remove(file)} className="border rounded px-2 py-1 text-red-600">Delete</button></div>
       </div>)}</div>
+      {w.hasMore && <button disabled={w.busy} onClick={() => void w.more()} className="border rounded px-3 py-2">Load more files</button>}
       {!w.busy && w.files.length === 0 && <p className="text-sm">No cloud workbooks loaded. Create a file, recover local work, or retry the connection.</p>}
       <button disabled={w.busy} onClick={() => void w.run(w.refresh)} className="border rounded px-3 py-2">Refresh files</button>
     </section>}
