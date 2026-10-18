@@ -24,6 +24,8 @@ vi.mock('@/contexts/AuthContext', () => ({
   useAuth: () => ({
     user: frameState.user,
     loading: frameState.loading,
+    role: 'student',
+    profile: { major: 'mathematics' },
   }),
 }));
 
@@ -187,6 +189,24 @@ describe('ApplicationFrame', () => {
     expect(
       screen.getByTestId('application-routes')
     ).toBeTruthy();
+  });
+
+  it('removes the entire host shell for a fullscreen module and restores it on dashboard', () => {
+    frameState.location = '/y-sheets';
+    const { rerender } = render(<ApplicationFrame />);
+    expect(screen.queryByTestId('application-shell')).toBeNull();
+    expect(document.querySelector('[data-layout="fullscreen"]')).not.toBeNull();
+    expect(screen.getByTestId('application-routes')).toBeTruthy();
+    frameState.location = '/dashboard';
+    rerender(<ApplicationFrame />);
+    expect(screen.getByTestId('application-shell')).toBeTruthy();
+    expect(document.querySelector('[data-layout="fullscreen"]')).toBeNull();
+  });
+
+  it.each(['/calculus', '/course/example', '/course/example/view', '/profile'])('keeps standard layout at %s', path => {
+    frameState.location = path;
+    render(<ApplicationFrame />);
+    expect(screen.getByTestId('application-shell')).toBeTruthy();
   });
 
   it('passes the current route to the error boundary', () => {

@@ -1,3 +1,7 @@
+# Phase 2 — fullscreen application shell
+
+Branch `feature/fullscreen-application-shell`, based on main `b86dc42` after PRs #19–#22. Implementation and local verification complete; see `docs/phase2/FULLSCREEN.md`. Preserve this independent branch while academic work starts from main. No production migration or automatic merge. Staging PENDING. Git history/ls-remote establish the final pushed checkpoint. Older instructions below are historical.
+
 # Current checkpoint: Phase 1 production safety (2026-10-18)
 
 Resume from `docs/production-safety/FINAL_REPORT.md` and `CHANGED_FILES.md`; preserve the independent implementation branches. Main is `57f3103b273285c27802e35f47189e16a8318035`: PR #18 was already merged before this task. Do not repeat Y-Sheets hardening or act on the historical PR #16 instructions below.

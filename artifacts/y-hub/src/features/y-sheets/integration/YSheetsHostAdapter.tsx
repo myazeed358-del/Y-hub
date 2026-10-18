@@ -14,7 +14,7 @@ import { Loader2 } from 'lucide-react';
 
 function WorkbookSurface({children,className,style}: {children:React.ReactNode;className:string;style?:React.CSSProperties}) {
   const {theme}=useWorkbook();
-  return <div className={`y-sheets-root flex flex-col h-full w-full overflow-hidden bg-white dark:bg-zinc-950 font-sans ${theme==='dark' ? 'dark' : ''} ${className}`} style={style}>{children}</div>;
+  return <div className={`y-sheets-root flex flex-col min-h-0 min-w-0 h-full w-full overflow-hidden bg-white dark:bg-zinc-950 font-sans ${theme==='dark' ? 'dark' : ''} ${className}`} style={style}>{children}</div>;
 }
 
 export const YSheetsHostAdapter: React.FC<YSheetsIntegrationProps> = ({
@@ -153,7 +153,7 @@ export const YSheetsHostAdapter: React.FC<YSheetsIntegrationProps> = ({
 
           <Toolbar onNewWorkbook={onRequestNewWorkbook} />
           <FormulaBar />
-          <div className="flex-1 relative overflow-hidden flex flex-col">
+          <div className="flex-1 min-h-0 min-w-0 relative overflow-hidden flex flex-col">
             <Grid />
           </div>
           <SheetTabs />

@@ -1,0 +1,8 @@
+.y-sheets-workspace { display:flex; flex-direction:column; flex:1; min-height:0; min-width:0; overflow:hidden; }
+.y-sheets-workspace-header { display:flex; align-items:center; justify-content:space-between; gap:.5rem; flex:none; padding:.35rem .5rem; border-bottom:1px solid hsl(var(--border)); }
+.y-sheets-workspace-status { display:flex; flex:none; align-items:center; gap:.5rem; overflow-x:auto; padding:.25rem .5rem; white-space:nowrap; }
+.y-sheets-workspace-status > * { flex-shrink:0; }
+.y-sheets-workspace-error { flex:none; max-height:4rem; overflow:auto; }
+.y-sheets-workspace-editor { flex:1; min-height:0; min-width:0; overflow:hidden; }
+.y-sheets-workspace-files { flex:1; min-height:0; overflow:auto; padding:.75rem; }
+@media (max-width:480px) { .y-sheets-workspace-header h1 { display:none; } }
