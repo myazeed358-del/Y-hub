@@ -94,10 +94,4 @@ export function downloadWorkbookJSON(workbook: WorkbookData): void {
 /**
  * Imports a workbook from a JSON string
  */
-export function parseWorkbookJSON(jsonText: string): WorkbookData {
-  const parsed = JSON.parse(jsonText);
-  if (!parsed.sheets || !Array.isArray(parsed.sheets) || !parsed.activeSheetId) {
-    throw new Error('Invalid Y-Sheets workbook JSON file format.');
-  }
-  return parsed as WorkbookData;
-}
+export { parseWorkbookJSON } from './workbookValidation';

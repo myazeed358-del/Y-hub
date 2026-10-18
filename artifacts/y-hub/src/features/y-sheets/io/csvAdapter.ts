@@ -1,10 +1,17 @@
+import { WORKBOOK_LIMITS } from './workbookValidation';
 import { WorksheetData, cellCoordToKey } from '../types/sheet';
 
 /**
  * RFC 4180 compliant CSV parser
  */
 export function parseCSV(csvText: string): string[][] {
+  if(new TextEncoder().encode(csvText).length>WORKBOOK_LIMITS.bytes) throw new Error('CSV exceeds 5 MiB.');
   const rows: string[][] = [];
+  let count=0;
+  const field=() => {
+    if(currentField.length>32767 || currentRow.length>=WORKBOOK_LIMITS.columns || ++count>WORKBOOK_LIMITS.cells || rows.length>=WORKBOOK_LIMITS.rows) throw new Error('CSV exceeds worksheet limits.');
+    currentRow.push(currentField);
+  };
   let currentRow: string[] = [];
   let currentField = '';
   let insideQuote = false;
@@ -35,20 +42,20 @@ export function parseCSV(csvText: string): string[][] {
         insideQuote = true;
         i++;
       } else if (ch === ',') {
-        currentRow.push(currentField);
+        field();
         currentField = '';
         i++;
       } else if (ch === '\r') {
         if (nextCh === '\n') {
           i++;
         }
-        currentRow.push(currentField);
+        field();
         currentField = '';
         rows.push(currentRow);
         currentRow = [];
         i++;
       } else if (ch === '\n') {
-        currentRow.push(currentField);
+        field();
         currentField = '';
         rows.push(currentRow);
         currentRow = [];
@@ -60,9 +67,10 @@ export function parseCSV(csvText: string): string[][] {
     }
   }
 
+  if(insideQuote) throw new Error('CSV contains an unclosed quoted field.');
   // Push last field and row if any
   if (currentField !== '' || currentRow.length > 0) {
-    currentRow.push(currentField);
+    field();
     rows.push(currentRow);
   }
 

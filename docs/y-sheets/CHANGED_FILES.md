@@ -1,0 +1,53 @@
+# Changed files
+
+All changes are Y-Sheets or its necessary integration, dependency, local test and documentation files. Historical migrations, other feature implementations and `services/math` are unchanged.
+
+- `artifacts/y-hub/package.json`
+- `artifacts/y-hub/public/licenses/y-sheets-third-party.txt`
+- `artifacts/y-hub/src/features/y-sheets/App.css`
+- `artifacts/y-hub/src/features/y-sheets/App.tsx`
+- `artifacts/y-hub/src/features/y-sheets/components/Dialogs/ImportExportDialog.tsx`
+- `artifacts/y-hub/src/features/y-sheets/components/FormulaBar/FormulaBar.tsx`
+- `artifacts/y-hub/src/features/y-sheets/components/Grid/CellEditor.tsx`
+- `artifacts/y-hub/src/features/y-sheets/components/Grid/Grid.tsx`
+- `artifacts/y-hub/src/features/y-sheets/components/Toolbar/Toolbar.tsx`
+- `artifacts/y-hub/src/features/y-sheets/engine/dependencyGraph.ts`
+- `artifacts/y-hub/src/features/y-sheets/index.ts`
+- `artifacts/y-hub/src/features/y-sheets/integration/YSheetsHostAdapter.tsx`
+- `artifacts/y-hub/src/features/y-sheets/integration/hostContract.ts`
+- `artifacts/y-hub/src/features/y-sheets/integration/saveCoordinator.ts`
+- `artifacts/y-hub/src/features/y-sheets/integration/storageErrors.ts`
+- `artifacts/y-hub/src/features/y-sheets/integration/supabaseWorkbookStorage.ts`
+- `artifacts/y-hub/src/features/y-sheets/integration/workbookSession.ts`
+- `artifacts/y-hub/src/features/y-sheets/io/csvAdapter.ts`
+- `artifacts/y-hub/src/features/y-sheets/io/importIntoCurrentWorkbook.ts`
+- `artifacts/y-hub/src/features/y-sheets/io/localPersistence.ts`
+- `artifacts/y-hub/src/features/y-sheets/io/recoveryJournal.ts`
+- `artifacts/y-hub/src/features/y-sheets/io/workbookValidation.ts`
+- `artifacts/y-hub/src/features/y-sheets/io/xlsx.worker.ts`
+- `artifacts/y-hub/src/features/y-sheets/io/xlsxAdapter.ts`
+- `artifacts/y-hub/src/features/y-sheets/io/xlsxCodec.ts`
+- `artifacts/y-hub/src/features/y-sheets/io/xlsxFormats.ts`
+- `artifacts/y-hub/src/features/y-sheets/io/xlsxLimits.ts`
+- `artifacts/y-hub/src/features/y-sheets/state/workbookContext.tsx`
+- `artifacts/y-hub/src/features/y-sheets/test/browser-harness.html`
+- `artifacts/y-hub/src/features/y-sheets/test/cloudStorage.test.ts`
+- `artifacts/y-hub/src/features/y-sheets/test/cssIsolation.test.tsx`
+- `artifacts/y-hub/src/features/y-sheets/test/draftRecovery.test.tsx`
+- `artifacts/y-hub/src/features/y-sheets/test/recalculation.test.ts`
+- `artifacts/y-hub/src/features/y-sheets/test/recoveryJournal.test.ts`
+- `artifacts/y-hub/src/features/y-sheets/test/workspace.test.tsx`
+- `artifacts/y-hub/src/features/y-sheets/test/xlsx.test.ts`
+- `artifacts/y-hub/src/features/y-sheets/types/workbook.ts`
+- `artifacts/y-hub/src/features/y-sheets/workspace/WorkbookWorkspace.tsx`
+- `artifacts/y-hub/src/features/y-sheets/workspace/useWorkbookWorkspace.ts`
+- `artifacts/y-hub/src/modules/y-sheets/YSheetsPage.tsx`
+- `artifacts/y-hub/supabase/migrations/0024_y_sheets_safe_saves.sql`
+- `artifacts/y-hub/supabase/tests/y-sheets/test_saves.py`
+- `docs/y-sheets/CHANGED_FILES.md`
+- `docs/y-sheets/FINAL_VERIFICATION.md`
+- `docs/y-sheets/HARDENING.md`
+- `docs/y-sheets/PR_DESCRIPTION.md`
+- `pnpm-lock.yaml`
+- `scripts/test-y-sheets-browser.mjs`
+- `scripts/test-y-sheets.sh`

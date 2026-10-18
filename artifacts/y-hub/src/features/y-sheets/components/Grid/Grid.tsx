@@ -329,6 +329,7 @@ export const Grid: React.FC = () => {
 
   return (
     <div
+      data-y-sheets-scroll
       ref={containerRef}
       tabIndex={0}
       onKeyDown={handleKeyDown}
@@ -369,7 +370,8 @@ export const Grid: React.FC = () => {
           style={{
             position: 'sticky',
             top: 0,
-            left: ROW_HEADER_WIDTH,
+            marginLeft: ROW_HEADER_WIDTH,
+            marginTop: -COL_HEADER_HEIGHT,
             height: COL_HEADER_HEIGHT,
             width: totalWidth,
             zIndex: 30,
@@ -384,6 +386,7 @@ export const Grid: React.FC = () => {
 
             return (
               <div
+                data-y-sheets-column={col}
                 key={`col-${col}`}
                 style={{
                   position: 'absolute',
@@ -432,7 +435,6 @@ export const Grid: React.FC = () => {
           style={{
             position: 'sticky',
             left: 0,
-            top: COL_HEADER_HEIGHT,
             width: ROW_HEADER_WIDTH,
             height: totalHeight,
             zIndex: 25,
@@ -448,6 +450,7 @@ export const Grid: React.FC = () => {
 
             return (
               <div
+                data-y-sheets-row={row}
                 key={`row-${row}`}
                 style={{
                   position: 'absolute',
@@ -539,6 +542,7 @@ export const Grid: React.FC = () => {
 
               return (
                 <div
+                  data-y-sheets-cell={`${row},${col}`}
                   key={`cell-${row}-${col}`}
                   onMouseDown={(e) => handleCellMouseDown(row, col, e)}
                   onMouseEnter={() => handleCellMouseEnter(row, col)}

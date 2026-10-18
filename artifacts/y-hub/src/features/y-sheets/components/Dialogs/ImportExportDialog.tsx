@@ -1,4 +1,5 @@
-import React, { useRef, useState } from 'react';
+import { WORKBOOK_LIMITS } from '../../io/workbookValidation';
+import React, { useEffect, useRef, useState } from 'react';
 import type { WorkbookData } from '../../types/workbook';
 import { replaceWorkbookContents } from '../../io/importIntoCurrentWorkbook';
 import { useWorkbook } from '../../state/workbookContext';
@@ -18,6 +19,8 @@ export const ImportExportDialog: React.FC<Props> = ({ isOpen, onClose, defaultTa
   const [activeTab, setActiveTab] = useState<'export' | 'import'>(defaultTab);
   const [errorMsg, setErrorMsg] = useState('');
   const [loading, setLoading] = useState(false);
+  const generation=useRef(0);
+  useEffect(() => { if(!isOpen) generation.current++; return () => {generation.current++;}; },[isOpen]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const applyImport = (imported: WorkbookData): void => {
@@ -34,14 +37,15 @@ export const ImportExportDialog: React.FC<Props> = ({ isOpen, onClose, defaultTa
 
   if (!isOpen) return null;
 
-  const handleExportXLSX = (): void => {
+  const handleExportXLSX = async (): Promise<void> => {
     if (!canExport) { setErrorMsg('Export not permitted.'); return; }
     try {
-      exportWorkbookToXLSX(workbook, `${workbook.name}.xlsx`);
+      setLoading(true);
+      await exportWorkbookToXLSX(workbook, `${workbook.name}.xlsx`);
       onClose();
     } catch (err: unknown) {
       setErrorMsg(err instanceof Error ? err.message : 'Export to XLSX failed.');
-    }
+    } finally { setLoading(false); }
   };
 
   const handleExportCSV = (): void => {
@@ -78,16 +82,19 @@ export const ImportExportDialog: React.FC<Props> = ({ isOpen, onClose, defaultTa
     if (!file) return;
     if (!canEdit) { setErrorMsg('Import not permitted.'); return; }
 
+    const operation=++generation.current;
+    const accept=(wb:WorkbookData) => { if(operation===generation.current) applyImport(wb); };
     setLoading(true);
     setErrorMsg('');
 
     try {
+      if(file.size>WORKBOOK_LIMITS.bytes) throw new Error('File exceeds the 5 MiB limit.');
       const extension = file.name.split('.').pop()?.toLowerCase();
 
       if (extension === 'xlsx' || extension === 'xls') {
         const buffer = await file.arrayBuffer();
-        const importedWb = importWorkbookFromXLSX(buffer);
-        applyImport(importedWb);
+        const importedWb = await importWorkbookFromXLSX(buffer);
+        accept(importedWb);
       } else if (extension === 'csv') {
         const text = await file.text();
         const importedSheet = importCSVToSheet(text, file.name.replace(/\.[^/.]+$/, ''));
@@ -98,11 +105,11 @@ export const ImportExportDialog: React.FC<Props> = ({ isOpen, onClose, defaultTa
           activeSheetId: importedSheet.id,
           version: 1,
         };
-        applyImport(newWb);
+        accept(newWb);
       } else if (extension === 'json') {
         const text = await file.text();
         const importedWb = parseWorkbookJSON(text);
-        applyImport(importedWb);
+        accept(importedWb);
       } else {
         setErrorMsg('Unsupported file format. Please upload .xlsx, .csv, or .json.');
       }
@@ -121,10 +128,14 @@ export const ImportExportDialog: React.FC<Props> = ({ isOpen, onClose, defaultTa
             <FileSpreadsheet className="w-5 h-5 text-emerald-600" />
             File Operations (Import & Export)
           </div>
-          <button onClick={onClose} className="p-1 text-zinc-400 hover:text-zinc-600 rounded">
+          <button disabled={loading} onClick={onClose} className="p-1 text-zinc-400 hover:text-zinc-600 rounded">
             <X className="w-4 h-4" />
           </button>
         </div>
+
+<p className="text-xs mt-3">Excel: values, formulas, merges, dimensions and basic number formats. Fonts, colors, charts, macros, validation and conditional formats are not preserved in Excel files. Use JSON for full Y-Sheets formatting. Import only files you trust. Limits: 5 MiB, 32 sheets, 10,000 rows, 256 columns and 50,000 populated cells.</p>
+
+        <a href={`${import.meta.env.BASE_URL}licenses/y-sheets-third-party.txt`} target="_blank" rel="noopener noreferrer" className="text-xs underline">Spreadsheet library licenses</a>
 
         {/* Tabs */}
         <div className="flex border-b border-zinc-200 dark:border-zinc-700 mt-3">
@@ -169,7 +180,7 @@ export const ImportExportDialog: React.FC<Props> = ({ isOpen, onClose, defaultTa
         ) : activeTab === 'export' ? (
           <div className="py-4 space-y-3">
             <div
-              onClick={handleExportXLSX}
+              role="button" tabIndex={0} aria-disabled={loading} onClick={() => { if(!loading) void handleExportXLSX(); }} onKeyDown={e => { if(!loading && (e.key==='Enter' || e.key===' ')) {e.preventDefault();void handleExportXLSX();} }}
               className="flex items-center justify-between p-3.5 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700 hover:border-emerald-500 cursor-pointer transition group"
             >
               <div className="flex items-center gap-3">
@@ -241,7 +252,7 @@ export const ImportExportDialog: React.FC<Props> = ({ isOpen, onClose, defaultTa
                 <p className="text-xs text-zinc-400 mt-1">Supports .xlsx, .xls, .csv, and .json</p>
               </div>
               <input
-                ref={fileInputRef}
+                disabled={loading} ref={fileInputRef}
                 type="file"
                 accept=".xlsx,.xls,.csv,.json"
                 onChange={handleFileChange}
@@ -260,7 +271,7 @@ export const ImportExportDialog: React.FC<Props> = ({ isOpen, onClose, defaultTa
         <div className="flex justify-end pt-3 border-t border-zinc-200 dark:border-zinc-700">
           <button
             type="button"
-            onClick={onClose}
+            disabled={loading} onClick={onClose}
             className="px-4 py-1.5 text-xs font-medium bg-zinc-100 dark:bg-zinc-700 rounded hover:bg-zinc-200"
           >
             Close

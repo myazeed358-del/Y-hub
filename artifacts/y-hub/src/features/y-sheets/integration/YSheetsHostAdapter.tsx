@@ -1,7 +1,8 @@
+import '../App.css';
 import React, { useState, useEffect, useCallback } from 'react';
 import { YSheetsIntegrationProps } from './hostContract';
 import { WorkbookData } from '../types/workbook';
-import { WorkbookProvider } from '../state/workbookContext';
+import { WorkbookProvider, useWorkbook } from '../state/workbookContext';
 import { createDefaultWorkbook } from '../state/defaultWorkbook';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { Toolbar } from '../components/Toolbar/Toolbar';
@@ -10,6 +11,11 @@ import { Grid } from '../components/Grid/Grid';
 import { SheetTabs } from '../components/SheetTabs/SheetTabs';
 import { StatusBar } from '../components/StatusBar/StatusBar';
 import { Loader2 } from 'lucide-react';
+
+function WorkbookSurface({children,className,style}: {children:React.ReactNode;className:string;style?:React.CSSProperties}) {
+  const {theme}=useWorkbook();
+  return <div className={`y-sheets-root flex flex-col h-full w-full overflow-hidden bg-white dark:bg-zinc-950 font-sans ${theme==='dark' ? 'dark' : ''} ${className}`} style={style}>{children}</div>;
+}
 
 export const YSheetsHostAdapter: React.FC<YSheetsIntegrationProps> = ({
   user,
@@ -21,6 +27,7 @@ export const YSheetsHostAdapter: React.FC<YSheetsIntegrationProps> = ({
   onSave,
   onRequestNewWorkbook,
   onChange,
+  onDraftChange,
   onError,
   onTelemetry,
   className = '',
@@ -122,10 +129,6 @@ export const YSheetsHostAdapter: React.FC<YSheetsIntegrationProps> = ({
 
   return (
     <ErrorBoundary onError={onError}>
-      <div
-        className={`y-sheets-root flex flex-col h-full w-full overflow-hidden bg-white dark:bg-zinc-950 font-sans ${resolvedTheme === 'dark' ? 'dark' : ''} ${className}`}
-        style={style}
-      >
         <WorkbookProvider
           key={workbook.id}
           initialWorkbook={workbook}
@@ -133,7 +136,9 @@ export const YSheetsHostAdapter: React.FC<YSheetsIntegrationProps> = ({
           permissions={permissions}
           theme={resolvedTheme}
           onWorkbookChange={handleWorkbookChange}
+          onDraftChange={onDraftChange}
         >
+          <WorkbookSurface className={className} style={style}>
           {/* Host User / Permission Banner if restricted */}
           {user && (
             <div className="flex items-center justify-between px-3 py-1 bg-emerald-50/80 dark:bg-emerald-950/40 border-b border-emerald-100 dark:border-emerald-900 text-[11px] text-emerald-800 dark:text-emerald-300">
@@ -153,8 +158,8 @@ export const YSheetsHostAdapter: React.FC<YSheetsIntegrationProps> = ({
           </div>
           <SheetTabs />
           <StatusBar />
+          </WorkbookSurface>
         </WorkbookProvider>
-      </div>
     </ErrorBoundary>
   );
 };

@@ -108,3 +108,13 @@ describe('Spreadsheet Recalculation and Dependency Tracking', () => {
     expect(sheet.cells[cellCoordToKey(0, 2)]?.error).toBe('#CIRCULAR!');
   });
 });
+
+it.each(['=1+2', '=SUM(1,2)'])('recalculates a formula with no cell precedents: %s', formula => {
+  const wb:WorkbookData={id:'constant',name:'Constants',version:1,activeSheetId:'s',sheets:[{
+    id:'s',name:'Sheet 1',rowCount:10,colCount:10,cells:{'0,0':{raw:formula,computed:999},'0,1':{raw:'=A1*2'}},
+    columnWidths:{},rowHeights:{},mergedCells:[],conditionalFormats:[],validations:{},
+  }]};
+  const result=new RecalculationEngine().recalculateWorkbook(wb);
+  expect(result.sheets[0]!.cells['0,0']!.computed).toBe(3);
+  expect(result.sheets[0]!.cells['0,1']!.computed).toBe(6);
+});

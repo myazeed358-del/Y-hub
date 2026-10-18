@@ -1,3 +1,4 @@
+import type { PendingCellEdit } from '../io/recoveryJournal';
 import { canPerformWorkbookAction } from './workbookPermissions';
 import type { HostPermissions } from '../integration/hostContract';
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
@@ -36,6 +37,8 @@ export interface WorkbookContextType {
   stopEditing: (saveValue?: string) => void;
   setTheme: (theme: 'light' | 'dark') => void;
 
+  reportDraft: (draft: PendingCellEdit | null) => void;
+
   // Actions
   dispatch: (action: WorkbookAction, pushHistory?: boolean) => void;
   undo: () => void;
@@ -64,6 +67,7 @@ export interface WorkbookProviderProps {
   children: React.ReactNode;
   initialWorkbook?: WorkbookData;
   theme?: 'light' | 'dark';
+  onDraftChange?: (draft: PendingCellEdit | null) => void;
   onWorkbookChange?: (wb: WorkbookData) => void;
   canEdit?: boolean;
   permissions?: HostPermissions;
@@ -74,6 +78,7 @@ export const WorkbookProvider: React.FC<WorkbookProviderProps> = ({
   initialWorkbook,
   theme: initialTheme = 'light',
   onWorkbookChange,
+  onDraftChange,
   canEdit = true,
   permissions,
 }) => {
@@ -86,6 +91,11 @@ export const WorkbookProvider: React.FC<WorkbookProviderProps> = ({
   const [selection, setSelection] = useState<CellRange>({ startRow: 0, startCol: 0, endRow: 0, endCol: 0 });
   const [editingCell, setEditingCell] = useState<{ position: CellPosition; initialValue: string } | null>(null);
   const [clipboard, setClipboard] = useState<ClipboardData | null>(null);
+
+  useEffect(() => setTheme(initialTheme), [initialTheme]);
+  const reportDraft = useCallback((draft: PendingCellEdit | null) => {
+    if (canEdit) onDraftChange?.(draft);
+  }, [canEdit, onDraftChange]);
 
   // Active sheet lookup
   const activeSheet = workbook.sheets.find((s) => s.id === workbook.activeSheetId) || workbook.sheets[0]!;
@@ -131,7 +141,7 @@ export const WorkbookProvider: React.FC<WorkbookProviderProps> = ({
     if (prev) {
       setWorkbook(prev);
     }
-  }, []);
+  }, [canEdit]);
 
   const redo = useCallback(() => {
     if (!canEdit) return;
@@ -139,7 +149,7 @@ export const WorkbookProvider: React.FC<WorkbookProviderProps> = ({
     if (next) {
       setWorkbook(next);
     }
-  }, []);
+  }, [canEdit]);
 
   const setActiveCell = useCallback((pos: CellPosition, extendSelection = false) => {
     // Clamp to bounds
@@ -185,8 +195,9 @@ export const WorkbookProvider: React.FC<WorkbookProviderProps> = ({
         },
       });
     }
+    if (saveValue === undefined) reportDraft(null);
     setEditingCell(null);
-  }, [editingCell, activeSheet.id, dispatch]);
+  }, [editingCell, activeSheet.id, dispatch, reportDraft]);
 
   const copySelection = useCallback(() => {
     const cellsToCopy: Record<string, CellData> = {};
@@ -466,6 +477,7 @@ export const WorkbookProvider: React.FC<WorkbookProviderProps> = ({
 
   const value: WorkbookContextType = {
     workbook,
+    reportDraft,
     activeSheet,
     activeCell,
     selection,

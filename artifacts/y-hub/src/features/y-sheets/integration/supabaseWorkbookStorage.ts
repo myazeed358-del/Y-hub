@@ -1,154 +1,100 @@
+import { validateWorkbook } from '../io/workbookValidation';
 import { supabase } from '@/utils/supabaseClient';
 import { createDefaultWorkbook } from '../state/defaultWorkbook';
 import type { WorkbookData } from '../types/workbook';
-import type { HostStorageAdapter } from './hostContract';
+import type { HostStorageAdapter, SaveCheckpoint } from './hostContract';
+import { WorkbookStorageError } from './storageErrors';
 
-type WorkbookRow = {
-  id: string;
-  name: string;
-  content: WorkbookData;
-  revision: number;
-  updated_at: string;
-};
-
-export function createSupabaseWorkbookStorage(
-  ownerId: string,
+export function createSupabaseWorkbookStorage(ownerId: string,
+  onCheckpoint: (id: string, checkpoint: SaveCheckpoint) => void = () => {},
 ): HostStorageAdapter {
-  // Revisions are private to each adapter/session.
-  const revisions = new Map<string, number>();
+  const checkpoints = new Map<string, SaveCheckpoint>();
   const pending = new Map<string, Promise<void>>();
-
-  const requireSession = async (): Promise<void> => {
-    const { data, error } = await supabase.auth.getUser();
-
-    if (error || data.user?.id !== ownerId) {
-      throw new Error('Y-Sheets session is no longer authorized.');
-    }
+  const setCheckpoint = (id: string, checkpoint: SaveCheckpoint) => {
+    // Journal before sending, and after acknowledgment. Failure must not silently lose intent.
+    onCheckpoint(id, checkpoint);
+    checkpoints.set(id, structuredClone(checkpoint));
   };
-
+  const requireSession = async () => {
+    const { data, error } = await supabase.auth.getUser();
+    if (error || data.user?.id !== ownerId) throw new WorkbookStorageError('session', 'Y-Sheets session is no longer authorized.');
+  };
   const loadWorkbook = async (id: string): Promise<WorkbookData> => {
     await requireSession();
-
-    const { data, error } = await supabase
-      .from('y_sheets_workbooks')
-      .select('id, name, content, revision')
-      .eq('id', id)
-      .single();
-
-    if (error || !data) {
-      throw new Error('Workbook not found or access denied.');
-    }
-
-    const row = data as WorkbookRow;
-    revisions.set(id, row.revision);
-
-    return {
-      ...row.content,
-      id: row.id,
-      name: row.name,
-    };
+    const { data, error } = await supabase.from('y_sheets_workbooks')
+      .select('id, name, content, revision').eq('owner_id', ownerId).eq('id', id).single();
+    if (error || !data) throw new Error('Workbook not found or access denied.');
+    // Loading must never acknowledge or replace an outstanding save intent.
+    if (checkpoints.get(id)?.intent) throw new WorkbookStorageError('conflict', 'Workbook has an unresolved save.');
+    setCheckpoint(id, { revision: data.revision });
+    return validateWorkbook({ ...data.content, id: data.id, name: data.name });
   };
-
-  const saveWorkbook = async (workbook: WorkbookData): Promise<void> => {
-    const previous = pending.get(workbook.id) ?? Promise.resolve();
-
-    const operation = previous.catch(() => {}).then(async () => {
-      await requireSession();
-
-      const revision = revisions.get(workbook.id);
-      if (revision === undefined) {
-        throw new Error('Load or create the workbook before saving.');
-      }
-
-      const { data, error } = await supabase
-        .from('y_sheets_workbooks')
-        .update({
-          name: workbook.name,
-          content: workbook,
-          revision: revision + 1,
-        })
-        .eq('id', workbook.id)
-        .eq('revision', revision)
-        .select('revision')
-        .maybeSingle();
-
-      if (error) throw error;
-
-      if (!data) {
-        throw new Error(
-          'Workbook conflict: another session changed this file. ' +
-          'Reload and reconcile changes before saving.'
-        );
-      }
-
-      revisions.set(workbook.id, data.revision);
+  const send = async (id: string, checkpoint: SaveCheckpoint) => {
+    await requireSession();
+    const intent = checkpoint.intent!;
+    const { data, error } = await supabase.rpc('save_y_sheets_workbook', {
+      p_expected_owner_id: ownerId, p_id: id, p_request_id: intent.requestId, p_expected_revision: checkpoint.revision, p_content: intent.workbook,
     });
-
-    pending.set(workbook.id, operation);
-
-    try {
-      await operation;
-    } finally {
-      if (pending.get(workbook.id) === operation) {
-        pending.delete(workbook.id);
+    if (error) {
+      const kind = error.code === '40001' || error.code === 'P0002' ? 'conflict'
+        : error.code === '42501' ? 'session' : error.code === '22023' ? 'invalid' : 'network';
+      throw new WorkbookStorageError(kind, kind === 'conflict' ? 'Workbook conflict: preserve your copy before reconciliation.' : 'Unable to save workbook. Your edits are retained.');
+    }
+    if (!Number.isSafeInteger(data) || data <= 0) throw new Error('Invalid save acknowledgment.');
+    setCheckpoint(id, { revision: data });
+  };
+  const saveWorkbook = async (workbook: WorkbookData) => {
+    const snapshot = validateWorkbook(workbook);
+    const previous = pending.get(snapshot.id) ?? Promise.resolve();
+    const operation = previous.catch(() => {}).then(async () => {
+      let checkpoint = checkpoints.get(snapshot.id);
+      if (!checkpoint) throw new Error('Load or create the workbook before saving.');
+      if (checkpoint.intent) {
+        const prior = checkpoint.intent.workbook;
+        await send(snapshot.id, checkpoint);
+        if (JSON.stringify(prior) === JSON.stringify(snapshot)) return;
+        checkpoint = checkpoints.get(snapshot.id)!;
       }
-    }
+      const intent = { requestId: crypto.randomUUID(), workbook: snapshot };
+      setCheckpoint(snapshot.id, { revision: checkpoint.revision, intent });
+      await send(snapshot.id, checkpoints.get(snapshot.id)!);
+    });
+    pending.set(snapshot.id, operation);
+    try { await operation; }
+    finally { if (pending.get(snapshot.id) === operation) pending.delete(snapshot.id); }
   };
-
-  const createWorkbook = async (name: string): Promise<WorkbookData> => {
-    await requireSession();
-
-    const cleanedName = name.trim();
-    if (!cleanedName || cleanedName.length > 200) {
-      throw new Error('Workbook name must contain 1 to 200 characters.');
-    }
-
-    const workbook: WorkbookData = {
-      ...createDefaultWorkbook(),
-      id: crypto.randomUUID(),
-      name: cleanedName,
-    };
-
-    const { data, error } = await supabase
-      .from('y_sheets_workbooks')
-      .insert({
-        id: workbook.id,
-        owner_id: ownerId,
-        name: workbook.name,
-        content: workbook,
-      })
-      .select('revision')
-      .single();
-
-    if (error || !data) {
-      throw error ?? new Error('Failed to create workbook.');
-    }
-
-    revisions.set(workbook.id, data.revision);
-    return workbook;
-  };
-
-  const listWorkbooks = async () => {
-    await requireSession();
-
-    const { data, error } = await supabase
-      .from('y_sheets_workbooks')
-      .select('id, name, updated_at')
-      .order('updated_at', { ascending: false });
-
-    if (error) throw error;
-
-    return (data ?? []).map(row => ({
-      id: row.id as string,
-      name: row.name as string,
-      updatedAt: row.updated_at as string,
-    }));
-  };
-
   return {
-    loadWorkbook,
-    saveWorkbook,
-    createWorkbook,
-    listWorkbooks,
+    loadWorkbook, saveWorkbook,
+    checkpoint: id => { const cp = checkpoints.get(id); return cp && structuredClone(cp); },
+    restoreCheckpoint: (id, cp) => {
+      if (pending.has(id)) throw new Error('Save is in progress.');
+      setCheckpoint(id, cp);
+    },
+    createWorkbook: async (name, initial) => {
+      const cleaned = name.trim();
+      if (!cleaned || cleaned.length > 200) throw new Error('Workbook name must contain 1 to 200 characters.');
+      const workbook = { ...(initial ?? createDefaultWorkbook()), id: initial?.id ?? crypto.randomUUID(), name: cleaned };
+      if (!checkpoints.has(workbook.id)) setCheckpoint(workbook.id, { revision: 0 });
+      await saveWorkbook(workbook);
+      return workbook;
+    },
+    listWorkbooks: async (options = {}) => {
+      await requireSession();
+      const offset = options.offset ?? 0;
+      if (!Number.isSafeInteger(offset) || offset < 0) throw new Error('Invalid file page.');
+      let query = supabase.from('y_sheets_workbooks').select('id, name, updated_at, revision')
+        .eq('owner_id', ownerId).order('updated_at', { ascending: false }).order('id');
+      if (options.search?.trim()) query = query.ilike('name', '%' + options.search.trim().replace(/[\\%_]/g, '\\$&') + '%');
+      const { data, error } = await query.range(offset, offset + 49);
+      if (error) throw new Error('Unable to load workbooks.');
+      return (data ?? []).map(row => ({ id: row.id, name: row.name, updatedAt: row.updated_at, revision: row.revision }));
+    },
+    deleteWorkbook: async (id, revision) => {
+      await requireSession();
+      if (pending.has(id) || checkpoints.get(id)?.intent) throw new Error('Resolve pending edits before deleting.');
+      const { data, error } = await supabase.rpc('delete_y_sheets_workbook', { p_id: id, p_expected_revision: revision });
+      if (error || data !== id) throw new WorkbookStorageError('conflict', 'Delete was not confirmed. Refresh the file list.');
+      checkpoints.delete(id);
+    },
   };
 }

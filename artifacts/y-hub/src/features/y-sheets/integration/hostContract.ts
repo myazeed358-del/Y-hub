@@ -1,3 +1,4 @@
+import type { PendingCellEdit } from '../types/workbook';
 import { WorkbookData } from '../types/workbook';
 
 export interface HostUser {
@@ -16,11 +17,19 @@ export interface HostPermissions {
   canFormat?: boolean;
 }
 
+export interface SaveCheckpoint {
+  revision: number;
+  intent?: { requestId: string; workbook: WorkbookData };
+}
 export interface HostStorageAdapter {
+  checkpoint?(id: string): SaveCheckpoint | undefined;
+  restoreCheckpoint?(id: string, checkpoint: SaveCheckpoint): void;
+  deleteWorkbook?(id: string, revision: number): Promise<void>;
+
   loadWorkbook(id: string): Promise<WorkbookData>;
   saveWorkbook(workbook: WorkbookData): Promise<void>;
-  listWorkbooks?(): Promise<Array<{ id: string; name: string; updatedAt: string }>>;
-  createWorkbook?(name: string): Promise<WorkbookData>;
+  listWorkbooks?(options?: { offset?: number; search?: string }): Promise<Array<{ id: string; name: string; updatedAt: string; revision?: number }>>;
+  createWorkbook?(name: string, initial?: WorkbookData): Promise<WorkbookData>;
 }
 
 export type HostTheme = 'light' | 'dark' | 'system';
@@ -41,6 +50,7 @@ export interface YSheetsIntegrationProps {
   storageAdapter?: HostStorageAdapter;
   onRequestNewWorkbook?: () => void;
   onSave?: (workbook: WorkbookData) => Promise<void>;
+  onDraftChange?: (draft: PendingCellEdit | null) => void;
   onChange?: (workbook: WorkbookData) => void;
   onError?: (error: Error) => void;
   onTelemetry?: (event: HostTelemetryEvent) => void;

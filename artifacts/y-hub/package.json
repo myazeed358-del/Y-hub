@@ -48,10 +48,11 @@
     "zod": "catalog:"
   },
   "dependencies": {
+    "@e965/xlsx": "0.20.3",
+    "fflate": "0.8.3",
     "pdfjs-dist": "^6.4.299",
     "react-markdown": "^10.1.0",
     "rehype-katex": "^7.0.1",
-    "remark-math": "^6.0.0",
-    "xlsx": "0.18.5"
+    "remark-math": "^6.0.0"
   }
 }
