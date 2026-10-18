@@ -1,3 +1,4 @@
+import { validateWorkbook } from './workbookValidation';
 import type { WorkbookData } from '../types/workbook';
 
 export function replaceWorkbookContents(
@@ -12,10 +13,10 @@ export function replaceWorkbookContents(
     throw new Error('Imported workbook has invalid sheets.');
   }
 
-  return {
+  return validateWorkbook({
     ...imported,
     id: current.id,
     name: current.name,
     version: current.version + 1,
-  };
+  });
 }
