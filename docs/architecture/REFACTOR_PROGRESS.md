@@ -1,3 +1,7 @@
+# Phase 2 — academic model checkpoint
+
+Independent branch `feature/academic-course-sections` from main `b86dc42`. 0027 and compatibility/RLS tests complete; see `docs/phase2/ACADEMIC_MODEL.md`. Fullscreen is separately pushed at `39dd464dc67b29ccf5b03eca5651213cd93ca13e`. Next: dependent syllabus/permissions branch, without automatic merge. Production writes forbidden; staging PENDING. Older instructions below are historical.
+
 ## Current focused work: Phase 1 production safety
 
 Independent exam, course deletion and dependency security branches preserve the existing Plug-and-Play/math boundaries. Y-Sheets PR #18 was already merged and has been reverified with additional role-isolation SQL coverage. Full verification evidence, branch checkpoints, unresolved dependency/deployment findings and staging PENDING gates are in `docs/production-safety/FINAL_REPORT.md`. No production migration or automatic merge was performed. The older completed architectural-refactoring history below is retained, not restarted.

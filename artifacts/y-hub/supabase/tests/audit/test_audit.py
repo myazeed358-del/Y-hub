@@ -257,11 +257,18 @@ class AuditTests(unittest.TestCase):
 
     def test_identity_and_timestamp_only_changes_are_audited(self):
         cid, replacement = course(), str(uuid.uuid4())
-        run(f"UPDATE public.courses SET id='{replacement}' WHERE id='{cid}'", I)
+        rejected = run(f"UPDATE public.courses SET id='{replacement}' WHERE id='{cid}'", I, check=False)
+        self.assertNotEqual(rejected.returncode, 0, 'Section identity is now immutable')
+        self.assertEqual(events(replacement), [])
+        # Mutable material IDs remain audited; never weaken coverage of that boundary.
+        mid = str(uuid.uuid4())
+        run(f"INSERT INTO public.course_materials(id,course_id,title,type,url) VALUES('{mid}','{cid}','Audit ID','link','https://example.invalid')", I)
+        run(f"UPDATE public.course_materials SET id='{replacement}' WHERE id='{mid}'", I)
         renamed = events(replacement, A)
-        self.assertEqual(len(renamed), 1, 'Primary-key-only mutation must not bypass audit')
-        self.assertEqual(renamed[0]['old_values']['id'], cid)
+        self.assertEqual(len(renamed), 1)
+        self.assertEqual(renamed[0]['old_values']['id'], mid)
         self.assertEqual(renamed[0]['new_values']['id'], replacement)
+        replacement = cid
         run(f"UPDATE public.courses SET created_at='2001-01-01Z' WHERE id='{replacement}'", I)
         self.assertIn('created_at', events(replacement)[-1]['new_values'])
         enrollment = str(uuid.uuid4())
@@ -342,7 +349,7 @@ class AuditTests(unittest.TestCase):
     def test_all_domain_columns_have_an_explicit_audit_classification(self):
         # A future schema addition must be deliberately tracked/redacted; no silent gaps.
         rows = query("SELECT c.relname,encode(t.tgargs,'escape') AS args FROM pg_trigger t JOIN pg_class c ON c.oid=t.tgrelid WHERE t.tgname='audit_capture'")
-        self.assertEqual(len(rows), 8)
+        self.assertEqual({r['relname'] for r in rows}, {'courses','course_definitions','course_materials','exams','questions','course_enrollments','syllabus_units','syllabus_sections','users'})
         for row in rows:
             tracked = set(row['args'].split('\\000')[0].split(','))
             if row['relname'] == 'users':

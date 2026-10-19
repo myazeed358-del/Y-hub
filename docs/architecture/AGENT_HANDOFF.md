@@ -1,3 +1,7 @@
+# Phase 2 — academic model checkpoint
+
+Independent branch `feature/academic-course-sections` from main `b86dc42`. 0027 and compatibility/RLS tests complete; see `docs/phase2/ACADEMIC_MODEL.md`. Fullscreen is separately pushed at `39dd464dc67b29ccf5b03eca5651213cd93ca13e`. Next: dependent syllabus/permissions branch, without automatic merge. Production writes forbidden; staging PENDING. Older instructions below are historical.
+
 # Current checkpoint: Phase 1 production safety (2026-10-18)
 
 Resume from `docs/production-safety/FINAL_REPORT.md` and `CHANGED_FILES.md`; preserve the independent implementation branches. Main is `57f3103b273285c27802e35f47189e16a8318035`: PR #18 was already merged before this task. Do not repeat Y-Sheets hardening or act on the historical PR #16 instructions below.
