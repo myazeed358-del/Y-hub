@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const PAGE_SIZE = 25;
 export const AUDIT_ACTIONS = ['created', 'updated', 'deleted', 'published', 'unpublished', 'enrollment_opened', 'enrollment_closed', 'enrollment_changed', 'role_changed', 'access_changed'] as const;
-export const AUDIT_ENTITIES = ['courses', 'course_materials', 'exams', 'questions', 'course_enrollments', 'syllabus_units', 'syllabus_sections', 'users'] as const;
+export const AUDIT_ENTITIES = ['courses', 'course_definitions', 'course_materials', 'exams', 'questions', 'course_enrollments', 'syllabus_units', 'syllabus_sections', 'users'] as const;
 export const auditEventSchema = z.object({
   id: z.string().uuid(), occurred_at: z.string(), actor_id: z.string().uuid().nullable(),
   actor_role: z.enum(['system', 'student', 'instructor', 'admin', 'super_admin']), actor_name: z.string(),

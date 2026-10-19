@@ -76,3 +76,14 @@ describe('audit review UI', () => {
     expect(container.querySelector('img')).toBeNull();
   });
 });
+
+it.each(['en','ar'] as const)('filters new catalog audit events in %s without changing access rules', async language => {
+  state.language=language;
+  list.mockResolvedValue({events:[{...event,entity_type:'course_definitions',actor_role:'admin',super_admin_only:true}],next:null});
+  render(<AuditLogPage />);
+  await screen.findByText('Test Instructor');
+  fireEvent.change(screen.getByLabelText(language==='ar'?'الكيان':'Entity'),{target:{value:'course_definitions'}});
+  fireEvent.click(screen.getByRole('button',{name:language==='ar'?'تطبيق الفلاتر':'Apply filters'}));
+  await waitFor(()=>expect(list).toHaveBeenLastCalledWith(expect.objectContaining({entity:'course_definitions'}),null,expect.any(AbortSignal)));
+  expect(screen.getAllByText(language==='ar'?'تعريفات المواد':'Course definitions').length).toBeGreaterThan(0);
+});

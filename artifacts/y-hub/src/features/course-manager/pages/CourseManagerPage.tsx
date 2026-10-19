@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import { Link } from 'wouter';
 import { Button } from '@workspace/y-hub-ds/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@workspace/y-hub-ds/components/ui/tabs';
@@ -6,7 +8,8 @@ import { CourseMaterialsTab } from '../components/CourseMaterialsTab';
 import { CourseExamsTab } from '../components/CourseExamsTab';
 import { useCourseManager } from '../hooks/useCourseManager';
 
-export default function CourseManagerPage() {
+export default function CourseManagerPage({ renderSyllabus }: { renderSyllabus?: (courseId: string, editable: boolean) => ReactNode }) {
+  const { user, role } = useAuth();
   const {
     course,
     courseId,
@@ -72,6 +75,7 @@ export default function CourseManagerPage() {
         </Link>
       </div>
 
+      {renderSyllabus?.(courseId, course?.instructor_id === user?.id && !!role && ['instructor','admin','super_admin'].includes(role))}
       <Tabs defaultValue="materials" className="w-full">
         <TabsList className="mb-6 grid w-full max-w-md grid-cols-2 h-12">
           <TabsTrigger value="materials">المواد التعليمية</TabsTrigger>

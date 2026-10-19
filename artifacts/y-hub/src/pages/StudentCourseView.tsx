@@ -1,1 +1,5 @@
-export { default } from '@/features/student-course/pages/StudentCoursePage';
+import { StudentCoursePage } from '@/features/student-course';
+import { SyllabusPanel } from '@/features/course-syllabus';
+export default function StudentCourseView() {
+  return <StudentCoursePage renderSyllabus={id => <SyllabusPanel key={id} courseId={id} />} />;
+}

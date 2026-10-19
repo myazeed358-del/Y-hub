@@ -12,7 +12,7 @@ export const auditCopy = {
       enrollment_opened: 'Enrollment opened', enrollment_closed: 'Enrollment closed', enrollment_changed: 'Enrollment changed',
       role_changed: 'Role changed', access_changed: 'Access changed', normal: 'Normal', high: 'High', critical: 'Critical',
       system: 'System', student: 'Student', instructor: 'Instructor', admin: 'Admin', super_admin: 'Super Admin',
-      courses: 'Courses', course_materials: 'Learning materials', exams: 'Exams', questions: 'Questions', course_enrollments: 'Enrollments',
+      course_definitions: 'Course definitions', courses: 'Courses', course_materials: 'Learning materials', exams: 'Exams', questions: 'Questions', course_enrollments: 'Enrollments',
       syllabus_units: 'Syllabus units', syllabus_sections: 'Syllabus sections', users: 'Accounts' } as Record<string, string>,
   },
   ar: {
@@ -28,7 +28,7 @@ export const auditCopy = {
       enrollment_opened: 'فتح التسجيل', enrollment_closed: 'إغلاق التسجيل', enrollment_changed: 'تغيير التسجيل',
       role_changed: 'تغيير الدور', access_changed: 'تغيير الوصول', normal: 'عادية', high: 'مرتفعة', critical: 'حرجة',
       system: 'النظام', student: 'طالب', instructor: 'دكتور', admin: 'أدمن', super_admin: 'سوبر أدمن',
-      courses: 'المساقات', course_materials: 'المواد التعليمية', exams: 'الامتحانات', questions: 'الأسئلة', course_enrollments: 'التسجيلات',
+      course_definitions: 'تعريفات المواد', courses: 'المساقات', course_materials: 'المواد التعليمية', exams: 'الامتحانات', questions: 'الأسئلة', course_enrollments: 'التسجيلات',
       syllabus_units: 'وحدات السيلابس', syllabus_sections: 'عناوين السيلابس', users: 'الحسابات' } as Record<string, string>,
   },
 };

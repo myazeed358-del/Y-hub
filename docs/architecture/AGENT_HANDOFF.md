@@ -1,3 +1,7 @@
+# Phase 2 — syllabus and academic permissions checkpoint
+
+Current branch `feature/syllabus-academic-permissions`, stacked on academic branch `99852b5f006a94b0f021619bc6ad2c622f96f56b`; fullscreen remains independent at `39dd464dc67b29ccf5b03eca5651213cd93ca13e`. See `docs/phase2/SYLLABUS_PERMISSIONS.md`. 0028, independent syllabus feature, composition slots and permission tests complete locally: 1843 Vitest, 29 Python, 90 SQL, eight boundary tests, workspace TS/architecture/build, browser scenarios PASS. Next exact step: run exported combined source verification, record final report, push final documentation and verify remote refs. GitHub GraphQL Forbidden currently blocks Draft PR creation. No main merge/production migration; staging PENDING. Older instructions below are historical.
+
 # Phase 2 — academic model checkpoint
 
 Independent branch `feature/academic-course-sections` from main `b86dc42`. 0027 and compatibility/RLS tests complete; see `docs/phase2/ACADEMIC_MODEL.md`. Fullscreen is separately pushed at `39dd464dc67b29ccf5b03eca5651213cd93ca13e`. Next: dependent syllabus/permissions branch, without automatic merge. Production writes forbidden; staging PENDING. Older instructions below are historical.

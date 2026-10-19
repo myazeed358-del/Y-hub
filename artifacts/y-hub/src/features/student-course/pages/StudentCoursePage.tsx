@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Link } from 'wouter';
 import { Button } from '@workspace/y-hub-ds/components/ui/button';
 import { Loader2 } from 'lucide-react';
@@ -5,7 +6,7 @@ import { StudentEnrollmentGate } from '../components/StudentEnrollmentGate';
 import { StudentCourseContent } from '../components/StudentCourseContent';
 import { useStudentCourse } from '../hooks/useStudentCourse';
 
-export default function StudentCoursePage() {
+export default function StudentCoursePage({ renderSyllabus }: { renderSyllabus?: (courseId: string) => ReactNode }) {
   const { course, materials, exams, isEnrolled, loading, enrolling, handleEnroll } = useStudentCourse();
   if (loading) {
     return <div className="flex justify-center py-20"><Loader2 className="animate-spin" size={48} /></div>;
@@ -35,6 +36,7 @@ export default function StudentCoursePage() {
   return (
     <StudentCourseContent
       course={course}
+      syllabus={renderSyllabus?.(course.id)}
       materials={materials}
       exams={exams}
     />

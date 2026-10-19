@@ -356,7 +356,9 @@ class AuditTests(unittest.TestCase):
                 self.assertEqual(tracked, {'id', 'role', 'major'})
                 continue
             columns = query(f"SELECT column_name FROM information_schema.columns WHERE table_schema='public' AND table_name='{row['relname']}'")
-            self.assertEqual(tracked, {column['column_name'] for column in columns})
+            # Operational CAS token is intentionally omitted: row content has its own event.
+            omitted = {'syllabus_revision'} if row['relname'] == 'courses' else set()
+            self.assertEqual(tracked, {column['column_name'] for column in columns} - omitted)
 
     def test_demotion_committing_before_write_prevents_stale_role_authorization(self):
         cid = course(OTHER)
