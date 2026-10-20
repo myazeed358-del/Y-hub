@@ -25,7 +25,16 @@ USING(public.academic_section_visible(course_id,true));
 CREATE POLICY academic_exam_read ON public.exams AS RESTRICTIVE FOR SELECT TO authenticated
 USING(public.academic_section_visible(course_id,true));
 CREATE POLICY academic_question_read ON public.questions AS RESTRICTIVE FOR SELECT TO authenticated
-USING(public.academic_section_visible(course_id,true));
+USING(public.academic_section_visible(course_id,true)
+ AND EXISTS(SELECT 1 FROM public.users WHERE id=auth.uid() AND role IN ('instructor','admin','super_admin')));
+-- Historical owner-only policies did not check the current role. An enrolled,
+-- demoted owner must use get_exam_questions (which omits answer keys), just like
+-- other students. Own historical results remain readable without enrollment.
+CREATE POLICY academic_result_read ON public.student_results AS RESTRICTIVE FOR SELECT TO authenticated
+USING(student_id=auth.uid() OR (
+ EXISTS(SELECT 1 FROM public.users WHERE id=auth.uid() AND role IN ('instructor','admin','super_admin'))
+ AND EXISTS(SELECT 1 FROM public.exams e WHERE e.id=exam_id AND public.academic_section_visible(e.course_id,true))
+));
 CREATE POLICY academic_unit_read ON public.syllabus_units AS RESTRICTIVE FOR SELECT TO authenticated
 USING(public.academic_section_visible(course_id,true));
 CREATE POLICY academic_topic_read ON public.syllabus_sections AS RESTRICTIVE FOR SELECT TO authenticated

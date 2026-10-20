@@ -29,4 +29,4 @@ if [[ "${YHUB_PHASE2_BROWSER:-0}" == 1 ]]; then
   YHUB_BROWSER_BASE_URL=http://127.0.0.1:5176 node "$bundle/scripts/test-fullscreen-browser.mjs"
   YHUB_BROWSER_BASE_URL=http://127.0.0.1:5176 node "$bundle/scripts/test-syllabus-browser.mjs"
 fi
-printf 'PASS: combined Phase 2 source export, no Git merge performed\n' 
+printf 'PASS: combined Phase 2 source export, no Git merge performed\n'

@@ -127,3 +127,16 @@ class SyllabusPermissions(unittest.TestCase):
   self.assertEqual(value("SELECT count(*) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='yhub_academic_private' AND has_function_privilege('authenticated',p.oid,'EXECUTE')"),'0')
   for sql in [f"SELECT * FROM public.course_sections WHERE id='{c}'",f"SELECT public.read_course_syllabus('{c}')"]:
    self.assertNotEqual(run('SET LOCAL ROLE anon; '+sql,check=False).returncode,0)
+ def test_demoted_enrolled_owner_cannot_read_answer_keys_or_other_students_results(self):
+  c=course(O);e,q=str(uuid.uuid4()),str(uuid.uuid4())
+  run(f"INSERT INTO public.exams(id,course_id,title,is_published) VALUES('{e}','{c}','Exam',true); INSERT INTO public.questions(id,course_id,exam_id,type,content,correct_answer) VALUES('{q}','{c}','{e}','tf','Question','SECRET KEY')",O)
+  run(f"INSERT INTO public.student_results(exam_id,student_id,score,total_score) VALUES('{e}','{U}',1,1)")
+  self.assertEqual(value(f"SELECT correct_answer FROM public.questions WHERE id='{q}'",O),'SECRET KEY')
+  self.assertEqual(value(f"SELECT count(*) FROM public.student_results WHERE exam_id='{e}'",O),'1')
+  try:
+   run(f"UPDATE public.users SET role='student' WHERE id='{O}'")
+   run(f"INSERT INTO public.course_enrollments(course_id,student_id) VALUES('{c}','{O}')",O)
+   observed=(value(f"SELECT count(*) FROM public.questions WHERE id='{q}'",O),value(f"SELECT count(*) FROM public.student_results WHERE exam_id='{e}'",O))
+   self.assertEqual(observed,('0','0'),'Historical ownership must not retain answer keys or other students results after demotion')
+   self.assertEqual(value(f"SELECT count(*) FROM public.student_results WHERE exam_id='{e}'",U),'1','Students retain their own historical results')
+  finally:run(f"UPDATE public.users SET role='instructor' WHERE id='{O}'")
