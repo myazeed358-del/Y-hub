@@ -1,3 +1,5 @@
+import { useNavigationGuard } from "@/shared/navigation/guardedLocation";
+import { useLanguage } from "@/i18n/LanguageContext";
 import { workbookReducer } from "../state/workbookReducer";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createSupabaseWorkbookStorage } from "../integration/supabaseWorkbookStorage";
@@ -25,6 +27,7 @@ const browserStorage: Storage = {
   },
 };
 export function useWorkbookWorkspace(ownerId: string) {
+  const { language } = useLanguage();
   const journal = useMemo(
     () => new RecoveryJournal(ownerId, browserStorage),
     [ownerId],
@@ -76,22 +79,6 @@ export function useWorkbookWorkspace(ownerId: string) {
         event.returnValue = "";
       }
     };
-    const navigate = (event: MouseEvent) => {
-      if (
-        !(event.target instanceof Element) ||
-        !event.target.closest("a[href]") ||
-        !session.current?.dirty
-      )
-        return;
-      try {
-        session.current.keepRecovery();
-      } catch (e) {
-        event.preventDefault();
-        event.stopPropagation();
-        report(e);
-      }
-    };
-    document.addEventListener("click", navigate, true);
     const changed = () => {
       try {
         refreshLocal();
@@ -102,13 +89,21 @@ export function useWorkbookWorkspace(ownerId: string) {
     window.addEventListener("beforeunload", unload);
     window.addEventListener("storage", changed);
     return () => {
-      document.removeEventListener("click", navigate, true);
       alive.current = false;
       session.current?.dispose();
       window.removeEventListener("beforeunload", unload);
       window.removeEventListener("storage", changed);
     };
   }, [refresh, refreshLocal, report]);
+  useNavigationGuard(() => {
+    const current = session.current;
+    if (!current?.dirty) return true;
+    if (!window.confirm(language === 'ar'
+      ? 'توجد تعديلات غير مؤكدة الحفظ أو حفظ جارٍ. هل تريد الاحتفاظ بنسخة استعادة على هذا المتصفح ومغادرة التطبيق؟ يمكنك استعادتها من ملفاتي.'
+      : 'Changes are unsaved or saving. Keep a recovery copy on this browser and leave? Restore it from My Files.')) return false;
+    try { current.keepRecovery(); return true; }
+    catch (e) { report(e); return false; }
+  });
   const run = async (action: () => Promise<void>) => {
     if (operation.current) return;
     operation.current = true;

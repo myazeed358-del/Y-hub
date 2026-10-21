@@ -6,6 +6,10 @@ Combined A+C source verification passed: **1855 Vitest /211 files, 29 Python, ei
 
 Next exact step: complete blocked Draft PR delivery when GitHub API access is available, then isolated Supabase staging/release review. Three Draft PR creation attempts returned GraphQL Forbidden; **no new PRs were created**. Native Git push/remote verification works. Desired bases: A/B → main, C → academic branch. Main remains `b86dc4266c7a24209b4638c10e529415f82666a3`. No production writes/migrations, automatic merge, historical migration/math/dependency changes or relaxed checks. Production 0025/0026 ledger UNKNOWN; staging and CI/Vercel PENDING; not production-ready. Existing old instructions below are historical.
 
+# Phase 2 — fullscreen application shell
+
+Branch `feature/fullscreen-application-shell`, based on main `b86dc42` after PRs #19–#22. Implementation and local verification complete; see `docs/phase2/FULLSCREEN.md`. Preserve this independent branch while academic work starts from main. No production migration or automatic merge. Staging PENDING. Git history/ls-remote establish the final pushed checkpoint. Older instructions below are historical.
+
 # Phase 2 — academic model checkpoint
 
 Independent branch `feature/academic-course-sections` from main `b86dc42`. 0027 and compatibility/RLS tests complete; see `docs/phase2/ACADEMIC_MODEL.md`. Fullscreen is separately pushed at `39dd464dc67b29ccf5b03eca5651213cd93ca13e`. Next: dependent syllabus/permissions branch, without automatic merge. Production writes forbidden; staging PENDING. Older instructions below are historical.

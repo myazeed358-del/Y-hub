@@ -2,6 +2,7 @@ import React from "react";
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, expect, it } from "vitest";
 import css from "../App.css?raw";
+import workspaceCss from "../workspace/workspace.css?raw";
 import { WorkbookProvider, useWorkbook } from "../state/workbookContext";
 afterEach(cleanup);
 it("scopes every style selector and animation definition to Y-Sheets", () => {
@@ -69,4 +70,16 @@ it("applies the spreadsheet theme toggle to its root, without changing Y-Hub", a
   fireEvent.click(screen.getByTitle("Switch to Light Mode"));
   expect(container.querySelector(".y-sheets-root.dark")).toBeNull();
   expect(document.documentElement.className).toBe(hostClass);
+});
+
+it('scopes workspace layout rules and avoids fixed viewport subtraction', () => {
+  const style=document.createElement('style'); style.textContent=workspaceCss; document.head.appendChild(style);
+  const inspect=(rules: CSSRuleList) => {
+    for(const rule of Array.from(rules)) {
+      if(rule.type===CSSRule.STYLE_RULE) expect((rule as CSSStyleRule).selectorText).toMatch(/^\.y-sheets-workspace/);
+      else if('cssRules' in rule) inspect((rule as CSSGroupingRule).cssRules);
+    }
+  };
+  inspect(style.sheet!.cssRules); style.remove();
+  expect(workspaceCss).not.toMatch(/position:\s*fixed|calc\(100(?:d)?vh/);
 });

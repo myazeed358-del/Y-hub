@@ -346,3 +346,7 @@
 .y-sheets-root::-webkit-scrollbar-thumb:hover, .y-sheets-root *::-webkit-scrollbar-thumb:hover {
   background: var(--border-dark);
 }
+
+.y-sheets-root > :not(.flex-1) { flex-shrink: 0; }
+.y-sheets-root .min-h-0 { min-height: 0; }
+.y-sheets-root .min-w-0 { min-width: 0; }
