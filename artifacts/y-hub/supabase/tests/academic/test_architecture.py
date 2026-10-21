@@ -3,7 +3,7 @@ from concurrent.futures import ThreadPoolExecutor
 from support import run,value,definition,course,I,A,S,U,O
 class AcademicArchitecture(unittest.TestCase):
  def test_historical_rows_and_all_ids_are_preserved(self):
-  self.assertEqual(value("SELECT count(*) FROM public.courses c JOIN public.test_legacy_snapshot s ON c.id=(s.row->>'id')::uuid WHERE to_jsonb(c)-'course_definition_id'-'section_label'-'academic_term'=s.row"),'2')
+  self.assertEqual(value("SELECT count(*) FROM public.courses c JOIN public.test_legacy_snapshot s ON c.id=(s.row->>'id')::uuid WHERE to_jsonb(c)-'course_definition_id'-'section_label'-'academic_term'-'syllabus_revision'=s.row"),'2')
   for table,col,key in [('course_materials','id','3'),('exams','id','4'),('questions','id','5'),('syllabus_units','id','6'),('syllabus_sections','id','7')]:
    self.assertEqual(value(f"SELECT count(*) FROM public.{table} WHERE {col}='10000000-0000-0000-0000-00000000000{key}'"),'1')
   self.assertEqual(value("SELECT count(*) FROM public.course_enrollments WHERE course_id='10000000-0000-0000-0000-000000000001'"),'1')

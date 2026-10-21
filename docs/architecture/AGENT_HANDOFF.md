@@ -1,3 +1,11 @@
+# Phase 2 — final verified checkpoint (2026-10-20)
+
+Implementation is complete locally; see `docs/phase2/FINAL_REPORT.md` and `CHANGED_FILES.md`. Do not restart completed work. Current branch `feature/syllabus-academic-permissions` is stacked on B `99852b5f006a94b0f021619bc6ad2c622f96f56b`; A is independent at `39dd464dc67b29ccf5b03eca5651213cd93ca13e`. Previous verified remote C checkpoint: `61236700cca3dcb7d9d8d1705e363556327bf2be`. The final commit adds the proven demoted-owner question/result read-policy fix in new 0028, its regression and final evidence; use Git/ls-remote for the newest hash.
+
+Combined A+C source verification passed: **1855 Vitest /211 files, 29 Python, eight boundary guard tests, all workspace TypeScript, architecture/math/module audits and production build**, both Chromium scripts including 16 fullscreen geometry cases. The subsequent change is SQL-only: **91 PostgreSQL tests** freshly passed (30 academic +26 audit +16 exams +9 course deletion +10 Y-Sheets), plus historical SQL assertions. Before the final fix the new regression exposed one answer-key row and one other-student result after owner demotion; both are now hidden while legitimate reads remain.
+
+Next exact step: complete blocked Draft PR delivery when GitHub API access is available, then isolated Supabase staging/release review. Three Draft PR creation attempts returned GraphQL Forbidden; **no new PRs were created**. Native Git push/remote verification works. Desired bases: A/B → main, C → academic branch. Main remains `b86dc4266c7a24209b4638c10e529415f82666a3`. No production writes/migrations, automatic merge, historical migration/math/dependency changes or relaxed checks. Production 0025/0026 ledger UNKNOWN; staging and CI/Vercel PENDING; not production-ready. Existing old instructions below are historical.
+
 # Phase 2 — fullscreen application shell
 
 Branch `feature/fullscreen-application-shell`, based on main `b86dc42` after PRs #19–#22. Implementation and local verification complete; see `docs/phase2/FULLSCREEN.md`. Preserve this independent branch while academic work starts from main. No production migration or automatic merge. Staging PENDING. Git history/ls-remote establish the final pushed checkpoint. Older instructions below are historical.

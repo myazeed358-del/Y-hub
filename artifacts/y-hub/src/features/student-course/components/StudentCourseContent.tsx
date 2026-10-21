@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Link } from 'wouter';
 import {
   Card,
@@ -18,6 +19,7 @@ import {
 import { ThemeToggle } from '@/components/ThemeToggle';
 
 interface Props {
+  syllabus?: ReactNode;
   course: {
     id: string;
     title: string;
@@ -38,6 +40,7 @@ interface Props {
 
 export function StudentCourseContent({
   course,
+  syllabus,
   materials,
   exams,
 }: Props) {
@@ -64,6 +67,8 @@ export function StudentCourseContent({
           </Button>
         </Link>
       </div>
+
+      {syllabus}
 
       <div className="mb-10">
         <h2 className="text-2xl font-bold mb-6">مواد المقرر الدراسية</h2>
