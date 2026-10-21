@@ -6,6 +6,7 @@ import { Router as WouterRouter } from 'wouter';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { uiCopy, type Language, type UiKey } from '@/i18n/uiCopy';
 import { LanguageContext } from '@/i18n/LanguageContext';
+import { useGuardedLocation } from '@/shared/navigation/guardedLocation';
 import { ApplicationFrame } from '@/app/ApplicationFrame';
 
 const queryClient = new QueryClient();
@@ -44,7 +45,7 @@ function App() {
         <LanguageContext.Provider value={{ language, setLanguage, t }}>
           <QueryClientProvider client={queryClient}>
             <TooltipProvider>
-              <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
+              <WouterRouter hook={useGuardedLocation} base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
                 <ApplicationFrame />
               </WouterRouter>
               <Toaster position="top-center" dir="rtl" richColors />

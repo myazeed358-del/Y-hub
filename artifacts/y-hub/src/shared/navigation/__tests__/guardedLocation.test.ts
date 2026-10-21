@@ -1,0 +1,35 @@
+import { afterEach, expect, it, vi } from 'vitest';
+import { waitFor } from '@testing-library/react';
+import { createGuardedHistory } from '../guardedLocation';
+let dispose: (() => void) | undefined;
+afterEach(() => { dispose?.(); vi.restoreAllMocks(); });
+it('blocks push and replace without changing the route or history state', () => {
+  const h = createGuardedHistory(window); dispose = h.dispose;
+  h.navigate('/y-sheets');
+  const listener = vi.fn(); h.subscribe(listener);
+  const release = h.guard(() => false);
+  h.navigate('/dashboard'); h.navigate('/profile', { replace: true });
+  expect(h.snapshot()).toBe('/y-sheets');
+  expect(location.pathname).toBe('/y-sheets');
+  expect(listener).not.toHaveBeenCalled();
+  release(); h.navigate('/dashboard');
+  expect(h.snapshot()).toBe('/dashboard');
+});
+it('cancels Back and Forward without publishing a transient route or losing history entries', async () => {
+  const h = createGuardedHistory(window); dispose = h.dispose;
+  h.navigate('/dashboard'); h.navigate('/y-sheets');
+  const listener = vi.fn(); h.subscribe(listener);
+  const release = h.guard(() => false);
+  history.back();
+  await new Promise(resolve => setTimeout(resolve, 70));
+  expect(location.pathname).toBe('/y-sheets');
+  expect(h.snapshot()).toBe('/y-sheets'); expect(listener).not.toHaveBeenCalled();
+  release(); history.back();
+  await waitFor(() => expect(h.snapshot()).toBe('/dashboard'));
+  const release2 = h.guard(() => false);
+  listener.mockClear(); history.forward();
+  await new Promise(resolve => setTimeout(resolve, 70));
+  expect(location.pathname).toBe('/dashboard'); expect(listener).not.toHaveBeenCalled();
+  release2(); history.forward();
+  await waitFor(() => expect(h.snapshot()).toBe('/y-sheets'));
+});
