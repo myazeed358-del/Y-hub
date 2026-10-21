@@ -38,6 +38,7 @@ export default {
   routes: [
     {
       path: '/y-sheets',
+      layout: 'fullscreen',
       order: 150,
       load: () => import('./YSheetsPage'),
 

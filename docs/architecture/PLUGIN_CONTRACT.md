@@ -80,3 +80,18 @@ Existing engine metadata remains available through config/majorEngineAccess as a
 Run module registry/integration tests, all routing/navigation tests, architecture checks, typecheck and production build after adding a module. Test malformed metadata, dependency failure, duplicate route/ID, unauthorized direct navigation, delayed/rejected load and render failure. Add real engine tests through existing math ports if the module performs computation.
 
 Classification coverage uses glob-discovered test metadata under `modules/__tests__/fixtures/*/module.ts` for mathematical/scientific engines, an application and a laboratory. These fixtures are excluded from production discovery. Tests exercise the actual router, grouped sidebar, dashboard contributions and engine-only tooltips, including custom categories, cross-kind dependencies, missing resource grants and loader retry across every kind. The production-glob disabled example continues to prove registration without host edits.
+
+## Route layout (backward-compatible API 2 extension)
+
+`routes[].layout` optionally accepts `standard` (default) or `fullscreen`.
+For a future standalone application the example above may add `layout: 'fullscreen'`
+beside `path`. The registry rejects unknown modes. The host chooses the mode from
+an accepted enabled route only after the same role/major/permission eligibility
+check; presentation never bypasses ProtectedRoute, backend authorization, providers
+or lazy error isolation. Other modules retain standard AppShell without changes.
+
+Applications with unsaved work register `useNavigationGuard` from shared/navigation.
+The synchronous guard must retain existing local recovery before consenting to
+leave. Wouter uses the shared guarded location hook for push/replace and browser
+Back/Forward. Keep a beforeunload handler for cross-document navigation. See
+`docs/phase2/FULLSCREEN.md` for history limitations and browser verification.

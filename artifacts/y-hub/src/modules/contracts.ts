@@ -27,7 +27,12 @@ export interface ModuleAccessPolicy {
   permissions?: readonly ModulePermission[];
 }
 
+export const MODULE_LAYOUTS = ['standard', 'fullscreen'] as const;
+export type ModuleLayout = typeof MODULE_LAYOUTS[number];
+
 export interface ModuleRouteDefinition {
+  /** Presentation only; omitted means standard. Access guards still run. */
+  layout?: ModuleLayout;
   /** Static, lowercase, absolute path. Parameterized core routes remain host-owned. */
   path: string;
   load: () => Promise<{ default: ComponentType }>;

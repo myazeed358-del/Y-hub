@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { ModuleManifest, ModuleRouteDefinition } from './contracts';
-import { MODULE_CATEGORIES, MODULE_ICONS, MODULE_KINDS, MODULE_NAVIGATION_GROUPS, MODULE_PERMISSIONS, MODULE_ROLES, type ModuleCategory } from './contracts';
+import { MODULE_LAYOUTS, MODULE_CATEGORIES, MODULE_ICONS, MODULE_KINDS, MODULE_NAVIGATION_GROUPS, MODULE_PERMISSIONS, MODULE_ROLES, type ModuleCategory } from './contracts';
 import { uiCopy } from '@/i18n/uiCopy';
 
 const text = z.string().trim().min(1);
@@ -28,6 +28,7 @@ const schema = z.object({
     permissions: z.array(z.enum(MODULE_PERMISSIONS)).optional(),
   }).strict(),
   routes: z.array(z.object({
+    layout: z.enum(MODULE_LAYOUTS).optional(),
     path: z.string().regex(/^\/[a-z0-9-]+(?:\/[a-z0-9-]+)*$/),
     load: z.custom<ModuleRouteDefinition['load']>(value => typeof value === 'function'),
     order: z.number().finite().optional(),

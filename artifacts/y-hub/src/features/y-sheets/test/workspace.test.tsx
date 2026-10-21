@@ -5,12 +5,14 @@ import { RecoveryJournal } from "../io/recoveryJournal";
 import { createDefaultWorkbook } from "../state/defaultWorkbook";
 import { WorkbookStorageError } from "../integration/storageErrors";
 const mocks = vi.hoisted(() => ({
+  guard: undefined as undefined | (() => boolean),
   load: vi.fn(),
   save: vi.fn(),
   list: vi.fn(),
   restore: vi.fn(),
   remove: vi.fn(),
 }));
+vi.mock("@/shared/navigation/guardedLocation", () => ({ useNavigationGuard: (guard: () => boolean) => { mocks.guard = guard; } }));
 vi.mock("../integration/supabaseWorkbookStorage", () => ({
   createSupabaseWorkbookStorage: () => ({
     loadWorkbook: mocks.load,
@@ -202,4 +204,26 @@ it("does not silently rebase a local recovery by opening the cloud copy", async 
   expect(mocks.load).not.toHaveBeenCalled();
   expect(result.current.error).toContain("Recover or discard");
   expect(result.current.recoveries[0]!.record.checkpoint.revision).toBe(2);
+});
+
+it('guards internal/back navigation with retained draft recovery and explicit consent', async () => {
+  const { result } = renderHook(() => useWorkbookWorkspace('owner'));
+  await act(async () => { await result.current.open('first'); });
+  expect(mocks.guard!()).toBe(true);
+  act(() => result.current.draft({ sheetId: result.current.active!.activeSheetId, row: 0, col: 0, raw: '=42' }));
+  const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
+  expect(mocks.guard!()).toBe(false);
+  confirm.mockReturnValue(true);
+  expect(mocks.guard!()).toBe(true);
+  expect(new RecoveryJournal('owner', localStorage).list().entries[0].record.draft?.raw).toBe('=42');
+});
+it('refuses departure if local recovery cannot be persisted', async () => {
+  const { result } = renderHook(() => useWorkbookWorkspace('owner'));
+  await act(async () => { await result.current.open('first'); });
+  act(() => result.current.draft({ sheetId: result.current.active!.activeSheetId, row: 0, col: 0, raw: 'valuable' }));
+  vi.spyOn(window, 'confirm').mockReturnValue(true);
+  vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw Error('quota'); });
+  act(() => { expect(mocks.guard!()).toBe(false); });
+  expect(result.current.active).not.toBeNull();
+  expect(result.current.error).toContain('quota');
 });

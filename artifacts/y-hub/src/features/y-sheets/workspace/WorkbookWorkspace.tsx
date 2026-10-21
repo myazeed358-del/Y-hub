@@ -1,3 +1,7 @@
+import { useLocation } from "wouter";
+import { ArrowLeft } from "lucide-react";
+import { useLanguage } from "@/i18n/LanguageContext";
+import "./workspace.css";
 import { recoveryWorkbook } from "../io/recoveryJournal";
 import { useState } from "react";
 import { useTheme } from "next-themes";
@@ -8,6 +12,8 @@ import { useWorkbookWorkspace } from "./useWorkbookWorkspace";
 
 export function WorkbookWorkspace({ user }: { user: HostUser }) {
   const w = useWorkbookWorkspace(user.id);
+  const [, navigate] = useLocation();
+  const { language } = useLanguage();
   const { resolvedTheme } = useTheme();
   const [search, setSearch] = useState("");
   const download = () => {
@@ -55,13 +61,12 @@ export function WorkbookWorkspace({ user }: { user: HostUser }) {
       await w.refresh();
     });
   return (
-    <div className="flex flex-col gap-3 p-3">
-      <header className="flex flex-wrap items-center justify-between gap-3">
+    <div className="y-sheets-workspace">
+      <header className="y-sheets-workspace-header">
+        <button className="border rounded px-3 py-2 flex gap-2 items-center shrink-0" onClick={() => navigate("/dashboard")}><ArrowLeft size={16} aria-hidden="true" />{language === "ar" ? "العودة إلى Y-Hub" : "Back to Y-Hub"}</button>
         <div>
           <h1 className="text-xl font-bold">Y-Sheets</h1>
-          <p className="text-sm text-muted-foreground">
-            Private spreadsheets in your Y-Hub account.
-          </p>
+
         </div>
         <button
           disabled={w.busy}
@@ -72,14 +77,14 @@ export function WorkbookWorkspace({ user }: { user: HostUser }) {
         </button>
       </header>
       {w.error && (
-        <div role="alert" className="text-red-600">
+        <div role="alert" className="y-sheets-workspace-error text-red-600">
           {w.error}
         </div>
       )}
       {w.busy && <div role="status">Loading…</div>}
       {w.active ? (
         <>
-          <div className="flex flex-wrap items-center gap-3 text-sm">
+          <div className="y-sheets-workspace-status text-sm">
             <span role="status" aria-live="polite">
               {w.status === "saved"
                 ? "Saved"
@@ -120,7 +125,7 @@ export function WorkbookWorkspace({ user }: { user: HostUser }) {
               </>
             )}
           </div>
-          <div style={{ height: "calc(100vh - 220px)", minHeight: 500 }}>
+          <div className="y-sheets-workspace-editor" dir="ltr">
             <YSheetsHostAdapter
               key={w.active.id}
               user={user}
@@ -141,7 +146,7 @@ export function WorkbookWorkspace({ user }: { user: HostUser }) {
           </div>
         </>
       ) : (
-        <section className="space-y-3">
+        <section className="y-sheets-workspace-files space-y-3">
           <button
             disabled={w.busy}
             onClick={() => void create()}
