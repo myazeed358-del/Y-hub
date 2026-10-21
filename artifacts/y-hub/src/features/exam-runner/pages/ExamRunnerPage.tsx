@@ -7,6 +7,8 @@ import { useExamRunner } from "../hooks/useExamRunner";
 
 export default function ExamRunnerPage() {
   const {
+    recoveryMessage,
+    recoveryChoices,
     exam,
     questions,
     loading,
@@ -48,6 +50,18 @@ export default function ExamRunnerPage() {
 
       {isSubmitted && result ? <ExamResultSummary result={result} /> : null}
 
+      {recoveryMessage && <p role="status" className="mb-4">{recoveryMessage}</p>}
+      {recoveryChoices.length > 1 && !isSubmitted && (
+        <label className="block mb-4">نسخ الاستعادة / Recovery copies
+          <select aria-label="Recovery copy" defaultValue="" onChange={event => {
+            const draft = recoveryChoices.find(item => item.writer === event.target.value);
+            if (draft && window.confirm("استبدال الإجابات المعروضة بهذه النسخة؟ Use this recovery copy?")) setAnswers(draft.answers);
+          }}>
+            <option value="" disabled>اختر نسخة / Choose a copy</option>
+            {recoveryChoices.map(draft => <option key={draft.writer} value={draft.writer}>{new Date(draft.updated).toLocaleString()} — {draft.writer.slice(0, 8)}</option>)}
+          </select>
+        </label>
+      )}
       {error && (
         <p role="alert" className="mb-4 text-destructive">
           {error}
