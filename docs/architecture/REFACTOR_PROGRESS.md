@@ -1,3 +1,7 @@
+# University features — attendance verified (2026-10-22)
+
+Current `feature/y-attendance` is based on engine-access db0ae2d7b57efee2ed85621d8a3e9f2488abda02; Quick Access separately pushed and verified f862ae29b547940dfe1790a9d9f14f63b35d6b3f. See docs/university/ATTENDANCE.md. 1870 Vitest/215 files,36 Python,111 PostgreSQL,workspace TypeScript,audits/build PASS. New0035, QR/rosters/corrections/reports/API-v2 implemented. Next: online lectures on a focused child branch sharing academic_lectures, then Owner labels and real Auth integration. Continue automatically. No production writes/main merge. GitHub API PR creation returns Forbidden; branch push works. Prepared online code may be in /tmp/yhub-online; inspect before continuing, not a completed commit. Older NEXT below is superseded.
+
 # University features — phase 1 verified (2026-10-22)
 
 Current task is the university feature request, not a repeat of Phase 3. Read `docs/university/ENGINE_ACCESS.md`. Branch `feature/exceptional-engine-access` independently based on verified main `8a5dde1b20f26161e7e26b8b0bf71ecd1097f136`; Phase 3 heads remain preserved and unmerged. New 0033 + grant UI/API/backend guards complete. Full phase verification: 1865 Vitest /214 files, 36 Python, 102 PostgreSQL, eight architecture guards, two export tests, all TS/audits/build PASS. Git/remote establishes newest checkpoint. No production operations/main merge.

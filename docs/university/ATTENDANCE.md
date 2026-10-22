@@ -1,0 +1,22 @@
+# Y-Attendance
+
+API-v2 education application at `/y-attendance`, roles student/instructor/admin/internal super_admin. Automatically discovered; no engine catalog entries. New migration **0035** reuses existing course/section identities and introduces shared `academic_lectures`, attendance sessions, historical session rosters and records. Scheduling is shared infrastructure for the next online-lecture phase, not a replacement course model.
+
+Instructors manage their own sections; Admin/Owner can supervise all. Students see only their own reports (including after withdrawal) and can check in only while actively enrolled. All mutations use current database roles, row locks and RPCs; direct table writes and secret reads are denied to all application roles. Cancellation closes attendance and excludes the lecture from absence statistics. A closed session cannot reopen old credentials. Attendance closes at the instructor's command; check-in also stops automatically at the lecture's end. Unclosed sessions remain provisional in reports. Instructor corrections require a reason and are limited to seven days; administration can make later corrections. Session roster includes previously recorded students for historical corrections.
+
+QR uses a per-session random 256-bit secret in a private table and HMAC over session + server 10-second bucket. Only managers can obtain signed tokens. Students confirm explicitly with their authenticated session. Exact current bucket only, no acceptance grace; rescan at the boundary. The UI uses server time, hides expired QR on network failure, and places tokens in the URL fragment rather than an HTTP query. PostgreSQL unique constraints and conditional UPSERT prevent duplicate check-ins/events from multiple devices; an existing manual correction is not overwritten by scanning. Sharing a currently valid QR with another enrolled person remains possible: this is not proof of physical presence, biometric identity or immunity to two-phone cheating.
+
+Every lecture/session/record mutation has required atomic Audit Log triggers. Reasons and titles are redacted in audit history; secret material never enters audit rows. Admin reads permitted instructor events; Owner reviews broader events under the existing audit policy. Audit failure rolls back attendance. Cascading course deletion follows existing platform semantics; immutable audit history survives entity deletion. Database owners/superusers remain outside application append-only protection.
+
+UI: bilingual, theme-token styling, mobile overflow, schedule/select lecture, open/close/cancel, rotating QR, student check-in, reasoned manual correction, paginated server reports, closed-session absence statistics, formula-safe CSV export. CSV consists only of authorized RPC pages; concurrent changes can affect a multi-page export (not advertised as a transactional archival snapshot). No camera is activated automatically; students use their phone's QR camera. Service availability and correct server time are required.
+
+## Verified locally
+
+- 1870 Vitest /215 files, including QR expiry/offline/device-clock handling, explicit confirmation, error handling and CSV escaping.
+- 36 Python tests; eight architectural boundary guards; workspace TypeScript; strict architecture/math/module audits; production build.
+- 111 isolated PostgreSQL tests:20 university (9 attendance +11 grants),30 academic,26 audit,16 exams,9 deletion,10 Y-Sheets. Includes roles, withdrawn students, no forged records, expiry/tampering, two-device check-in, required-audit rollback and historical roster.
+- Dependency audit: zero high/critical; existing KaTeX low and postcss-selector-parser moderate findings remain. No reported qrcode advisory. Added qrcode1.5.4 and its types, pinned in lockfile.
+
+Local PostgreSQL tests use auth stand-ins, not real hosted Supabase JWT validation. Native Auth/HTTP integration is a subsequent combined verification phase; hosted Staging/mobile QR/camera/account flows PENDING. No production migrations, no main merge. Vercel Python bundle size remains a known deferred issue and was not investigated.
+
+Branch `feature/y-attendance` is a focused child of `feature/exceptional-engine-access` at db0ae2d7b57efee2ed85621d8a3e9f2488abda02 (module policies). Quick Access is independently preserved at f862ae29b547940dfe1790a9d9f14f63b35d6b3f. Migration numbers0029–0032 and0034 are reserved by their separate branches. Review/apply in order after integration, never directly to production from this task.
