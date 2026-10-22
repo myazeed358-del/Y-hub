@@ -1,3 +1,7 @@
+# University features — Quick Access verified (2026-10-22)
+
+Current branch `feature/student-quick-access` is stacked on engine-access db0ae2d7b57efee2ed85621d8a3e9f2488abda02 (previous verified remote). Existing card enhanced; see docs/university/QUICK_ACCESS.md. 1872 Vitest/215 files,36 Python,107 PostgreSQL,workspace TS,audits/build PASS. Next implement attendance, online lectures, Owner labels and combined integration; continue automatically. No main merge or production writes. Git establishes newest checkpoint. Older NEXT below is superseded.
+
 # University features — phase 1 verified (2026-10-22)
 
 Current task is the university feature request, not a repeat of Phase 3. Read `docs/university/ENGINE_ACCESS.md`. Branch `feature/exceptional-engine-access` independently based on verified main `8a5dde1b20f26161e7e26b8b0bf71ecd1097f136`; Phase 3 heads remain preserved and unmerged. New 0033 + grant UI/API/backend guards complete. Full phase verification: 1865 Vitest /214 files, 36 Python, 102 PostgreSQL, eight architecture guards, two export tests, all TS/audits/build PASS. Git/remote establishes newest checkpoint. No production operations/main merge.
