@@ -43,7 +43,7 @@ class Stack:
    except RuntimeError:time.sleep(.25)
   else:raise RuntimeError('Local PostgreSQL unavailable')
   self.sql('CREATE SCHEMA auth; ALTER ROLE postgres SET search_path=auth,public;')
-  self.run('auth',['GOTRUE_API_HOST=0.0.0.0','GOTRUE_API_PORT=9999','API_EXTERNAL_URL=http://localhost:9999','GOTRUE_SITE_URL=http://localhost:3000','GOTRUE_DB_DRIVER=postgres',f'GOTRUE_DB_DATABASE_URL=postgres://postgres@{self.names["db"]}:5432/postgres?sslmode=disable','GOTRUE_JWT_SECRET='+self.secret,'GOTRUE_JWT_EXP=3600','GOTRUE_JWT_AUD=authenticated','GOTRUE_DISABLE_SIGNUP=false','GOTRUE_MAILER_AUTOCONFIRM=true'])
+  self.run('auth',['GOTRUE_API_HOST=0.0.0.0','GOTRUE_API_PORT=9999','API_EXTERNAL_URL=http://localhost:9999','GOTRUE_SITE_URL=http://localhost:3000','GOTRUE_DB_DRIVER=postgres',f'GOTRUE_DB_DATABASE_URL=postgres://postgres@{self.names["db"]}:5432/postgres?sslmode=disable','GOTRUE_JWT_SECRET='+self.secret,'GOTRUE_JWT_EXP=3600','GOTRUE_JWT_AUD=authenticated','GOTRUE_JWT_DEFAULT_GROUP_NAME=authenticated','GOTRUE_DISABLE_SIGNUP=false','GOTRUE_MAILER_AUTOCONFIRM=true'])
   self.wait('auth','/health')
   self.sql((Path(__file__).parent/'bootstrap.sql').read_text())
   for migration in sorted((self.root/'artifacts/y-hub/supabase/migrations').glob('*.sql')):self.sql(migration.read_text())
