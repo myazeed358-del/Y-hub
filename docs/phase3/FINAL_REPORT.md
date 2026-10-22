@@ -53,7 +53,19 @@ Full evidence log: `/tmp/phase3-combined-final.log`. Reproduce with pinned pnpm 
 
 ## GitHub delivery
 
-All implementation branches are pushed. GitHub API read checks return `Post "https://api.github.com/graphql": Forbidden`; Draft PR creation will be attempted after the integration checkpoint push. The running enforced allowlist excludes `api.github.com` although the saved environment draft already includes it. Saving a draft did not update this running instance. No access bypass or token extraction is used.
+All five branches are pushed. Previous verified integration/report remote checkpoint: `627a13870dc63b9faa57a9a316f58a2730ae1afb`; this delivery documentation commit follows it. Git history and final `git ls-remote` establish the newest report SHA.
+
+**Draft PR creation was attempted for each of the five branches and failed before creation** with `Post "https://api.github.com/graphql": Forbidden` (exit 1 each). No Phase 3 PR number/link exists from these attempts. Bodies are committed in each branch under `docs/phase3/*_PR.md`, and exact attempt outcomes are in `/tmp/phase3-pr-delivery.log`. Do not confuse compare/create links with an existing PR.
+
+The runtime configuration reports an enforced restricted allowlist excluding `api.github.com`; the saved environment draft already includes that hostname. Apply the saved network setting to the running environment through environment settings, then retry the authorized Draft PR creation against `main`. Native Git authentication/push works; no new personal token was requested or extracted and no restriction was bypassed. No configuration field was changed again during this final check.
+
+Pending review links (open Draft PRs after connectivity is available):
+
+- https://github.com/myazeed358-del/Y-hub/compare/main...fix/phase3-supabase-security
+- https://github.com/myazeed358-del/Y-hub/compare/main...feature/phase3-exam-reliability
+- https://github.com/myazeed358-del/Y-hub/compare/main...feature/phase3-academic-management
+- https://github.com/myazeed358-del/Y-hub/compare/main...fix/phase3-rpc-conflicts
+- https://github.com/myazeed358-del/Y-hub/compare/main...test/phase3-real-integration
 
 ## Release boundaries / remaining work
 

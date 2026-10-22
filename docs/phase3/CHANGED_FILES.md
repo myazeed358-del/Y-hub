@@ -83,13 +83,18 @@ A	docs/phase3/RPC_CONFLICTS_PR.md
 
 ## test/phase3-real-integration
 
-Source checkpoint `521b6dff0ff486f86bb61107f006fb2caab4e54f` (later documentation commits may follow).
+Previous verified report checkpoint `627a13870dc63b9faa57a9a316f58a2730ae1afb`.
 
 ```text
 A	artifacts/y-hub/supabase/tests/integration/bootstrap.sql
 A	artifacts/y-hub/supabase/tests/integration/runtime.py
 A	artifacts/y-hub/supabase/tests/integration/test_http.py
+M	docs/architecture/AGENT_HANDOFF.md
+M	docs/architecture/REFACTOR_PROGRESS.md
+A	docs/phase3/CHANGED_FILES.md
+A	docs/phase3/FINAL_REPORT.md
 A	docs/phase3/INTEGRATION.md
+A	docs/phase3/INTEGRATION_PR.md
 A	scripts/test-supabase-http.sh
 A	scripts/verify-phase3-snapshot.sh
 ```
