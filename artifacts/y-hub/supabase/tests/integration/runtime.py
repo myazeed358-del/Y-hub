@@ -34,6 +34,7 @@ class Stack:
    p.stdin.close()
    try:p.wait(timeout=20)
    except subprocess.TimeoutExpired:p.kill();p.wait()
+   finally:p.stdout.close();p.stderr.close()
  def start(self):
   for image in IMAGES.values():self.docker('image','inspect',image)
   self.docker('network','create','--internal',self.name);self.network=True
