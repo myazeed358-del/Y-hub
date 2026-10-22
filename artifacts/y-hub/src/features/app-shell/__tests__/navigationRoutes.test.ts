@@ -61,6 +61,7 @@ describe('navigationRoutes', () => {
   it('hides quick practice from instructors', () => {
     expect(paths('instructor', 'mathematics')).toEqual([
       '/',
+      '/engine-access',
       '/calculus-1',
       '/calculus',
       '/math-solver',
@@ -77,6 +78,7 @@ describe('navigationRoutes', () => {
       expect(paths(role, null)).toEqual([
         '/',
         '/quiz',
+        '/engine-access',
         '/calculus-1',
         '/calculus',
         '/math-solver',

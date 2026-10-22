@@ -65,6 +65,8 @@ export interface ModuleManifest {
 }
 
 export interface ModuleAccessContext {
+  /** Server-resolved engine IDs; may relax majors only, never roles/resource permissions. */
+  engineGrants?: readonly string[];
   role: ModuleRole | null | undefined;
   major?: string | null;
   permissions?: readonly ModulePermission[];

@@ -38,6 +38,7 @@ interface AuthContextType {
   user: User | null;
   role: Role | null;
   major: string | null;
+  engineGrants?: readonly string[];
   profile: UserProfile | null;
   status: AuthStatus;
   loading: boolean; // Retained for backwards compatibility, but status is preferred
@@ -68,6 +69,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [major, setMajor] = useState<string | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [status, setStatus] = useState<AuthStatus>('loading');
+  const [grants, setGrants] = useState<{owner:string; ids:string[]}>({owner:'',ids:[]});
+  useEffect(() => {
+    let active=true, sequence=0; const owner=user?.id;
+    if(!owner || role!=='student'){setGrants({owner:'',ids:[]});return;}
+    const refresh=async()=>{
+      const request=++sequence;
+      try {
+        const {data,error}=await supabase.rpc('my_module_access');
+        if(active&&request===sequence)setGrants({owner,ids:error?[]:(data??[]).map((row:{module_id:string})=>row.module_id)});
+      } catch {if(active&&request===sequence)setGrants({owner,ids:[]});}
+    };
+    void refresh(); const interval=setInterval(refresh,30000);
+    window.addEventListener('focus',refresh);
+    return()=>{active=false;clearInterval(interval);window.removeEventListener('focus',refresh);};
+  },[user?.id,role,major]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -185,7 +201,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{
+      value={{engineGrants: grants.owner===user?.id ? grants.ids : [],
         user,
         role,
         major,

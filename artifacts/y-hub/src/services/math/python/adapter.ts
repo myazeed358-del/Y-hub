@@ -1,3 +1,4 @@
+import { mathHeaders } from './transportHeaders';
 import { PythonMathRequest, PythonMathResponse, MATH_PROTOCOL_VERSION } from './schema';
 import { MathProblemRequest } from '../types/problem';
 import { MathSecurityLimits } from '../types/security';
@@ -35,7 +36,7 @@ export class PythonMathAdapter {
     try {
       const response = await fetch(this.endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...await mathHeaders() },
         body: JSON.stringify(payload)
       });
 

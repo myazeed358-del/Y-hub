@@ -5,3 +5,5 @@ export {
   linearAlgebraPort, fuzzyPort, inequalityPort, integrationPort,
   advancedIntegrationPort, equationPort, limitPort, numericRootPort,
 } from './defaultPorts';
+
+export { configureMathHeaders } from '../python/transportHeaders';

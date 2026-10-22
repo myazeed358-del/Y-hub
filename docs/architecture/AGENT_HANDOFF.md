@@ -1,3 +1,9 @@
+# University features — phase 1 verified (2026-10-22)
+
+Current task is the university feature request, not a repeat of Phase 3. Read `docs/university/ENGINE_ACCESS.md`. Branch `feature/exceptional-engine-access` independently based on verified main `8a5dde1b20f26161e7e26b8b0bf71ecd1097f136`; Phase 3 heads remain preserved and unmerged. New 0033 + grant UI/API/backend guards complete. Full phase verification: 1865 Vitest /214 files, 36 Python, 102 PostgreSQL, eight architecture guards, two export tests, all TS/audits/build PASS. Git/remote establishes newest checkpoint. No production operations/main merge.
+
+NEXT: create `feature/student-quick-access` from this verified feature branch (explicit dependency on server module policies), enhance the EXISTING StudentDashboardSidebar card with account preferences/CAS/0–3 tools and sync. Then implement Y-Attendance, Online Lectures and Owner labels on focused branches; full tests after each phase. Continue automatically, do not stop at this checkpoint. Do not repeat completed Phase 3 or grant functionality. GitHub API still previously blocked; Git push works. Hosted staging unavailable; mark pending. Vercel Python size issue remains deferred.
+
 # Phase 2 — final verified checkpoint (2026-10-20)
 
 Implementation is complete locally; see `docs/phase2/FINAL_REPORT.md` and `CHANGED_FILES.md`. Do not restart completed work. Current branch `feature/syllabus-academic-permissions` is stacked on B `99852b5f006a94b0f021619bc6ad2c622f96f56b`; A is independent at `39dd464dc67b29ccf5b03eca5651213cd93ca13e`. Previous verified remote C checkpoint: `61236700cca3dcb7d9d8d1705e363556327bf2be`. The final commit adds the proven demoted-owner question/result read-policy fix in new 0028, its regression and final evidence; use Git/ls-remote for the newest hash.

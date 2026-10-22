@@ -30,8 +30,9 @@ export function buildNavigationRouteGroups(
   role: ModuleRole | null | undefined,
   major?: string | null,
   modules: ModuleRegistry = moduleRegistry,
+  engineGrants?: readonly string[],
 ): NavigationRouteGroup[] {
-  const contributions = getModuleNavigation(modules, { role, major });
+  const contributions = getModuleNavigation(modules, { role, major, engineGrants });
   const itemsFor = (group: ModuleNavigationGroup): NavigationRouteItem[] => contributions
     .filter(item => item.group === group).map(item => ({
       href: item.href,
