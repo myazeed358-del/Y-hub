@@ -24,6 +24,10 @@ class SupabaseHTTP(unittest.TestCase):
   return body
  def denied(self,actor,path,data=None,method=None):
   status,_=self.request(actor,path,data,method);self.assertIn(status,[400,401,403,404,409])
+ def conflict(self,actor,path,data):
+  start=time.monotonic();status,body=self.request(actor,path,data)
+  self.assertEqual(status,409);self.assertEqual(body['code'],'PT409')
+  self.assertLess(time.monotonic()-start,10,'Permanent application conflicts must not loop in transaction retries')
  def section(self,major='mathematics'):
   d,c=uid(),uid()
   self.ok('admin','/rpc/create_course_definition',{'p_id':d,'p_title':'Local definition','p_code':'M1','p_description':'','p_department':'Science','p_major':major})
@@ -67,6 +71,8 @@ class SupabaseHTTP(unittest.TestCase):
   payload={'p_id':c,'p_definition':d,'p_instructor':self.accounts['instructor']['id'],'p_label':'01','p_term':'2026-Fall'}
   self.assertEqual(self.ok('admin','/rpc/create_academic_section',payload),c)
   self.assertEqual(len(self.ok('admin',f'/courses?id=eq.{c}')),1)
+  self.conflict('admin','/rpc/create_academic_section',{**payload,'p_label':'Different'})
+  self.conflict('admin','/rpc/create_course_definition',{'p_id':d,'p_title':'Different','p_code':'M1','p_description':'','p_department':'Science','p_major':'mathematics'})
  def test_05_major_and_enrollment_visibility_are_database_enforced(self):
   _,c=self.section('medicine')
   self.assertEqual(self.ok('student',f'/courses?id=eq.{c}'),[])
@@ -79,7 +85,7 @@ class SupabaseHTTP(unittest.TestCase):
   self.assertEqual(self.ok('student','/rpc/read_course_syllabus',{'p_course_id':c})['units'],[u])
   self.assertIsNone(self.ok('student2','/rpc/read_course_syllabus',{'p_course_id':c}))
   self.denied('student','/rpc/save_course_syllabus',payload)
-  self.denied('instructor','/rpc/save_course_syllabus',payload)
+  self.conflict('instructor','/rpc/save_course_syllabus',payload)
   roster=self.ok('admin','/rpc/get_managed_course_enrollment_roster_v2',{'p_course_id':c})
   self.assertEqual(roster[0]['full_name'],'Local student')
   self.denied('other','/rpc/get_managed_course_enrollment_roster_v2',{'p_course_id':c})
@@ -90,7 +96,15 @@ class SupabaseHTTP(unittest.TestCase):
   questions=self.ok('student','/rpc/get_exam_questions',payload)
   self.assertEqual(questions[0]['content'],'Original');self.assertNotIn('correct_answer',questions[0])
   self.assertEqual(self.ok('student','/rpc/start_exam_attempt',payload)['deadline_at'],attempt['deadline_at'])
-  def submit(_):return self.ok('student','/rpc/submit_exam',{'p_exam_id':e,'p_answers':{q:'42'}})
+  account=self.accounts['student']
+  status,second=self.stack.request('auth','/token?grant_type=password',{'email':account['email'],'password':account['password']})
+  self.assertEqual(status,200)
+  status,resumed=self.stack.request('rest','/rpc/start_exam_attempt',payload,second['access_token'])
+  self.assertEqual(status,200);self.assertEqual(resumed['deadline_at'],attempt['deadline_at'])
+  def submit(index):
+   token=second['access_token'] if index else account['token']
+   status,result=self.stack.request('rest','/rpc/submit_exam',{'p_exam_id':e,'p_answers':{q:'42'}},token)
+   self.assertEqual(status,200);return result
   with ThreadPoolExecutor(2) as pool:results=list(pool.map(submit,range(2)))
   self.assertEqual(results[0]['result'],results[1]['result']);self.assertEqual(results[0]['result']['score'],3)
   self.assertEqual(self.ok('student2',f'/student_results?exam_id=eq.{e}'),[])
@@ -109,7 +123,7 @@ class SupabaseHTTP(unittest.TestCase):
   self.assertEqual(self.ok('admin','/rpc/assign_academic_section',payload),c)
   self.assertEqual(self.ok('instructor',f'/courses?id=eq.{c}'),[])
   self.assertEqual(self.ok('other',f'/courses?id=eq.{c}')[0]['id'],c)
-  self.denied('admin','/rpc/assign_academic_section',payload)
+  self.conflict('admin','/rpc/assign_academic_section',payload)
  def test_10_existing_jwt_loses_staff_privileges_after_demotion(self):
   c,e,q=self.exam();owner=self.accounts['instructor']['id']
   try:
@@ -127,7 +141,9 @@ class SupabaseHTTP(unittest.TestCase):
   self.assertEqual(self.ok('student','/rpc/save_y_sheets_workbook',payload),revision)
   self.assertEqual(self.ok('student2',f'/y_sheets_workbooks?id=eq.{w}'),[])
   self.denied('student2','/rpc/save_y_sheets_workbook',payload)
-  self.denied('student','/rpc/save_y_sheets_workbook',{**payload,'p_request_id':uid()})
+  self.conflict('student','/rpc/save_y_sheets_workbook',{**payload,'p_request_id':uid()})
+  self.conflict('student','/rpc/delete_y_sheets_workbook',{'p_id':w,'p_expected_revision':0})
+  self.assertEqual(self.ok('student',f'/y_sheets_workbooks?id=eq.{w}')[0]['revision'],revision)
   self.assertEqual(self.ok('student','/rpc/delete_y_sheets_workbook',{'p_id':w,'p_expected_revision':revision}),w)
   self.denied('student','/rpc/save_y_sheets_workbook',payload)
  def test_12_audit_visibility_and_append_only(self):

@@ -4,7 +4,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 repo="$PWD"
 base=8a5dde1b20f26161e7e26b8b0bf71ecd1097f136
-refs=(56e5e3303e66a759336ec9a6ad2f474ea1ee4941 a9a814ef1e4b2a427d0357d18cdf79cfa83b9274 bb199ef0b54d5e50cba83043612d81cd94187fe8)
+refs=(56e5e3303e66a759336ec9a6ad2f474ea1ee4941 a9a814ef1e4b2a427d0357d18cdf79cfa83b9274 caec7a29a11455b2ca2a242aa7dcde0dae865b92 11ac63dd9a820f17504bcfe929966dbb79a8652e)
 bundle=$(mktemp -d /tmp/yhub-phase3-verify.XXXXXX)
 trap 'rm -rf "$bundle"' EXIT
 git archive HEAD | tar -x -C "$bundle"
