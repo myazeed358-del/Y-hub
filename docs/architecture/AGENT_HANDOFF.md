@@ -1,3 +1,15 @@
+# Phase 3 — verified implementation and local integration (2026-10-22)
+
+Resume from `docs/phase3/FINAL_REPORT.md` and `CHANGED_FILES.md`. Base main remains `8a5dde1b20f26161e7e26b8b0bf71ecd1097f136`. All implementation branches are independent from that base. No merge, production writes/migrations, math/dependency/deployment changes or historical migration edits.
+
+Verified remote source checkpoints: security `56e5e3303e66a759336ec9a6ad2f474ea1ee4941`; exam recovery/snapshots `a9a814ef1e4b2a427d0357d18cdf79cfa83b9274`; academic management `caec7a29a11455b2ca2a242aa7dcde0dae865b92`; HTTP conflicts `fa9c7e3d5d8cd38f0644a207f78703f24a9f3b3c`. Current report/test branch: `test/phase3-real-integration`; source checkpoint `521b6df`, final remote SHA established through Git. New migrations 0029–0032 are LOCAL-TESTED ONLY.
+
+Complete combined verification PASS: **1886 Vitest /216 files, 29 Python, 112 PostgreSQL (45 academic +26 audit +20 exams +9 courses +12 sheets), 14 native GoTrue/JWT/PostgREST HTTP tests, eight boundary guard tests**, full workspace TypeScript/architecture/math/module checks and production build. `/tmp/phase3-combined-final.log`. The HTTP suite revealed retryable 40001 domain conflicts; final code uses PT409 without changing CAS/authorization and preserves client compatibility. No test failures remain in final runs.
+
+Do not redo completed implementation. Next: complete Draft PR delivery once the running environment allows `api.github.com` (saved draft already includes it, running policy does not), then hosted isolated staging and release review. Native Git push works; API returns Forbidden. No production readiness claim. Actual rls_auto_enable definition/owner, exact hosted ledger/versions, Storage, real-browser/devices and active-attempt-drain rollout remain PENDING. Answer drafts are local device only; server attempts/results remain authoritative. Known deferred Vercel Python bundle-size limit is untouched.
+
+## Historical handoffs below
+
 # Phase 2 — final verified checkpoint (2026-10-20)
 
 Implementation is complete locally; see `docs/phase2/FINAL_REPORT.md` and `CHANGED_FILES.md`. Do not restart completed work. Current branch `feature/syllabus-academic-permissions` is stacked on B `99852b5f006a94b0f021619bc6ad2c622f96f56b`; A is independent at `39dd464dc67b29ccf5b03eca5651213cd93ca13e`. Previous verified remote C checkpoint: `61236700cca3dcb7d9d8d1705e363556327bf2be`. The final commit adds the proven demoted-owner question/result read-policy fix in new 0028, its regression and final evidence; use Git/ls-remote for the newest hash.

@@ -1,6 +1,6 @@
 # Phase 3 local service integration
 
-This independent verification branch adds a reproducible GoTrue + PostgREST + PostgreSQL test stack. Implementation comes from the three separate Phase 3 branches; `verify-phase3-snapshot.sh` overlays pinned commits into a temporary source export without any Git merge. The initial commit is a test-harness checkpoint; final execution results will be recorded after the run.
+This independent verification branch adds a reproducible GoTrue + PostgREST + PostgreSQL test stack. Implementation comes from the four separate Phase 3 branches; `verify-phase3-snapshot.sh` overlays pinned commits into a temporary source export without any Git merge. Final combined execution passed: 14 native HTTP integration tests, 1886 Vitest in 216 files, 29 Python, 112 PostgreSQL, eight architecture guard tests, all workspace TypeScript/audits and production build. See FINAL_REPORT.md for evidence and limitations.
 
 Containers share a newly created internal-only Docker network. No ports are published. HTTP requests use a local Docker exec/nc stream to the named local services. There is no production URL input. Auth users are created through real GoTrue signup; passwords/refresh and access tokens are synthetic and never printed. Roles are provisioned in the disposable DB. PostgREST connects as a non-superuser authenticator without BYPASSRLS. GoTrue supplies its native auth.users/auth.uid/auth.role definitions. Only Storage tables are fixtures; Storage service integration is not claimed.
 
