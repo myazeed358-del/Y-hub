@@ -85,6 +85,7 @@ export function DashboardCourseCard({
                     {course.title}
                   </h3>
 
+                  {(course.section_label || course.academic_term) && <p className="text-sm text-muted-foreground">{course.section_label} · {course.academic_term}</p>}
                   <p className="mt-3 line-clamp-3 text-xs leading-6 text-muted-foreground dark:text-slate-500">
                     {course.description || copy.noDescription}
                   </p>

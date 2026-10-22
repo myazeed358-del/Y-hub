@@ -69,6 +69,7 @@ export function StudentDashboardMain({
                   </div>
                   <div className="text-xs text-primary mb-1 font-medium">{course.course_code || 'GEN'}</div>
                   <h3 className="text-lg font-semibold text-foreground mb-4 line-clamp-1">{course.title}</h3>
+                  {(course.section_label || course.academic_term) && <p className="mb-3 text-sm text-muted-foreground">{course.section_label} · {course.academic_term}</p>}
                   <div className="flex justify-between items-end mb-4 mt-auto">
                     <span className="text-xs text-muted-foreground">{isEnrolled ? t('enrolled') : t('notEnrolled')}</span>
                     <span className="text-sm font-bold text-foreground">{isEnrolled ? '100%' : '0%'}</span>
