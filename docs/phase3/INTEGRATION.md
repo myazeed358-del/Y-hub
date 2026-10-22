@@ -1,0 +1,9 @@
+# Phase 3 local service integration
+
+This independent verification branch adds a reproducible GoTrue + PostgREST + PostgreSQL test stack. Implementation comes from the three separate Phase 3 branches; `verify-phase3-snapshot.sh` overlays pinned commits into a temporary source export without any Git merge. The initial commit is a test-harness checkpoint; final execution results will be recorded after the run.
+
+Containers share a newly created internal-only Docker network. No ports are published. HTTP requests use a local Docker exec/nc stream to the named local services. There is no production URL input. Auth users are created through real GoTrue signup; passwords/refresh and access tokens are synthetic and never printed. Roles are provisioned in the disposable DB. PostgREST connects as a non-superuser authenticator without BYPASSRLS. GoTrue supplies its native auth.users/auth.uid/auth.role definitions. Only Storage tables are fixtures; Storage service integration is not claimed.
+
+Versions: PostgreSQL 16 alpine, GoTrue v2.177.0, PostgREST v12.2.3. Images use normal registry trust verification. This local platform combination is not a claim of matching the hosted project's exact service versions/configuration. Local mail autoconfirm avoids external email, not production authentication policy.
+
+Run `bash scripts/test-supabase-http.sh` after the implementation branches are present, or `bash scripts/verify-phase3-snapshot.sh --http-only` to test the separate pinned branches. Omit --http-only for all checks. The runner cleans only its own containers/network/export. No migrations run on production. Known deferred issue: Vercel Python deployment bundle size; no investigation/configuration change here.
