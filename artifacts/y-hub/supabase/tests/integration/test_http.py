@@ -145,7 +145,8 @@ class SupabaseHTTP(unittest.TestCase):
   self.conflict('student','/rpc/delete_y_sheets_workbook',{'p_id':w,'p_expected_revision':0})
   self.assertEqual(self.ok('student',f'/y_sheets_workbooks?id=eq.{w}')[0]['revision'],revision)
   self.assertEqual(self.ok('student','/rpc/delete_y_sheets_workbook',{'p_id':w,'p_expected_revision':revision}),w)
-  self.denied('student','/rpc/save_y_sheets_workbook',payload)
+  self.conflict('student','/rpc/save_y_sheets_workbook',payload)
+  self.assertEqual(self.ok('student',f'/y_sheets_workbooks?id=eq.{w}'),[])
  def test_12_audit_visibility_and_append_only(self):
   _,c=self.section()
   self.assertEqual(self.ok('instructor','/audit_events?limit=1'),[])
