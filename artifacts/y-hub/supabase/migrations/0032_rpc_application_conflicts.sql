@@ -35,7 +35,7 @@ BEGIN
   SELECT * INTO v_receipt FROM y_sheets_private.save_receipts
     WHERE owner_id=v_actor AND workbook_id=p_id AND request_id=p_request_id;
   IF FOUND THEN
-    IF v_row.id IS NULL THEN RAISE EXCEPTION 'Workbook deleted' USING ERRCODE='P0002'; END IF;
+    IF v_row.id IS NULL THEN RAISE EXCEPTION 'Workbook deleted' USING ERRCODE='PT409'; END IF;
     IF v_receipt.expected_revision <> p_expected_revision OR v_receipt.payload_hash <> v_hash THEN
       RAISE EXCEPTION 'Request ID reused for different content' USING ERRCODE='22023';
     END IF;

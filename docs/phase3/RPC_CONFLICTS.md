@@ -1,6 +1,6 @@
 # Phase 3 — application conflicts over PostgREST
 
-Independent branch `fix/phase3-rpc-conflicts`, base main `8a5dde1`. New additive migration **0032_rpc_application_conflicts.sql** replaces only save/delete Y-Sheets and save syllabus functions. Bodies, locking, actor verification, RLS security mode, grants and receipt semantics are identical to 0024/0028 except the deliberate stale-revision SQLSTATE is `PT409` rather than `40001`.
+Independent branch `fix/phase3-rpc-conflicts`, base main `8a5dde1`. New additive migration **0032_rpc_application_conflicts.sql** replaces only save/delete Y-Sheets and save syllabus functions. Bodies, locking, actor verification, RLS security mode, grants and receipt semantics are identical to 0024/0028 except deliberate stale-revision SQLSTATEs use `PT409` instead of `40001`, and a deleted receipt replay uses the same terminal conflict instead of `P0002` (which PostgREST exposes as HTTP 500).
 
 Native GoTrue/PostgREST integration exposed three timeouts at deliberate stale syllabus, academic assignment and workbook writes. SQL tests alone could not detect this: the PostgREST 12.2.3 transaction layer repeatedly retried the serialization error. A minimal isolated RPC that only raises `40001` reproduced repeated execution in PostgreSQL logs and a disconnected request after 30.09 seconds. Changing only the code to `PT409` returned HTTP 409 in 0.06 seconds. This is an application conflict, so rerunning the same stale request cannot resolve it. Genuine database serialization failures are not intercepted or recoded.
 

@@ -104,3 +104,9 @@ class Saves(unittest.TestCase):
         for statement in statements:
             run(f"DO $$ BEGIN {statement}; RAISE EXCEPTION 'stale write accepted'; EXCEPTION WHEN SQLSTATE 'PT409' THEN NULL; END $$",A)
         self.assertEqual(run(f"SELECT name||'/'||revision FROM public.y_sheets_workbooks WHERE id='{id}'",A).stdout.strip(),'Book/1')
+
+    def test_deleted_receipt_replay_is_terminal_conflict_without_resurrection(self):
+        id,request=new();data=json.dumps(content(id))
+        run(f"SELECT public.delete_y_sheets_workbook('{id}',1)",A)
+        run(f"DO $$ BEGIN PERFORM public.save_y_sheets_workbook('{id}','{request}',0,'{data}','{A}'); RAISE EXCEPTION 'deleted save accepted'; EXCEPTION WHEN SQLSTATE 'PT409' THEN NULL; END $$",A)
+        self.assertEqual(run(f"SELECT count(*) FROM public.y_sheets_workbooks WHERE id='{id}'",A).stdout.strip(),'0')
