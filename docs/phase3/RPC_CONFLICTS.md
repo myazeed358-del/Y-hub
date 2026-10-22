@@ -1,0 +1,11 @@
+# Phase 3 — application conflicts over PostgREST
+
+Independent branch `fix/phase3-rpc-conflicts`, base main `8a5dde1`. New additive migration **0032_rpc_application_conflicts.sql** replaces only save/delete Y-Sheets and save syllabus functions. Bodies, locking, actor verification, RLS security mode, grants and receipt semantics are identical to 0024/0028 except the deliberate stale-revision SQLSTATE is `PT409` rather than `40001`.
+
+Native GoTrue/PostgREST integration exposed three timeouts at deliberate stale syllabus, academic assignment and workbook writes. SQL tests alone could not detect this: the PostgREST 12.2.3 transaction layer repeatedly retried the serialization error. A minimal isolated RPC that only raises `40001` reproduced repeated execution in PostgreSQL logs and a disconnected request after 30.09 seconds. Changing only the code to `PT409` returned HTTP 409 in 0.06 seconds. This is an application conflict, so rerunning the same stale request cannot resolve it. Genuine database serialization failures are not intercepted or recoded.
+
+The new, unmerged academic RPCs in 0031 are corrected on their own branch. This branch independently fixes the existing main RPCs; it does not require the other Phase 3 migrations. The syllabus and workbook adapters recognize both codes, supporting staged deployment and retaining old-server compatibility. No automatic overwrite/rebase/retry is introduced. Workbook intent and syllabus edits remain available for explicit reconciliation. Deploy compatible frontend before applying 0032.
+
+Two frontend negative controls failed before adapter changes (`unavailable`/network classification for PT409). All 22 focused tests pass afterward, including old-code compatibility. SQL tests assert exact PT409 for stale save/delete and unchanged records. Native HTTP tests assert 409 and PT409, not merely any error. Full combined verification and final counts are recorded on the integration/report branch. Before evidence: `/tmp/phase3-http-before-conflict-fix.log`, `/tmp/phase3-conflict-ui-before.log`; after: `/tmp/phase3-conflict-ui-after.log`, `/tmp/phase3-conflicts-{academic,sheets}.log`.
+
+No production access/migration. Hosted PostgREST version and rollout remain staging gates. No mathematical or deployment changes.

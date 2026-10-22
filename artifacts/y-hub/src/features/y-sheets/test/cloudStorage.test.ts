@@ -53,12 +53,12 @@ describe("Supabase workbook save protocol", () => {
       p_content: { name: "New edit" },
     });
   });
-  it("serializes concurrent snapshots and never rebases an external conflict", async () => {
+  it.each(["40001", "PT409"])("serializes concurrent snapshots and preserves an external %s conflict", async (code) => {
     const storage = createSupabaseWorkbookStorage(owner);
     const wb = await storage.loadWorkbook(workbook().id);
     api.rpc
       .mockResolvedValueOnce({ data: 2, error: null })
-      .mockResolvedValueOnce({ data: null, error: { code: "40001" } });
+      .mockResolvedValueOnce({ data: null, error: { code } });
     const first = storage.saveWorkbook(wb),
       second = storage.saveWorkbook({ ...wb, name: "Second" });
     await first;

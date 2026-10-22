@@ -36,7 +36,7 @@ export function createSupabaseWorkbookStorage(ownerId: string,
       p_expected_owner_id: ownerId, p_id: id, p_request_id: intent.requestId, p_expected_revision: checkpoint.revision, p_content: intent.workbook,
     });
     if (error) {
-      const kind = error.code === '40001' || error.code === 'P0002' ? 'conflict'
+      const kind = (error.code === 'PT409' || error.code === '40001') || error.code === 'P0002' ? 'conflict'
         : error.code === '42501' ? 'session' : error.code === '22023' ? 'invalid' : 'network';
       throw new WorkbookStorageError(kind, kind === 'conflict' ? 'Workbook conflict: preserve your copy before reconciliation.' : 'Unable to save workbook. Your edits are retained.');
     }

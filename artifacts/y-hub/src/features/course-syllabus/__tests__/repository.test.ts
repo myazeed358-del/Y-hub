@@ -27,3 +27,10 @@ it('validates titles before sending a mutation',async()=>{
  await expect(syllabusRepository.save({...snapshot,units:[{...snapshot.units[0],title:''}]})).rejects.toThrow('invalid');
  expect(rpc).not.toHaveBeenCalled();
 });
+
+it.each(['40001','PT409'])('preserves edits as a %s conflict rather than suggesting a network retry',async code=>{
+ rpc.mockResolvedValue({data:null,error:{code}});
+ await expect(syllabusRepository.save(snapshot)).rejects.toMatchObject({kind:'conflict'});
+ expect(snapshot.units[0].title).toBe(' Unit ');
+ expect(rpc).toHaveBeenCalledTimes(1);
+});
