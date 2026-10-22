@@ -29,7 +29,7 @@ BEGIN
  IF FOUND THEN
    IF (v_existing.title,v_existing.code,v_existing.description,v_existing.department,v_existing.academic_major)
     IS DISTINCT FROM (btrim(p_title),nullif(btrim(p_code),''),nullif(btrim(p_description),''),nullif(btrim(p_department),''),nullif(btrim(p_major),'')) THEN
-     RAISE EXCEPTION 'Definition ID already used' USING ERRCODE='40001'; END IF;
+     RAISE EXCEPTION 'Definition ID already used' USING ERRCODE='PT409'; END IF;
    RETURN p_id;
  END IF;
  INSERT INTO public.course_definitions(id,title,code,description,department,academic_major)
@@ -55,7 +55,7 @@ BEGIN
  IF FOUND THEN
    IF (v_existing.course_definition_id,v_existing.instructor_id,v_existing.section_label,v_existing.academic_term)
      IS DISTINCT FROM (p_definition,p_instructor,btrim(p_label),btrim(p_term)) THEN
-     RAISE EXCEPTION 'Section ID already used' USING ERRCODE='40001'; END IF;
+     RAISE EXCEPTION 'Section ID already used' USING ERRCODE='PT409'; END IF;
    RETURN p_id;
  END IF;
  INSERT INTO public.courses(id,course_definition_id,instructor_id,title,course_code,description,section_label,academic_term,is_published,enrollment_open)
@@ -74,7 +74,7 @@ BEGIN
  IF v_target_role IS DISTINCT FROM 'instructor' THEN RAISE EXCEPTION 'Assigned instructor unavailable' USING ERRCODE='42501'; END IF;
  SELECT instructor_id INTO v_owner FROM public.courses WHERE id=p_section FOR UPDATE;
  IF NOT FOUND THEN RAISE EXCEPTION 'Section unavailable' USING ERRCODE='42501'; END IF;
- IF v_owner IS DISTINCT FROM p_expected_instructor THEN RAISE EXCEPTION 'Assignment changed; reload' USING ERRCODE='40001'; END IF;
+ IF v_owner IS DISTINCT FROM p_expected_instructor THEN RAISE EXCEPTION 'Assignment changed; reload' USING ERRCODE='PT409'; END IF;
  IF v_owner IS DISTINCT FROM p_instructor THEN UPDATE public.courses SET instructor_id=p_instructor WHERE id=p_section; END IF;
  RETURN p_section;
 END $$;

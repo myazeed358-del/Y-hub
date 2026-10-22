@@ -36,7 +36,7 @@ class AcademicManagement(unittest.TestCase):
   sql=f"SELECT public.assign_academic_section('{c}','{I}','{O}')"
   for actor in [I,U]:self.assertNotEqual(run(sql,actor,False).returncode,0)
   self.assertEqual(value(sql,A),c)
-  self.assertNotEqual(run(sql,S,False).returncode,0)
+  run(f"DO $$ BEGIN PERFORM public.assign_academic_section('{c}','{I}','{O}'); RAISE EXCEPTION 'stale assignment accepted'; EXCEPTION WHEN SQLSTATE 'PT409' THEN NULL; END $$",S)
   self.assertEqual(value(f"SELECT count(*) FROM public.syllabus_units WHERE id='{unit}'",I),'0')
   self.assertEqual(value(f"SELECT course_id FROM public.syllabus_units WHERE id='{unit}'",O),c)
   self.assertEqual(value(f"SELECT count(*) FROM public.audit_events WHERE entity_id='{c}' AND actor_id='{A}' AND operation='UPDATE'",S),'1')

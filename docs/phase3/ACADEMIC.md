@@ -23,3 +23,5 @@ The independent feature contains typed validation/repository, loading/error/pagi
 - Exact route/navigation inventory assertions were updated for the one intended staff-only route; no checks were disabled or relaxed. Logs `/tmp/phase3-academic-{focused,full,sql,audit-log,exam-attempts,course-deletion,y-sheets}.log`.
 
 No production migration, main merge, Vercel/Python configuration change or new engine feature. Real HTTP integration and staging limits are recorded separately. Main's existing public educational Storage and unknown production migration ledger remain rollout considerations. Known deferred: Vercel Python deployment bundle size.
+
+HTTP integration follow-up: deliberate catalog/section ID and assignment revision conflicts use `PT409` (HTTP 409), not retryable PostgreSQL serialization code `40001`. Native PostgREST 12.2.3 repeatedly retried the old assignment error until transport timeout; the real HTTP suite verifies a bounded conflict response. Locks, authorization and CAS comparisons are unchanged.
