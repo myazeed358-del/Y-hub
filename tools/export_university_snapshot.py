@@ -5,6 +5,7 @@ ROOT=Path(__file__).resolve().parents[1]
 BASE='8a5dde1b20f26161e7e26b8b0bf71ecd1097f136'
 PHASE3=['56e5e3303e66a759336ec9a6ad2f474ea1ee4941','a9a814ef1e4b2a427d0357d18cdf79cfa83b9274','caec7a29a11455b2ca2a242aa7dcde0dae865b92','fa9c7e3d5d8cd38f0644a207f78703f24a9f3b3c']
 ENGINE='db0ae2d7b57efee2ed85621d8a3e9f2488abda02'
+ENGINE_FIX='62a0565c75319e46881a473b1c6bcbc0bf8096f7'
 QUICK='f862ae29b547940dfe1790a9d9f14f63b35d6b3f'
 OWNER='b150fddc6cae053e9aa765ac5f3905b5d7156ffe'
 # These four exact test inventories are additive changes on both independent branches.
@@ -28,6 +29,7 @@ def main():
  if not str(destination).startswith('/tmp/yhub-university-verify.') or any(destination.iterdir()):raise SystemExit('Requires an empty disposable verification directory')
  extract('HEAD',destination)
  for ref in PHASE3:overlay(BASE,ref,destination,INVENTORIES)
+ overlay(ENGINE,ENGINE_FIX,destination)
  overlay(ENGINE,QUICK,destination);overlay(BASE,OWNER,destination)
  for path in INVENTORIES:
   file=destination/path;text=file.read_text()
