@@ -36,6 +36,19 @@ describe('Spreadsheet UI Behavior', () => {
     expect(screen.getByRole('button', { name: 'Export workbook' })).toBeInTheDocument();
   });
 
+  it('uses the approved Y-Hub identity and groups existing commands into tabs', () => {
+    render(<MockApp />);
+    expect(screen.getByRole('img', { name: 'Y-Sheets by Y-Hub' })).toBeInTheDocument();
+    expect(screen.getByRole('tablist', { name: 'Spreadsheet tools' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', { name: 'Data' }));
+    expect(screen.getByRole('button', { name: 'Sort ascending' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Data validation' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', { name: 'Insert' }));
+    expect(screen.getByRole('button', { name: 'Add worksheet' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', { name: 'Formulas' }));
+    expect(screen.getByRole('button', { name: 'Open formula entry' })).toBeInTheDocument();
+  });
+
   it('renders formula bar with active cell and fx selector', () => {
     render(<MockApp />);
     expect(screen.getByTitle('Insert Function')).toBeInTheDocument();
