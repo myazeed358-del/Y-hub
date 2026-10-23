@@ -88,7 +88,7 @@ class Attempts(unittest.TestCase):
   self.start()
   run(f"UPDATE public.exam_attempts SET deadline_at=clock_timestamp()+interval '1 second' WHERE exam_id='{self.e}'")
   with ThreadPoolExecutor(2) as pool:
-   blocker=pool.submit(run,f"SELECT id FROM public.questions WHERE id='{self.q}' FOR UPDATE; SELECT pg_sleep(1.5)")
+   blocker=pool.submit(run,f"SELECT id FROM public.exam_attempts WHERE exam_id='{self.e}' FOR UPDATE; SELECT pg_sleep(1.5)")
    time.sleep(.25)
    submitted=pool.submit(self.submit)
    blocker.result(); result=submitted.result()
@@ -111,3 +111,29 @@ class Attempts(unittest.TestCase):
    revoked.result(); result=submitted.result()
   self.assertNotEqual(result.returncode,0)
   self.assertIn('Active enrollment required',result.stderr)
+ def test_attempt_question_version_survives_edits_and_deletion(self):
+  self.start()
+  run(f"UPDATE public.questions SET content='Changed',correct_answer='99',points=9 WHERE id='{self.q}'",I)
+  visible=run(f"SELECT content FROM public.get_exam_questions('{self.e}')",U).stdout.strip()
+  self.assertEqual(visible,'test')
+  run(f"DELETE FROM public.questions WHERE id='{self.q}'",I)
+  self.assertEqual(self.submit()['result']['score'],3)
+ def test_later_attempt_gets_new_version_without_changing_first_attempt(self):
+  self.start()
+  run(f"UPDATE public.questions SET correct_answer='99',points=9 WHERE id='{self.q}'",I)
+  self.assertEqual(self.submit()['result']['score'],3)
+  other=str(uuid.uuid4())
+  run(f"INSERT INTO auth.users(id,email) VALUES('{other}','local@example.invalid'); INSERT INTO public.course_enrollments(course_id,student_id) VALUES('{self.c}','{other}')")
+  self.rpc('start_exam_attempt',actor=other)
+  result=self.rpc('submit_exam',",'"+json.dumps({self.q:'99'})+"'",actor=other)
+  self.assertEqual(result['result']['score'],9)
+ def test_snapshot_is_private(self):
+  self.start()
+  self.assertNotEqual(run('SELECT * FROM yhub_exam_private.attempt_questions',U,False).returncode,0)
+ def test_failed_snapshot_rolls_back_attempt_creation(self):
+  try:
+   run("CREATE FUNCTION yhub_exam_private.test_fail_snapshot() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'snapshot unavailable'; END $$; CREATE TRIGGER test_fail_snapshot BEFORE INSERT ON yhub_exam_private.attempt_questions FOR EACH ROW EXECUTE FUNCTION yhub_exam_private.test_fail_snapshot()")
+   self.assertIn('snapshot unavailable',self.rpc('start_exam_attempt',check=False).stderr)
+   self.assertEqual(run(f"SELECT count(*) FROM public.exam_attempts WHERE exam_id='{self.e}'").stdout.strip(),'0')
+  finally:run('DROP TRIGGER test_fail_snapshot ON yhub_exam_private.attempt_questions; DROP FUNCTION yhub_exam_private.test_fail_snapshot()')
+  self.assertEqual(self.start()['status'],'active')

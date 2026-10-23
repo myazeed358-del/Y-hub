@@ -58,7 +58,7 @@ export function getDashboardCopy(isArabic: boolean) {
         sync: 'متصل بقاعدة البيانات',
         roleInstructor: 'مدرّس',
         roleAdmin: 'مدير',
-        roleSuperAdmin: 'مدير رئيسي',
+        roleSuperAdmin: 'Owner',
       }
     : {
         workspace: 'Instructor workspace',
@@ -119,6 +119,6 @@ export function getDashboardCopy(isArabic: boolean) {
         sync: 'Database connected',
         roleInstructor: 'Instructor',
         roleAdmin: 'Admin',
-        roleSuperAdmin: 'Super Admin',
+        roleSuperAdmin: 'Owner',
       };
 }

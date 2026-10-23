@@ -1,3 +1,4 @@
+import { useAnswerRecovery } from "./useAnswerRecovery";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRoute } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
@@ -20,7 +21,7 @@ export function useExamRunner() {
   const [exam, setExam] = useState<ExamInfo | null>(null);
   const [questions, setQuestions] = useState<ExamQuestion[]>([]);
   const [loading, setLoading] = useState(true);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const { answers, setAnswers, recoveryMessage, recoveryChoices, resetRecovery, recover, confirmed, recoveryFailed } = useAnswerRecovery(userId, examId);
   const [timeLeft, setTimeLeft] = useState(0);
   const [phase, setPhase] = useState<SubmissionPhase>("editing");
   const [error, setError] = useState<string | null>(null);
@@ -51,8 +52,9 @@ export function useExamRunner() {
           : "editing",
     );
     setError(null);
+    if (attempt.status === "submitted") confirmed(attempt.attempt_id);
     return attempt;
-  }, []);
+  }, [confirmed]);
 
   useEffect(() => {
     const current = ++generation.current;
@@ -62,7 +64,7 @@ export function useExamRunner() {
     ++version.current;
     setExam(null);
     setQuestions([]);
-    setAnswers({});
+    resetRecovery();
     setResult(null);
     setError(null);
     setPhase("editing");
@@ -88,6 +90,7 @@ export function useExamRunner() {
           if (response.error) throw response.error;
           if (!response.data) throw new Error("Questions unavailable");
           setQuestions(response.data);
+          recover(state.attempt_id!);
           ready.current = true;
         }
       } catch {
@@ -161,7 +164,15 @@ export function useExamRunner() {
       window.removeEventListener("online", synchronize);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [examId, userId, apply]);
+  }, [examId, userId, apply, resetRecovery, recover]);
+
+  useEffect(() => {
+    const unload = (event: BeforeUnloadEvent) => {
+      if (recoveryFailed()) { event.preventDefault(); event.returnValue = ""; }
+    };
+    window.addEventListener("beforeunload", unload);
+    return () => window.removeEventListener("beforeunload", unload);
+  }, [recoveryFailed]);
 
   const handleSubmit = async () => {
     if (
@@ -207,6 +218,8 @@ export function useExamRunner() {
     }
   };
   return {
+    recoveryMessage,
+    recoveryChoices,
     exam,
     questions,
     loading,

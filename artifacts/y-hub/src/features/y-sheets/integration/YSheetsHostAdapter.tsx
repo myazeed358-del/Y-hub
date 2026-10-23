@@ -139,15 +139,11 @@ export const YSheetsHostAdapter: React.FC<YSheetsIntegrationProps> = ({
           onDraftChange={onDraftChange}
         >
           <WorkbookSurface className={className} style={style}>
-          {/* Host User / Permission Banner if restricted */}
-          {user && (
-            <div className="flex items-center justify-between px-3 py-1 bg-emerald-50/80 dark:bg-emerald-950/40 border-b border-emerald-100 dark:border-emerald-900 text-[11px] text-emerald-800 dark:text-emerald-300">
-              <span className="font-medium">
-                Integrated Session: {user.name} ({user.role || 'Student'})
-              </span>
-              <span>
-                {permissions.canEdit ? 'Full Edit Access' : 'Read-Only Mode'}
-              </span>
+          {/* The authenticated user is already represented by Y-Hub.
+              Only show a restriction notice when editing is actually denied. */}
+          {user && !permissions.canEdit && (
+            <div className="ys-readonly-banner" role="status">
+              Read-only workbook access
             </div>
           )}
 

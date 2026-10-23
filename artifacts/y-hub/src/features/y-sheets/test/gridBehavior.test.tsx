@@ -29,9 +29,11 @@ describe('Spreadsheet UI Behavior', () => {
   it('renders application toolbar, title, and buttons', () => {
     render(<MockApp />);
     expect(screen.getByText('Y-Sheets')).toBeInTheDocument();
-    expect(screen.getByText('New')).toBeInTheDocument();
-    expect(screen.getByText('Open')).toBeInTheDocument();
-    expect(screen.getByText('Export')).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Home' })).toHaveAttribute('aria-selected', 'true');
+    fireEvent.click(screen.getByRole('tab', { name: 'File' }));
+    expect(screen.getByRole('button', { name: 'New workbook' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Import Excel or CSV' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Export workbook' })).toBeInTheDocument();
   });
 
   it('renders formula bar with active cell and fx selector', () => {
