@@ -104,7 +104,7 @@ export const Toolbar: React.FC<{ onNewWorkbook?: () => void }> = ({ onNewWorkboo
             onChange={e => dispatch({ type: 'SET_WORKBOOK_NAME', payload: e.target.value })}
             className="ys-document-name" />
         </div>
-        <button type="button" className="ys-theme-switch" title="Switch editor theme"
+        <button type="button" className="ys-theme-switch" title={theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
           aria-label="Switch editor theme"
           onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
           {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
