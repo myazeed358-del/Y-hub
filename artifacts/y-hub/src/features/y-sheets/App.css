@@ -488,3 +488,40 @@
   --tw-ring-color: #22D3EE; outline-color: #22D3EE;
 }
 .y-sheets-root .ys-ribbon-menu { position: absolute; top: 100%; left: 0; }
+
+/* Fullscreen editing: all host controls live in the ribbon instead of a second page bar. */
+.y-sheets-root .ys-ribbon-host-actions {
+  margin-left: auto; flex: none; display: flex; align-items: center;
+  gap: 6px; min-width: 0; white-space: nowrap;
+}
+.y-sheets-root .ys-host-action {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 34px; padding: 6px 10px;
+  border: 1px solid var(--border-medium); border-radius: 7px;
+  background: var(--bg-surface-secondary); color: var(--text-primary);
+  font-size: 11px; cursor: pointer;
+}
+.y-sheets-root .ys-host-action:hover:not(:disabled) {
+  border-color: var(--accent); background: var(--accent-light);
+}
+.y-sheets-root .ys-host-action:disabled { opacity: .55; cursor: not-allowed; }
+.y-sheets-root .ys-save-chip {
+  display: inline-flex; align-items: center; gap: 5px; font-size: 11px;
+  font-weight: 700; color: var(--accent-dark); padding: 4px 6px;
+}
+.y-sheets-root.dark .ys-save-chip { color: var(--accent); }
+.y-sheets-root .ys-save-chip[data-save-status="error"],
+.y-sheets-root .ys-save-chip[data-save-status="conflict"] { color: #f87171; }
+@media (max-width: 890px) {
+  .y-sheets-root .ys-ribbon-titlebar { overflow-x: auto; scrollbar-width: thin; }
+  .y-sheets-root .ys-ribbon-host-actions { gap: 3px; }
+  .y-sheets-root .ys-host-action { padding: 7px; }
+  .y-sheets-root .ys-host-action span, .y-sheets-root .ys-save-chip span { display: none; }
+  .y-sheets-root .ys-document-by { display: none; }
+  .y-sheets-root .ys-document-name { max-width: 140px; }
+}
+@media (max-width: 430px) {
+  .y-sheets-root .ys-document-name { max-width: 90px; }
+  .y-sheets-root .ys-document-product { font-size: 11px; }
+  .y-sheets-root .ys-ribbon-titlebar { gap: 5px; }
+}
