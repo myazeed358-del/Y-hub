@@ -195,7 +195,11 @@ class SupabaseHTTP(unittest.TestCase):
    self.assertTrue(self.ok('student','/rpc/authorize_engine_compute',{'p_protocol':'phase','p_scope':'10'}))
    self.assertEqual(self.ok('admin',f'/audit_events?entity_id=eq.{grant}')[0]['actor_role'],'instructor')
    self.denied('student','/engine_grants',{'course_id':c,'student_id':u,'engine_id':'linear-algebra'})
-   self.ok('instructor',f'/course_enrollments?course_id=eq.{c}&student_id=eq.{u}',{'status':'dropped'},'PATCH')
+   # Existing platform intentionally has no instructor enrollment-update policy.
+   self.assertEqual(self.ok('instructor',f'/course_enrollments?course_id=eq.{c}&student_id=eq.{u}',{'status':'dropped'},'PATCH'),[])
+   self.assertTrue(self.ok('student','/rpc/can_use_module',{'p_module':'linear-algebra'}))
+   # Simulate an authorized registrar transition ONLY in the isolated fixture DB.
+   self.stack.sql(f"UPDATE public.course_enrollments SET status='dropped' WHERE course_id='{c}' AND student_id='{u}'")
    self.assertFalse(self.ok('student','/rpc/can_use_module',{'p_module':'linear-algebra'}))
   finally:self.stack.sql(f"UPDATE public.users SET major='mathematics' WHERE id='{u}'")
  def test_16_quick_access_cross_device_conflict_isolation_and_application_options(self):
@@ -254,3 +258,13 @@ class SupabaseHTTP(unittest.TestCase):
    self.denied('instructor','/rpc/lecture_join_permission',{'p_lecture':l})
    self.denied('instructor','/rpc/open_attendance',{'p_lecture':l})
   finally:self.ok('super','/rpc/admin_set_user_role',{'p_user_id':i,'p_new_role':'instructor'})
+ def test_21_service_reconciliation_is_authorized_over_http_but_never_for_users(self):
+  c,l=self.lecture(online=True);u=self.accounts['student']['id']
+  encode=lambda x:base64.urlsafe_b64encode(json.dumps(x).encode()).decode().rstrip('=')
+  body=encode({'alg':'HS256','typ':'JWT'})+'.'+encode({'role':'service_role','exp':int(time.time())+60})
+  signature=base64.urlsafe_b64encode(hmac.new(self.stack.secret.encode(),body.encode(),hashlib.sha256).digest()).decode().rstrip('=')
+  token=body+'.'+signature;payload={'p_lecture':l,'p_user':u}
+  status,allowed=self.stack.request('rest','/rpc/lecture_participant_allowed',payload,token);self.assertEqual(status,200);self.assertTrue(allowed)
+  self.ok('instructor','/rpc/block_lecture_participant',{'p_lecture':l,'p_student':u,'p_reason':'reconcile now'})
+  status,allowed=self.stack.request('rest','/rpc/lecture_participant_allowed',payload,token);self.assertEqual(status,200);self.assertFalse(allowed)
+  for actor in ['student','instructor','admin','super']:self.denied(actor,'/rpc/lecture_participant_allowed',payload)

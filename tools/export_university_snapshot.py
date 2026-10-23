@@ -37,7 +37,7 @@ def main():
    assert "'/engine-access'," in text;text=text.replace("'/engine-access',","'/academic-management', '/engine-access',")
   file.write_text(text)
  # Frontend cross-branch integration tests are only compiled in this composed snapshot.
- fixture=ROOT/'tools/university-tests/quickAccessEditor.test.tsx'
+ fixture=destination/'tools/university-tests/quickAccessEditor.test.tsx'
  target=destination/'artifacts/y-hub/src/features/student-dashboard/__tests__/quickAccessEditor.test.tsx'
  target.parent.mkdir(parents=True,exist_ok=True);target.write_text(fixture.read_text())
  (destination/'node_modules').symlink_to(ROOT/'node_modules',target_is_directory=True)

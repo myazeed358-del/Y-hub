@@ -21,4 +21,4 @@ CREATE TABLE public.users(id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELET
  email text,full_name text,role text DEFAULT 'student',major text,study_year text,phone text,created_at timestamptz DEFAULT now());
 
 CREATE ROLE authenticator LOGIN NOINHERIT;
-GRANT anon,authenticated TO authenticator;
+GRANT anon,authenticated,service_role TO authenticator;
