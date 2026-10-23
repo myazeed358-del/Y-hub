@@ -6,8 +6,8 @@ import type { ModuleRegistry } from './registry';
 export function getModuleNavigation(registry: ModuleRegistry, context: ModuleAccessContext, surface: 'navigation' | 'dashboard' = 'navigation') {
   return registry.routes.flatMap(route => {
     const contribution = route[surface];
-    if (!contribution || !canAccessModule(route.module.access, context)) return [];
-    const visible = context.role === 'admin' || context.role === 'super_admin' ||
+    if (!contribution || !canAccessModule(route.module.access, context, route.module.kind === 'engine' ? route.module.id : undefined)) return [];
+    const visible = (route.module.kind === 'engine' && context.engineGrants?.includes(route.module.id)) || context.role === 'admin' || context.role === 'super_admin' ||
       !route.module.access.majors?.length ||
       Boolean(context.major && route.module.access.majors.includes(context.major));
     return visible ? [{

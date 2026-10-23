@@ -24,6 +24,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     profile: authProfile,
     user,
     signOut,
+    engineGrants,
   } = useAuth();
   const activeCourseName = useActiveCourseName(location, language);
   const {
@@ -47,7 +48,8 @@ export function AppShell({ children }: { children: ReactNode }) {
     dynamicNavItems,
   } = useAppNavigation(
     authProfile?.role,
-    authProfile?.major
+    authProfile?.major,
+    engineGrants
   );
 
 

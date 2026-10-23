@@ -1,6 +1,7 @@
 import json
 import sys
 import unittest
+from unittest.mock import patch,MagicMock
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -274,11 +275,17 @@ class TestHttpContract(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.client = TestClient(app)
+        # Contract tests isolate the external authorization service, not the HTTP guard.
+        cls.env=patch.dict('os.environ',{'SUPABASE_URL':'https://local.invalid','SUPABASE_ANON_KEY':'local-public-fixture'})
+        cls.env.start()
+        cls.rpc=patch('python.api.authorization.urllib.request.urlopen')
+        cls.rpc.start().return_value.__enter__.return_value.read.return_value=b'true'
+        cls.client = TestClient(app,headers={'Authorization':'Bearer synthetic-contract-fixture'})
 
     @classmethod
     def tearDownClass(cls):
         cls.client.close()
+        cls.rpc.stop();cls.env.stop()
 
     def test_health_http_200(self):
         response = self.client.get(

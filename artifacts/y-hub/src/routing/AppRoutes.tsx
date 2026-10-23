@@ -80,7 +80,7 @@ export function AppRoutes({
       {modules.routes.map(route => (
         <Route key={route.path} path={route.path}>
           {() => <ProtectedRoute component={ModulePage} route={route}
-            moduleAccess={route.module.access} />}
+            moduleAccess={route.module.access} engineId={route.module.kind === 'engine' ? route.module.id : undefined} />}
         </Route>
       ))}
       <Route path="/legacy-home">{() => <ProtectedRoute component={Home} />}</Route>

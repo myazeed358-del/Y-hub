@@ -16,7 +16,8 @@ type NavigationMajor =
 
 export function useAppNavigation(
   role: NavigationRole,
-  major: NavigationMajor
+  major: NavigationMajor,
+  engineGrants?: readonly string[]
 ) {
   const [mobileNav, setMobileNav] = useState(false);
 
@@ -29,8 +30,8 @@ export function useAppNavigation(
   }, []);
 
   const dynamicNavItems = useMemo(
-    () => buildNavigationGroups(role, major),
-    [role, major]
+    () => buildNavigationGroups(role, major, engineGrants),
+    [role, major, engineGrants]
   );
 
   return {

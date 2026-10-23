@@ -1,4 +1,7 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
+from .authorization import require_phase_access
+from fastapi.middleware.cors import CORSMiddleware
+import os
 from pydantic import BaseModel, model_validator
 from typing import List, Dict, Any, Optional
 import sympy as sp
@@ -11,6 +14,9 @@ from math_core.calculus.engine import handle_calculus
 from math_core.fuzzy.engine import handle_fuzzy
 
 app = FastAPI()
+app.add_middleware(CORSMiddleware,
+    allow_origins=[origin.strip() for origin in os.environ.get('YHUB_BROWSER_ORIGINS','http://localhost:5173,http://127.0.0.1:5173').split(',') if origin.strip()],
+    allow_methods=['GET','POST'],allow_headers=['Content-Type','Authorization'])
 
 @app.get('/api/v1/math/health')
 def health_check():
@@ -143,7 +149,7 @@ class MathResponse(BaseModel):
         return data
 
 
-@app.post('/api/v1/math/compute', response_model=MathResponse)
+@app.post('/api/v1/math/compute', response_model=MathResponse, dependencies=[Depends(require_phase_access)])
 def compute(req: MathRequest):
     try:
         if req.phase == '10':

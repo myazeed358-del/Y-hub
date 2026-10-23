@@ -1,4 +1,5 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
+from python.api.authorization import require_ast_access
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.schema import PythonMathRequest, PythonMathResponse, PROTOCOL_VERSION
 from app.services.solver import MathSolverService
@@ -16,7 +17,7 @@ app.add_middleware(
 
 solver_service = MathSolverService()
 
-@app.post("/api/v1/math/compute", response_model=PythonMathResponse)
+@app.post("/api/v1/math/compute", response_model=PythonMathResponse, dependencies=[Depends(require_ast_access)])
 async def compute_math(request: PythonMathRequest):
     if request.protocol_version != PROTOCOL_VERSION:
         raise HTTPException(
