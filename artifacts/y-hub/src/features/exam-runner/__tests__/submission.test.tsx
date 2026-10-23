@@ -1,5 +1,5 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
-import { beforeEach, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { useExamRunner } from "../hooks/useExamRunner";
 const mock = vi.hoisted(() => ({
   user: { id: "student" },
@@ -34,6 +34,8 @@ const active = () => ({
 });
 beforeEach(() => {
   vi.clearAllMocks();
+  localStorage.clear();
+  mock.user = { id: "student" };
   mock.repo.previousResult.mockResolvedValue(null);
   mock.repo.getExam.mockResolvedValue({
     course_id: "course",
@@ -205,4 +207,71 @@ it("ignores an older clock response after a confirmed submission", async () => {
     resolve(active());
   });
   expect(result.current.isSubmitted).toBe(true);
+});
+
+afterEach(() => vi.restoreAllMocks());
+it("recovers answers after refresh without extending the server deadline", async () => {
+  const state = active();
+  mock.repo.startAttempt.mockResolvedValue(state);
+  const first = renderHook(() => useExamRunner());
+  await waitFor(() => expect(first.result.current.loading).toBe(false));
+  act(() => first.result.current.setAnswers({ q: "offline answer" }));
+  first.unmount();
+  const second = renderHook(() => useExamRunner());
+  await waitFor(() => expect(second.result.current.loading).toBe(false));
+  expect(second.result.current.answers).toEqual({ q: "offline answer" });
+  expect(second.result.current.timeLeft).toBeLessThanOrEqual(60);
+  expect(second.result.current.recoveryMessage).toContain("restored");
+});
+it("keeps recovery through a failed submission and clears it only after confirmation", async () => {
+  mock.repo.submitExam.mockRejectedValue(new Error("offline"));
+  const first = renderHook(() => useExamRunner());
+  await waitFor(() => expect(first.result.current.loading).toBe(false));
+  act(() => first.result.current.setAnswers({ q: "draft" }));
+  await act(() => first.result.current.handleSubmit());
+  first.unmount();
+  const second = renderHook(() => useExamRunner());
+  await waitFor(() => expect(second.result.current.loading).toBe(false));
+  expect(second.result.current.answers).toEqual({ q: "draft" });
+  mock.repo.getAttempt.mockResolvedValue(confirmed());
+  await act(() => second.result.current.handleSubmit());
+  expect(localStorage.length).toBe(0);
+});
+it("does not restore another account or another attempt", async () => {
+  const first = renderHook(() => useExamRunner());
+  await waitFor(() => expect(first.result.current.loading).toBe(false));
+  act(() => first.result.current.setAnswers({ q: "private" }));
+  first.unmount();
+  mock.user = { id: "other" };
+  const second = renderHook(() => useExamRunner());
+  await waitFor(() => expect(second.result.current.loading).toBe(false));
+  expect(second.result.current.answers).toEqual({});
+  second.unmount();
+  mock.user = { id: "student" };
+  mock.repo.startAttempt.mockResolvedValue({ ...active(), attempt_id: "10000000-0000-4000-8000-000000000099" });
+  const third = renderHook(() => useExamRunner());
+  await waitFor(() => expect(third.result.current.loading).toBe(false));
+  expect(third.result.current.answers).toEqual({});
+});
+it("preserves independent tab drafts for explicit recovery selection", async () => {
+  const one = renderHook(() => useExamRunner());
+  const two = renderHook(() => useExamRunner());
+  await waitFor(() => expect(one.result.current.loading || two.result.current.loading).toBe(false));
+  act(() => one.result.current.setAnswers({ q: "one" }));
+  act(() => two.result.current.setAnswers({ q: "two" }));
+  one.unmount(); two.unmount();
+  const three = renderHook(() => useExamRunner());
+  await waitFor(() => expect(three.result.current.loading).toBe(false));
+  expect(three.result.current.recoveryChoices.map(d => d.answers.q).sort()).toEqual(["one", "two"]);
+});
+it("warns on storage failure, keeps in-memory edits and guards refresh", async () => {
+  const { result } = renderHook(() => useExamRunner());
+  await waitFor(() => expect(result.current.loading).toBe(false));
+  vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw Error("quota"); });
+  act(() => result.current.setAnswers({ q: "keep me" }));
+  expect(result.current.answers).toEqual({ q: "keep me" });
+  expect(result.current.recoveryMessage).toContain("Local recovery failed");
+  const event = new Event("beforeunload", { cancelable: true });
+  window.dispatchEvent(event);
+  expect(event.defaultPrevented).toBe(true);
 });
