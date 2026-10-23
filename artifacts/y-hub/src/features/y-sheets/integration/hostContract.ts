@@ -40,8 +40,21 @@ export interface HostTelemetryEvent {
   timestamp: string;
 }
 
+/** App chrome is optional: stand-alone and embedded previews still work. */
+export interface WorkspaceChromeControls {
+  status: 'saved' | 'saving' | 'unsaved' | 'conflict' | 'error';
+  busy?: boolean;
+  onMyFiles: () => void;
+  onReturnToHub: () => void;
+  onRetry: () => void;
+  onDownloadRecovery: () => void;
+  onSaveAsCopy?: () => void;
+  onKeepRecovery?: () => void;
+}
+
 export interface YSheetsIntegrationProps {
   user?: HostUser;
+  chrome?: WorkspaceChromeControls;
   permissions?: HostPermissions;
   theme?: HostTheme;
   locale?: string;
