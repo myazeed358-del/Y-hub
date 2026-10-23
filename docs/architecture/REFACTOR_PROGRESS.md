@@ -6,6 +6,8 @@ Final combined results:1935 Vitest/225 files,36 Python,145 PostgreSQL,21 native 
 
 NEXT external gates: complete Draft PR creation when GitHub API access permits; review independently stacked branches and migrations0029–0036; provision authorized isolated hosted Supabase staging and actual LiveKit/TURN/Edge/scheduler operation; assess/remediate inherited dependency risks. Do not call this production-ready. No production writes/migrations, main merge or Vercel size workaround. Main remains8a5dde1b20f26161e7e26b8b0bf71ecd1097f136. Git pushes work; PR API attempts returned Forbidden/proxy403. All PR bodies are committed for review. Preserve every feature branch and user file.
 
+Delivery checkpoint: previous verified integration remote SHA f0190138531476964c9112a716f1539f29e6ae87. All feature heads match FINAL_REPORT.md; main is unchanged. Integration Draft PR creation failed with GraphQL Forbidden even outside the execution sandbox. Current enforced runtime policy lacks api.github.com although the saved environment draft already contains it; apply that intended network configuration and recheck API access, without proxy bypass or duplicate credentials. No PR number exists. Tests finished and their disposable containers were cleaned up.
+
 ## Historical checkpoints (superseded continuation instructions)
 
 # University features — online lectures verified (2026-10-23)

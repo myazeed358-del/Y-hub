@@ -59,6 +59,10 @@ Native GoTrue 2.177.0 and PostgREST 12.2.3 run against disposable PostgreSQL on 
 
 All feature branches are pushed; final integration push is verified separately. Draft PR creation attempts using the committed bodies failed with `Post "https://api.github.com/graphql": Forbidden`; a read-only connectivity check also returned proxy CONNECT403. This is an environment network restriction, not a Git failure. **No new PR numbers exist and none are claimed.** Prepared descriptions: ENGINE_ACCESS_PR.md, QUICK_ACCESS_PR.md, ATTENDANCE_PR.md, ONLINE_LECTURES_PR.md, OWNER_LABEL_PR.md and INTEGRATION_PR.md. Create them with the bases above when GitHub API access is available, keep Draft, do not merge automatically. Existing PR16 is untouched.
 
+Final delivery check: the first report checkpoint `f0190138531476964c9112a716f1539f29e6ae87` was pushed and matched `git ls-remote`. All five feature remote heads matched the table above and main was unchanged. The working tree was clean and disposable test containers were removed by their runners. The current documentation-only commit records this previous verified SHA; use Git/ls-remote for its own final head.
+
+The integration Draft PR attempt failed with the same GraphQL Forbidden response both normally and after an approved execution-sandbox escalation; no PR was created. Runtime inspection reported current/enforced restricted HTTP policy without `api.github.com`. The saved configuration draft already includes that hostname, but the running policy does not. Apply the intended API-host access through environment settings and recheck actual GitHub API authorization before creating the prepared Draft PRs; do not bypass the proxy or request replacement credentials merely because Git and API access differ.
+
 ## Remaining operational and security gates
 
 1. **PENDING:** authorized isolated hosted Supabase migration ledger, native gateway/Edge deployment and account/device flows; no production write testing was performed.
