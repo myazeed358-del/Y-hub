@@ -15,8 +15,10 @@ UI: bilingual, theme-token styling, mobile overflow, schedule/select lecture, op
 - 1870 Vitest /215 files, including QR expiry/offline/device-clock handling, explicit confirmation, error handling and CSV escaping.
 - 36 Python tests; eight architectural boundary guards; workspace TypeScript; strict architecture/math/module audits; production build.
 - 111 isolated PostgreSQL tests:20 university (9 attendance +11 grants),30 academic,26 audit,16 exams,9 deletion,10 Y-Sheets. Includes roles, withdrawn students, no forged records, expiry/tampering, two-device check-in, required-audit rollback and historical roster.
-- Dependency audit: zero high/critical; existing KaTeX low and postcss-selector-parser moderate findings remain. No reported qrcode advisory. Added qrcode1.5.4 and its types, pinned in lockfile.
+- Historical **production-dependency-only** audit: zero high/critical; existing KaTeX low and postcss-selector-parser moderate findings remain. No reported qrcode advisory. Added qrcode1.5.4 and its types, pinned in lockfile.
 
 Local PostgreSQL tests use auth stand-ins, not real hosted Supabase JWT validation. Native Auth/HTTP integration is a subsequent combined verification phase; hosted Staging/mobile QR/camera/account flows PENDING. No production migrations, no main merge. Vercel Python bundle size remains a known deferred issue and was not investigated.
 
 Branch `feature/y-attendance` is a focused child of `feature/exceptional-engine-access` at db0ae2d7b57efee2ed85621d8a3e9f2488abda02 (module policies). Quick Access is independently preserved at f862ae29b547940dfe1790a9d9f14f63b35d6b3f. Migration numbers0029–0032 and0034 are reserved by their separate branches. Review/apply in order after integration, never directly to production from this task.
+
+Final combined verification and full-scope dependency results supersede readiness implications of the historical phase counts: see [FINAL_REPORT.md](FINAL_REPORT.md) and [DEPENDENCY_REVIEW.md](DEPENDENCY_REVIEW.md). Full audit has inherited critical/high findings; this is not production clearance.

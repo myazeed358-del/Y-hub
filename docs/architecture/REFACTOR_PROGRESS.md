@@ -1,3 +1,13 @@
+# University features — final local verification (2026-10-23)
+
+Implementation is complete on five focused branches; do NOT repeat historical NEXT instructions below. Read docs/university/FINAL_REPORT.md, CHANGED_FILES.md and DEPENDENCY_REVIEW.md. Current branch test/university-integration is test infrastructure/evidence based on Online Lectures; it does not merge independent implementations. Source verified at d6b5fd5293c9192966f07bf946d2395925b30822 with pinned Phase3/QuickAccess/Owner and grant UI overlays. Previous verified remote checkpoints: grant62a0565c75319e46881a473b1c6bcbc0bf8096f7 and online09168c2f0229e27952180be33a0d5cf47a0789e9; Git/ls-remote establishes the newest report commit.
+
+Final combined results:1935 Vitest/225 files,36 Python,145 PostgreSQL,21 native GoTrue/PostgREST JWT/HTTP tests,eight architecture guards,two policy-export tests,all workspace TypeScript/audits/build PASS. Full dependency audit has39 inherited advisory entries (7critical/13high/15moderate/4low), identical identities to main; older prod-only audit is not full security clearance.
+
+NEXT external gates: complete Draft PR creation when GitHub API access permits; review independently stacked branches and migrations0029–0036; provision authorized isolated hosted Supabase staging and actual LiveKit/TURN/Edge/scheduler operation; assess/remediate inherited dependency risks. Do not call this production-ready. No production writes/migrations, main merge or Vercel size workaround. Main remains8a5dde1b20f26161e7e26b8b0bf71ecd1097f136. Git pushes work; PR API attempts returned Forbidden/proxy403. All PR bodies are committed for review. Preserve every feature branch and user file.
+
+## Historical checkpoints (superseded continuation instructions)
+
 # University features — online lectures verified (2026-10-23)
 
 Current `feature/online-lectures` builds on attendance c1a4bd2dc286386230f2fe14103ff7f81da06e64 (previous verified remote). New0036/shared lecture model, LiveKit adapter/Edge admission+reconciler, audited blocks and current-role concurrency lock complete. Full1889 Vitest/218 files,36 Python,119 PostgreSQL,workspace TS,audits/build,Deno entrypoint check PASS. Concurrent promotion regression FAILED before target-role lock and PASSED after. See docs/university/ONLINE_LECTURES.md. Media/SFU/scheduler/staging operational tests PENDING; provider transport mocked. Next: independent Owner display-label branch from verified main8a5dde1, then combined Phase3+university real Auth/HTTP verification and final delivery. Preserve Quick Access f862ae29 and other branches. Continue automatically; no main merge/production writes. GitHub API Forbidden blocks Draft PR creation; descriptions committed. Older NEXT below superseded.
