@@ -3,7 +3,7 @@ import {
   Undo2, Redo2, Scissors, Copy, ClipboardPaste, Bold, Italic, Underline,
   AlignLeft, AlignCenter, AlignRight, DollarSign, Percent, Hash, Grid,
   Combine, ArrowDownAZ, ArrowUpZA, Filter, Search, Palette, CheckCircle,
-  FolderOpen, Save, PlusCircle, Sun, Moon, ChevronDown, Table2, FunctionSquare,
+  FolderOpen, Save, PlusCircle, Sun, Moon, ChevronDown, Table2, FunctionSquare, Cloud, CloudAlert, Files, Download, ArrowLeft,
 } from 'lucide-react';
 import { useWorkbook } from '../../state/workbookContext';
 import { createDefaultWorkbook } from '../../state/defaultWorkbook';
@@ -13,6 +13,7 @@ import { ConditionalFormatDialog } from '../Dialogs/ConditionalFormatDialog';
 import { DataValidationDialog } from '../Dialogs/DataValidationDialog';
 import { ImportExportDialog } from '../Dialogs/ImportExportDialog';
 import { YSheetsBrandMark } from '../YSheetsBrandMark';
+import type { WorkspaceChromeControls } from '../../integration/hostContract';
 
 type RibbonTab = 'file' | 'home' | 'insert' | 'formulas' | 'data' | 'view';
 const tabs: { id: RibbonTab; title: string }[] = [
@@ -49,7 +50,7 @@ function Action({ icon, label, onClick, selected = false, disabled = false }: {
 }
 
 /** File operations remain delegated to the workspace and its guarded storage adapter. */
-export const Toolbar: React.FC<{ onNewWorkbook?: () => void }> = ({ onNewWorkbook }) => {
+export const Toolbar: React.FC<{ onNewWorkbook?: () => void; chrome?: WorkspaceChromeControls }> = ({ onNewWorkbook, chrome }) => {
   const {
     workbook, activeSheet, activeCell, selection, canEdit, canUndo, canRedo, theme,
     undo, redo, cutSelection, copySelection, pasteSelection,
@@ -104,6 +105,35 @@ export const Toolbar: React.FC<{ onNewWorkbook?: () => void }> = ({ onNewWorkboo
             onChange={e => dispatch({ type: 'SET_WORKBOOK_NAME', payload: e.target.value })}
             className="ys-document-name" />
         </div>
+        {chrome && (
+          <div className="ys-ribbon-host-actions" role="group" aria-label="Workbook controls">
+            <button type="button" className="ys-host-action" onClick={chrome.onMyFiles} disabled={chrome.busy}
+              title="My Files"><Files size={16}/><span>My Files</span></button>
+            <span className="ys-save-chip" role="status" aria-live="polite" data-save-status={chrome.status}>
+              {chrome.status === 'saved' ? <Cloud size={16}/> : <CloudAlert size={16}/>}
+              <span>{chrome.status === 'saved' ? 'Saved' :
+                chrome.status === 'saving' ? 'Saving…' :
+                chrome.status === 'conflict' ? 'Save conflict' :
+                chrome.status === 'error' ? 'Save failed' : 'Unsaved changes'}</span>
+            </span>
+            <button type="button" className="ys-host-action" disabled={chrome.busy}
+              onClick={chrome.onRetry} title="Save or retry"><Save size={16}/><span>Save</span></button>
+            <button type="button" className="ys-host-action" onClick={chrome.onDownloadRecovery}
+              title="Download Recovery Copy"><Download size={16}/><span>Recovery</span></button>
+            {(chrome.status === 'error' || chrome.status === 'conflict') && (
+              <>
+                <button type="button" className="ys-host-action" disabled={chrome.busy}
+                  onClick={chrome.onSaveAsCopy} title="Save as new copy">Save as copy</button>
+                <button type="button" className="ys-host-action" disabled={chrome.busy}
+                  onClick={chrome.onKeepRecovery} title="Keep local recovery and return">Keep recovery</button>
+              </>
+            )}
+            <button type="button" className="ys-host-action" disabled={chrome.busy}
+              onClick={chrome.onReturnToHub} title="Back to Y-Hub">
+              <ArrowLeft size={16}/><span>Y-Hub</span>
+            </button>
+          </div>
+        )}
         <button type="button" className="ys-theme-switch" title={theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
           aria-label="Switch editor theme"
           onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
