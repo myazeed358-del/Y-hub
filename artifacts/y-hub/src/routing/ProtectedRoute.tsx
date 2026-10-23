@@ -14,6 +14,7 @@ type ProtectedRouteProps<Props extends object> = Props & {
   component: React.ComponentType<Props>;
   roleRequired?: RouteRole;
   enginePath?: string;
+  engineId?: string;
   moduleAccess?: ModuleAccessPolicy;
   params?: Record<string, string | undefined>;
 };
@@ -22,10 +23,11 @@ export function ProtectedRoute<Props extends object>({
   component: Component,
   roleRequired,
   enginePath,
+  engineId,
   moduleAccess,
   ...rest
 }: ProtectedRouteProps<Props>) {
-  const { user, role, profile, loading } = useAuth();
+  const { user, role, profile, loading, engineGrants } = useAuth();
   const { language, setLanguage } = useLanguage();
 
   if (loading) return (
@@ -46,7 +48,7 @@ export function ProtectedRoute<Props extends object>({
   }
 
   if (
-    (moduleAccess && !canAccessModule(moduleAccess, { role, major: profile?.major })) ||
+    (moduleAccess && !canAccessModule(moduleAccess, { role, major: profile?.major, engineGrants }, engineId)) ||
     (enginePath && !canRoleAccessEngineRoute(role, profile?.major, enginePath))
   ) {
     return (
@@ -61,8 +63,8 @@ export function ProtectedRoute<Props extends object>({
 
         <p className="max-w-md text-sm leading-7 text-[hsl(var(--muted-foreground))]">
           {language === 'ar'
-            ? 'يستطيع الطالب استخدام الأدوات المرتبطة بتخصصه الأكاديمي فقط.'
-            : 'Students can use only the academic engines associated with their major.'}
+            ? 'يستطيع الطالب استخدام الأدوات المرتبطة بتخصصه أو الممنوحة له من شعبه.'
+            : 'Students can use engines associated with their major or granted by their sections.'}
         </p>
 
         <Link href="/">

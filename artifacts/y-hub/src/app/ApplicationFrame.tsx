@@ -21,7 +21,7 @@ function RoutedErrorBoundary({ children }: { children: ReactNode }) {
 }
 
 export function ApplicationFrame() {
-  const { user, loading, role, profile } = useAuth();
+  const { user, loading, role, profile, engineGrants } = useAuth();
   const { language } = useLanguage();
   const [location] = useLocation();
 
@@ -56,7 +56,7 @@ export function ApplicationFrame() {
     return routes;
   }
 
-  if (getModuleLayout(moduleRegistry, location, { role, major: profile?.major }) === 'fullscreen') {
+  if (getModuleLayout(moduleRegistry, location, { role, major: profile?.major, engineGrants }) === 'fullscreen') {
     return <main className="application-fullscreen bg-background text-foreground" data-layout="fullscreen" dir={language === 'ar' ? 'rtl' : 'ltr'}>{routes}</main>;
   }
   return <AppShell>{routes}</AppShell>;

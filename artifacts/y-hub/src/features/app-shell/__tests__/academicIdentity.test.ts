@@ -97,7 +97,7 @@ describe('academic identity', () => {
       },
     });
 
-    expect(identity.roleLabel).toBe('Super Admin');
+    expect(identity.roleLabel).toBe('Owner');
   });
 
   it('preserves unknown major fallback', () => {

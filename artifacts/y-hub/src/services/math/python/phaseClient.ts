@@ -1,3 +1,4 @@
+import { mathHeaders } from './transportHeaders';
 /**
  * Transport for the phase-based FastAPI contract implemented in
  * artifacts/y-hub/python/api/server.py.
@@ -37,7 +38,7 @@ export async function postPhaseMath(
   try {
     const response = await fetch(endpoint, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...await mathHeaders() },
       body: JSON.stringify(payload),
       signal: controller.signal,
     });

@@ -34,9 +34,10 @@ const NAVIGATION_ICONS: Record<NavigationIconId, LucideIcon> = {
 
 export function buildNavigationGroups(
   role: ModuleRole | null | undefined,
-  major?: string | null
+  major?: string | null,
+  engineGrants?: readonly string[]
 ): NavigationGroup[] {
-  return buildNavigationRouteGroups(role, major).map((group) => ({
+  return buildNavigationRouteGroups(role, major, undefined, engineGrants).map((group) => ({
     section: group.section,
     items: group.items.map((item) => ({
       href: item.href,
