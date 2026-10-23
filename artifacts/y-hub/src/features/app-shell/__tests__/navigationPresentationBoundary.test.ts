@@ -124,6 +124,7 @@ describe('NavigationPresentationBoundary', () => {
       Home,
       BrainCircuit,
       Activity,
+      Box,
       LineChart,
       LineChart,
       Box,
