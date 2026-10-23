@@ -1,9 +1,9 @@
 import React, { useState, type ReactNode } from 'react';
 import {
   Undo2, Redo2, Scissors, Copy, ClipboardPaste, Bold, Italic, Underline,
-  AlignLeft, AlignCenter, AlignRight, DollarSign, Percent, Hash, Grid,
+  AlignLeft, AlignCenter, AlignRight, DollarSign, Percent, Hash,
   Combine, ArrowDownAZ, ArrowUpZA, Filter, Search, Palette, CheckCircle,
-  FolderOpen, Save, PlusCircle, Sun, Moon, ChevronDown, Table2, FunctionSquare, Cloud, CloudAlert, Files, Download, ArrowLeft,
+  FolderOpen, Save, PlusCircle, Sun, Moon, Table2, FunctionSquare, Cloud, CloudAlert, Files, Download, ArrowLeft,
 } from 'lucide-react';
 import { useWorkbook } from '../../state/workbookContext';
 import { createDefaultWorkbook } from '../../state/defaultWorkbook';
@@ -64,7 +64,6 @@ export const Toolbar: React.FC<{ onNewWorkbook?: () => void; chrome?: WorkspaceC
   const [valDialogOpen, setValDialogOpen] = useState(false);
   const [ioDialogOpen, setIoDialogOpen] = useState(false);
   const [ioDefaultTab, setIoDefaultTab] = useState<'export' | 'import'>('export');
-  const [showBorders, setShowBorders] = useState(false);
 
   const key = cellCoordToKey(activeCell.row, activeCell.col);
   const style = activeSheet.cells[key]?.style || {};
@@ -145,7 +144,7 @@ export const Toolbar: React.FC<{ onNewWorkbook?: () => void; chrome?: WorkspaceC
           <button key={item.id} role="tab" type="button"
             aria-selected={tab === item.id}
             className={tab === item.id ? 'ys-ribbon-tab is-active' : 'ys-ribbon-tab'}
-            onClick={() => { setShowBorders(false); setTab(item.id); }}>
+            onClick={() => setTab(item.id)}>
             {item.title}
           </button>
         ))}
@@ -205,20 +204,20 @@ export const Toolbar: React.FC<{ onNewWorkbook?: () => void; chrome?: WorkspaceC
               <Action icon={<Hash />} label="Number" onClick={() => setNumberFormat('number')} disabled={!canEdit} />
             </Group>
             <Group label="Cells">
-              <div className="ys-ribbon-dropdown">
-                <Action icon={<><Grid /><ChevronDown size={11} /></>} label="Cell borders"
-                  onClick={() => setShowBorders(!showBorders)} disabled={!canEdit} />
-                {showBorders && (
-                  <div className="ys-ribbon-menu">
-                    {(['all', 'top', 'bottom', 'none'] as const).map(edge => (
-                      <button key={edge} type="button" onClick={() => {
-                        applyBorders(edge);
-                        setShowBorders(false);
-                      }}>{edge === 'all' ? 'All borders' : edge === 'none' ? 'No borders' : edge + ' border'}</button>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <select aria-label="Cell borders" className="ys-ribbon-select" value=""
+                disabled={!canEdit}
+                onChange={e => {
+                  const border = e.target.value;
+                  if (border === 'all' || border === 'top' || border === 'bottom' || border === 'none') {
+                    applyBorders(border);
+                  }
+                }}>
+                <option value="" disabled>Borders</option>
+                <option value="all">All borders</option>
+                <option value="top">Top border</option>
+                <option value="bottom">Bottom border</option>
+                <option value="none">No borders</option>
+              </select>
               <Action icon={<Combine />} label="Merge or unmerge cells" onClick={toggleMergeSelection} disabled={!canEdit} />
             </Group>
           </>
