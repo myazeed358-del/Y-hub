@@ -1,3 +1,11 @@
+# University features — grant UI follow-up verified (2026-10-23)
+
+Current branch feature/exceptional-engine-access fixes initial directory retry and adds server-paged grant history; four added regressions. Full verification:1869 Vitest/214 files,36 Python,eight architecture guards,workspace TypeScript/audits/build PASS. Previous verified remote SHA:db0ae2d7b57efee2ed85621d8a3e9f2488abda02; Git/ls-remote establishes the new commit.
+
+All five requested university features are already implemented and pushed on their focused branches. Do NOT repeat the historical NEXT instructions below. Next: update the pinned engine UI overlay on test/university-integration, rerun final combined verification, document full dependency audit and final branch hashes, push integration evidence and attempt Draft PR delivery. GitHub API is blocked by proxy403 while Git push works. Hosted staging/live media deployment remain PENDING; no production writes or main merge.
+
+## Historical checkpoints
+
 # University features — phase 1 verified (2026-10-22)
 
 Current task is the university feature request, not a repeat of Phase 3. Read `docs/university/ENGINE_ACCESS.md`. Branch `feature/exceptional-engine-access` independently based on verified main `8a5dde1b20f26161e7e26b8b0bf71ecd1097f136`; Phase 3 heads remain preserved and unmerged. New 0033 + grant UI/API/backend guards complete. Full phase verification: 1865 Vitest /214 files, 36 Python, 102 PostgreSQL, eight architecture guards, two export tests, all TS/audits/build PASS. Git/remote establishes newest checkpoint. No production operations/main merge.
