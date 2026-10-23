@@ -57,5 +57,5 @@ export const roleLabels = {
   student: { ar: 'طالب', en: 'Student' },
   instructor: { ar: 'مدرّس', en: 'Instructor' },
   admin: { ar: 'مدير', en: 'Admin' },
-  super_admin: { ar: 'مدير رئيسي', en: 'Super Admin' },
+  super_admin: { ar: 'Owner', en: 'Owner' },
 } as const;

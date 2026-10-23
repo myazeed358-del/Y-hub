@@ -71,7 +71,7 @@ export const majorLabels: Record<string, { ar: string; en: string }> = {
     student: { ar: 'طالب', en: 'Student' },
     instructor: { ar: 'مدرّس', en: 'Instructor' },
     admin: { ar: 'مدير', en: 'Admin' },
-    super_admin: { ar: 'مدير رئيسي', en: 'Super Admin' },
+    super_admin: { ar: 'Owner', en: 'Owner' },
   };
 
 export function buildAcademicIdentity({

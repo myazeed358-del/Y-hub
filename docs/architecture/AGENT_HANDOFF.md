@@ -1,3 +1,7 @@
+# University features — Owner labels verified (2026-10-23)
+
+Independent `feature/owner-display-name` from main8a5dde1; display-only Owner labels preserve internal super_admin.1855 Vitest/211 files,29 Python,91 PostgreSQL,workspace TS,audits/build PASS. Previous verified remote online branch09168c2f0229e27952180be33a0d5cf47a0789e9; attendancec1a4bd2; Quick Accessf862ae29; enginedb0ae2d. NEXT: combined Phase3+university export/native Auth integration, no main merge. Prepared HTTP additions in /tmp/university-http-additions.py; preserve/review. Continue automatically. PR API Forbidden; branch pushes verified. Production/staging/media pending. Older NEXT below superseded.
+
 # Phase 2 — final verified checkpoint (2026-10-20)
 
 Implementation is complete locally; see `docs/phase2/FINAL_REPORT.md` and `CHANGED_FILES.md`. Do not restart completed work. Current branch `feature/syllabus-academic-permissions` is stacked on B `99852b5f006a94b0f021619bc6ad2c622f96f56b`; A is independent at `39dd464dc67b29ccf5b03eca5651213cd93ca13e`. Previous verified remote C checkpoint: `61236700cca3dcb7d9d8d1705e363556327bf2be`. The final commit adds the proven demoted-owner question/result read-policy fix in new 0028, its regression and final evidence; use Git/ls-remote for the newest hash.
