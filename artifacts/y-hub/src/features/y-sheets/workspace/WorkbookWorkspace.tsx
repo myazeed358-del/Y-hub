@@ -73,10 +73,6 @@ export function WorkbookWorkspace({ user }: { user: HostUser }) {
     setMenuFileId(null);
     void w.myFiles();
   };
-  const statusText = w.status === "saved" ? "Saved" :
-    w.status === "conflict" ? "Save conflict — recovery retained" :
-    w.status === "error" ? "Save failed — recovery retained" :
-    w.status === "saving" ? "Saving…" : "Unsaved changes";
   const formatModified = (value: string) => {
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return "Unknown date";
