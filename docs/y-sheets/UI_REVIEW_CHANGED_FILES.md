@@ -1,0 +1,41 @@
+# PR #35 reviewed change inventory
+
+Relative to verified main `80fab4b8a026f508f63bdbcc7edb09da0cf6a622`; includes the original PR changes preserved by this review. The application changes are confined to Y-Sheets. SQL/test infrastructure and documentation support those changes.
+
+- `artifacts/y-hub/src/features/y-sheets/App.css`
+- `artifacts/y-hub/src/features/y-sheets/components/Dialogs/ImportExportDialog.tsx`
+- `artifacts/y-hub/src/features/y-sheets/components/SheetTabs/SheetTabs.tsx`
+- `artifacts/y-hub/src/features/y-sheets/components/Toolbar/Toolbar.tsx`
+- `artifacts/y-hub/src/features/y-sheets/components/YSheetsBrandMark.tsx`
+- `artifacts/y-hub/src/features/y-sheets/data/filter.ts`
+- `artifacts/y-hub/src/features/y-sheets/integration/YSheetsHostAdapter.tsx`
+- `artifacts/y-hub/src/features/y-sheets/integration/hostContract.ts`
+- `artifacts/y-hub/src/features/y-sheets/integration/supabaseWorkbookStorage.ts`
+- `artifacts/y-hub/src/features/y-sheets/state/workbookActions.ts`
+- `artifacts/y-hub/src/features/y-sheets/state/workbookContext.tsx`
+- `artifacts/y-hub/src/features/y-sheets/state/workbookReducer.ts`
+- `artifacts/y-hub/src/features/y-sheets/test/clipboardSafety.test.tsx`
+- `artifacts/y-hub/src/features/y-sheets/test/cloudStorage.test.ts`
+- `artifacts/y-hub/src/features/y-sheets/test/cssIsolation.test.tsx`
+- `artifacts/y-hub/src/features/y-sheets/test/filter.test.ts`
+- `artifacts/y-hub/src/features/y-sheets/test/gridBehavior.test.tsx`
+- `artifacts/y-hub/src/features/y-sheets/test/ribbonCommands.test.tsx`
+- `artifacts/y-hub/src/features/y-sheets/test/ribbonReview.test.tsx`
+- `artifacts/y-hub/src/features/y-sheets/test/workspace.test.tsx`
+- `artifacts/y-hub/src/features/y-sheets/workspace/WorkbookWorkspace.tsx`
+- `artifacts/y-hub/src/features/y-sheets/workspace/useWorkbookWorkspace.ts`
+- `artifacts/y-hub/src/features/y-sheets/workspace/workspace.css`
+- `artifacts/y-hub/supabase/migrations/0037_y_sheets_application_conflicts.sql`
+- `artifacts/y-hub/supabase/tests/integration/bootstrap.sql`
+- `artifacts/y-hub/supabase/tests/integration/runtime.py`
+- `artifacts/y-hub/supabase/tests/integration/test_y_sheets.py`
+- `docs/architecture/AGENT_HANDOFF.md`
+- `docs/architecture/REFACTOR_PROGRESS.md`
+- `docs/y-sheets/FINAL_UI_REVIEW.md`
+- `docs/y-sheets/PR35_DESCRIPTION.md`
+- `docs/y-sheets/UI_REVIEW_CHANGED_FILES.md`
+- `scripts/test-fullscreen-browser.mjs`
+- `scripts/test-y-sheets-browser.mjs`
+- `scripts/test-y-sheets-files-browser.mjs`
+- `scripts/test-y-sheets-http.sh`
+- `scripts/y-sheets-browser-fixture.mjs`

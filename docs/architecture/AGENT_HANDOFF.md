@@ -1,3 +1,13 @@
+# Y-Sheets PR #35 — final local review complete (2026-10-24)
+
+Current branch: `feature/y-sheets-ui-refresh`. Read `docs/y-sheets/FINAL_UI_REVIEW.md` before continuing; do not restart historical university work below. Latest main `80fab4b8a026f508f63bdbcc7edb09da0cf6a622` was safely merged in `22e7ed3`. Previous verified remote PR head: `ba5c4a3fe5dbda867996fc0653f53dbd76e76bd9`; Git history and `ls-remote` establish the new checkpoint.
+
+Fixed proven clipboard data loss, stale file search, Ribbon/import accessibility and state, filter toggle, duplicate SVG IDs, dark CSS and vacuous CSS tests. New scoped 0037 fixes PostgREST retries of terminal workbook conflicts; no production application. Final results: 1899 Vitest /219 files (139 focused),36 Python,8 architecture guards,all workspace TS/audits/build,10 PostgreSQL +14 historical assertions,5 native local Auth/HTTP tests,16 fullscreen browser combinations,4 complete file workflows and editor/Excel worker PASS.
+
+Next: verify the pushed branch/PR head, then complete PR #35 description/readiness/required-check review and authorized merge when GitHub API access is restored. The user explicitly authorized merge for this task only, but do not bypass checks/protection or directly push main. API requests return Forbidden; public page shows Draft. Required new 0037 is local-only: no privileged connection/ledger access or isolated hosted test accounts are configured. Preserve production data; do not replay 0023/0024 or push unrelated migrations. Hosted tests, migration and merge remain pending. Full evidence, changed files and proposed PR body are in docs/y-sheets. Historical instructions below are superseded.
+
+## Earlier checkpoints (preserved)
+
 # University features — grant UI follow-up verified (2026-10-23)
 
 Current branch feature/exceptional-engine-access fixes initial directory retry and adds server-paged grant history; four added regressions. Full verification:1869 Vitest/214 files,36 Python,eight architecture guards,workspace TypeScript/audits/build PASS. Previous verified remote SHA:db0ae2d7b57efee2ed85621d8a3e9f2488abda02; Git/ls-remote establishes the new commit.
