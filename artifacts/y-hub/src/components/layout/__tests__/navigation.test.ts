@@ -29,6 +29,7 @@ describe('Y-Hub navigation', () => {
       '/',
       '/quiz',
       '/y-attendance',
+      '/online-lectures',
       ...mathEngines,
       '/y-sheets',
     ]);
@@ -39,6 +40,7 @@ describe('Y-Hub navigation', () => {
       '/',
       '/quiz',
       '/y-attendance',
+      '/online-lectures',
       '/y-sheets',
     ]);
   });
@@ -48,6 +50,7 @@ describe('Y-Hub navigation', () => {
       '/',
       '/quiz',
       '/y-attendance',
+      '/online-lectures',
       '/y-sheets',
     ]);
   });
@@ -57,6 +60,7 @@ describe('Y-Hub navigation', () => {
       '/',
       '/engine-access',
       '/y-attendance',
+      '/online-lectures',
       ...mathEngines,
       '/y-sheets',
     ]);
@@ -67,6 +71,7 @@ describe('Y-Hub navigation', () => {
       '/',
       '/engine-access',
       '/y-attendance',
+      '/online-lectures',
       '/y-sheets',
     ]);
   });
@@ -79,6 +84,7 @@ describe('Y-Hub navigation', () => {
         '/quiz',
         '/engine-access',
       '/y-attendance',
+      '/online-lectures',
         ...mathEngines,
       '/audit-log',
         '/y-sheets',

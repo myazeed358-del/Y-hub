@@ -51,6 +51,7 @@
   "dependencies": {
     "@e965/xlsx": "0.20.3",
     "fflate": "0.8.3",
+    "livekit-client": "2.23.0",
     "pdfjs-dist": "^6.4.299",
     "qrcode": "1.5.4",
     "react-markdown": "^10.1.0",
