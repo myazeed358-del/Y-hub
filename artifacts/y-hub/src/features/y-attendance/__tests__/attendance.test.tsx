@@ -11,7 +11,7 @@ import AttendancePage from '../AttendancePage';
 afterEach(()=>{cleanup();vi.useRealTimers();});
 beforeEach(()=>{vi.clearAllMocks();mock.sections.mockResolvedValue([]);mock.role='student';mock.toDataURL.mockResolvedValue('data:image/png;base64,x');});
 it('escapes spreadsheet formulas and quotes in report exports',()=>{
- const csv=attendanceCsv([{id:'1',session_id:'1',student_id:'s',full_name:'=danger()',title:'A,"B"',starts_at:'2026',status:'present',method:'qr',state:'closed'}]);
+ const csv=attendanceCsv([{id:'1',session_id:'1',student_id:'s',user_number:'202600001',full_name:'=danger()',title:'A,"B"',starts_at:'2026',status:'present',method:'qr',state:'closed'}]);
  expect(csv).toContain("\"'=danger()\"");expect(csv).toContain('"A,""B"""');
 });
 it('requires explicit confirmation after scanning and does not claim success on denial',async()=>{
@@ -25,7 +25,7 @@ it('acknowledges a server-confirmed check-in',async()=>{
  expect(await screen.findByText('The server confirmed the request.')).toBeTruthy();
 });
 it('uses server time despite device clock skew and removes expired QR when fetch fails',async()=>{
- vi.useFakeTimers();mock.qr.mockResolvedValueOnce({token:'signed',serverTime:new Date(Date.now()-60000).toISOString(),expiresAt:new Date(Date.now()-50000).toISOString()}).mockRejectedValue(new Error('offline'));
+ vi.useFakeTimers();mock.qr.mockResolvedValueOnce({token:'signed',intervalSeconds:10,serverTime:new Date(Date.now()-60000).toISOString(),expiresAt:new Date(Date.now()-50000).toISOString()}).mockRejectedValue(new Error('offline'));
  render(<QrPanel session="session" ar={false}/>);await act(async()=>{});expect(screen.getByRole('img')).toBeTruthy();
  await act(()=>vi.advanceTimersByTimeAsync(10100));expect(screen.queryByRole('img')).toBeNull();expect(screen.getByRole('alert')).toBeTruthy();
 });
