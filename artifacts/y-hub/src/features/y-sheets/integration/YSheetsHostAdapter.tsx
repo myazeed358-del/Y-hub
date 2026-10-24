@@ -19,6 +19,7 @@ function WorkbookSurface({children,className,style}: {children:React.ReactNode;c
 
 export const YSheetsHostAdapter: React.FC<YSheetsIntegrationProps> = ({
   user,
+  chrome,
   permissions = { canEdit: false, canExport: false, canCreateSheet: false, canDeleteSheet: false, canFormat: false },
   theme = 'light',
   workbookId,
@@ -147,7 +148,7 @@ export const YSheetsHostAdapter: React.FC<YSheetsIntegrationProps> = ({
             </div>
           )}
 
-          <Toolbar onNewWorkbook={onRequestNewWorkbook} />
+          <Toolbar onNewWorkbook={onRequestNewWorkbook} chrome={chrome} />
           <FormulaBar />
           <div className="flex-1 min-h-0 min-w-0 relative overflow-hidden flex flex-col">
             <Grid />

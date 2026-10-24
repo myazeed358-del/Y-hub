@@ -29,7 +29,8 @@ try {
     assert(await cell.evaluate(e=>{
       const r=e.getBoundingClientRect();return e.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));
     }),'A1 must be visible, not covered by column headers');
-    const controls=await page.getByTitle('Save & Export').boundingBox();
+    await page.getByRole('tab',{name:'File',exact:true}).click();
+    const controls=await page.getByRole('button',{name:'Export workbook',exact:true}).boundingBox();
     assert(controls && controls.x+controls.width<=width,'Export must be accessible on mobile');
     assert((await page.evaluate(()=>document.documentElement.scrollWidth))<=width,'No document overflow');
     await page.locator('[data-y-sheets-scroll]').evaluate(e=>{e.scrollLeft=120;e.scrollTop=120;});

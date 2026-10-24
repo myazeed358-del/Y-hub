@@ -142,3 +142,7 @@
 @media (max-width: 400px) {
   .y-sheets-workspace .ys-header-return span { display: none; }
 }
+
+.y-sheets-workspace button:focus-visible {
+  outline: 2px solid var(--ys-brand); outline-offset: 2px;
+}

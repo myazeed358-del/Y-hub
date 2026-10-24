@@ -1,5 +1,5 @@
 import { useLocation } from "wouter";
-import { ArrowLeft, Cloud, CloudAlert, FileSpreadsheet, Plus, Search, MoreHorizontal, LayoutGrid, List, RefreshCw, Download, Save, Clock3 } from "lucide-react";
+import { ArrowLeft, FileSpreadsheet, Plus, Search, MoreHorizontal, LayoutGrid, List, RefreshCw, Clock3 } from "lucide-react";
 import { YSheetsBrandMark } from "../components/YSheetsBrandMark";
 import { useLanguage } from "@/i18n/LanguageContext";
 import "./workspace.css";
@@ -73,10 +73,6 @@ export function WorkbookWorkspace({ user }: { user: HostUser }) {
     setMenuFileId(null);
     void w.myFiles();
   };
-  const statusText = w.status === "saved" ? "Saved" :
-    w.status === "conflict" ? "Save conflict — recovery retained" :
-    w.status === "error" ? "Save failed — recovery retained" :
-    w.status === "saving" ? "Saving…" : "Unsaved changes";
   const formatModified = (value: string) => {
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return "Unknown date";
@@ -86,45 +82,22 @@ export function WorkbookWorkspace({ user }: { user: HostUser }) {
   };
   return (
     <div className="y-sheets-workspace" data-testid="y-sheets-workspace">
-      <header className="y-sheets-workspace-header" dir="ltr">
-        <button type="button" className="ys-header-button" disabled={w.busy}
-          onClick={showMyFiles}>My Files</button>
-        <div className="ys-header-title" aria-label="Y-Sheets">
-          <YSheetsBrandMark size={24} /> <strong>Y-Sheets</strong>
-        </div>
-        <div className="ys-header-actions">
-          {w.active && (
-            <>
-              <span className="ys-save-indicator" role="status" aria-live="polite"
-                data-save-status={w.status}>
-                {w.status === "saved" ? <Cloud size={16} /> : <CloudAlert size={16} />}
-                <span>{statusText}</span>
-              </span>
-              <button className="ys-header-button" type="button" disabled={w.busy}
-                onClick={() => void w.retry()} title="Save or retry">
-                <Save size={16} /> <span className="ys-header-label">Save / Retry</span>
-              </button>
-              <button className="ys-header-button" type="button" onClick={download}
-                title="Download recovery copy">
-                <Download size={16} /> <span className="ys-header-label">Recovery Copy</span>
-              </button>
-              {(w.status === "conflict" || w.status === "error") && (
-                <>
-                  <button className="ys-header-button" type="button" disabled={w.busy}
-                    onClick={() => void create(true)}>Save as New Copy</button>
-                  <button className="ys-header-button" type="button" disabled={w.busy}
-                    onClick={() => void w.keepAndLeave()}>Keep Recovery & Return</button>
-                </>
-              )}
-            </>
-          )}
-          <button type="button" className="ys-header-button ys-header-return" disabled={w.busy}
-            onClick={goBackToHub}>
-            <ArrowLeft size={16} aria-hidden="true" />
-            <span>{language === "ar" ? "العودة إلى Y-Hub" : "Back to Y-Hub"}</span>
-          </button>
-        </div>
-      </header>
+      {!w.active && (
+        <header className="y-sheets-workspace-header" dir="ltr">
+          <button type="button" className="ys-header-button" disabled={w.busy}
+            onClick={showMyFiles}>My Files</button>
+          <div className="ys-header-title" aria-label="Y-Sheets">
+            <YSheetsBrandMark size={24}/> <strong>Y-Sheets</strong>
+          </div>
+          <div className="ys-header-actions">
+            <button type="button" className="ys-header-button ys-header-return" disabled={w.busy}
+              onClick={goBackToHub}>
+              <ArrowLeft size={16} aria-hidden="true" />
+              <span>{language === "ar" ? "العودة إلى Y-Hub" : "Back to Y-Hub"}</span>
+            </button>
+          </div>
+        </header>
+      )}
 
       {w.error && <div role="alert" className="y-sheets-workspace-error">{w.error}</div>}
       {w.busy && <div role="status" className="ys-busy-status">Loading…</div>}
@@ -140,6 +113,16 @@ export function WorkbookWorkspace({ user }: { user: HostUser }) {
             onDraftChange={w.draft}
             onError={w.report}
             onRequestNewWorkbook={() => void create()}
+            chrome={{
+              status: w.status,
+              busy: w.busy,
+              onMyFiles: showMyFiles,
+              onReturnToHub: goBackToHub,
+              onRetry: () => void w.retry(),
+              onDownloadRecovery: download,
+              onSaveAsCopy: () => void create(true),
+              onKeepRecovery: () => void w.keepAndLeave(),
+            }}
             permissions={{
               canEdit: true,
               canExport: true,
@@ -150,7 +133,7 @@ export function WorkbookWorkspace({ user }: { user: HostUser }) {
           />
         </div>
       ) : (
-        <main className="y-sheets-workspace-files" dir={language === "ar" ? "rtl" : "ltr"}>
+        <section className="y-sheets-workspace-files" dir={language === "ar" ? "rtl" : "ltr"}>
           <div className="ys-files-inner">
             <div className="ys-files-hero">
               <div>
@@ -312,7 +295,7 @@ export function WorkbookWorkspace({ user }: { user: HostUser }) {
               )}
             </section>
           </div>
-        </main>
+        </section>
       )}
     </div>
   );

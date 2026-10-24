@@ -13,7 +13,7 @@ export type WorkbookAction =
   | { type: 'RENAME_SHEET'; payload: { sheetId: string; newName: string } }
   | { type: 'REORDER_SHEETS'; payload: { fromIndex: number; toIndex: number } }
   | { type: 'SET_CELL_RAW'; payload: { sheetId: string; row: number; col: number; raw: string } }
-  | { type: 'SET_CELLS_BATCH'; payload: { sheetId: string; updates: Array<{ row: number; col: number; raw: string }> } }
+  | { type: 'SET_CELLS_BATCH'; payload: { sheetId: string; updates: Array<{ row: number; col: number; raw: string }>; clearSource?: { sheetId: string; cells: Array<{ row: number; col: number; raw: string }> } } }
   | { type: 'FORMAT_CELLS'; payload: { sheetId: string; range: CellRange; style: Partial<CellStyle> } }
   | { type: 'SET_CELL_VALIDATION'; payload: { sheetId: string; row: number; col: number; rule: ValidationRule } }
   | { type: 'REMOVE_CELL_VALIDATION'; payload: { sheetId: string; row: number; col: number } }

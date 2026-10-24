@@ -30,7 +30,7 @@ export function getColumnUniqueValues(
  * Applies a sheet filter by computing which rows should be hidden
  */
 export function applySheetFilter(sheet: WorksheetData, filter?: SheetFilter): WorksheetData {
-  if (!filter || Object.keys(filter.columns).length === 0) {
+  if (!filter) {
     return {
       ...sheet,
       filter: undefined,

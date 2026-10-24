@@ -1,9 +1,9 @@
-import React, { useState, type ReactNode } from 'react';
+import React, { useState, useId, useRef, type ReactNode } from 'react';
 import {
   Undo2, Redo2, Scissors, Copy, ClipboardPaste, Bold, Italic, Underline,
-  AlignLeft, AlignCenter, AlignRight, DollarSign, Percent, Hash, Grid,
+  AlignLeft, AlignCenter, AlignRight, DollarSign, Percent, Hash,
   Combine, ArrowDownAZ, ArrowUpZA, Filter, Search, Palette, CheckCircle,
-  FolderOpen, Save, PlusCircle, Sun, Moon, ChevronDown, Table2, FunctionSquare,
+  FolderOpen, Save, PlusCircle, Sun, Moon, Table2, FunctionSquare, Cloud, CloudAlert, Files, Download, ArrowLeft,
 } from 'lucide-react';
 import { useWorkbook } from '../../state/workbookContext';
 import { createDefaultWorkbook } from '../../state/defaultWorkbook';
@@ -13,6 +13,7 @@ import { ConditionalFormatDialog } from '../Dialogs/ConditionalFormatDialog';
 import { DataValidationDialog } from '../Dialogs/DataValidationDialog';
 import { ImportExportDialog } from '../Dialogs/ImportExportDialog';
 import { YSheetsBrandMark } from '../YSheetsBrandMark';
+import type { WorkspaceChromeControls } from '../../integration/hostContract';
 
 type RibbonTab = 'file' | 'home' | 'insert' | 'formulas' | 'data' | 'view';
 const tabs: { id: RibbonTab; title: string }[] = [
@@ -49,7 +50,7 @@ function Action({ icon, label, onClick, selected = false, disabled = false }: {
 }
 
 /** File operations remain delegated to the workspace and its guarded storage adapter. */
-export const Toolbar: React.FC<{ onNewWorkbook?: () => void }> = ({ onNewWorkbook }) => {
+export const Toolbar: React.FC<{ onNewWorkbook?: () => void; chrome?: WorkspaceChromeControls }> = ({ onNewWorkbook, chrome }) => {
   const {
     workbook, activeSheet, activeCell, selection, canEdit, canUndo, canRedo, theme,
     undo, redo, cutSelection, copySelection, pasteSelection,
@@ -58,12 +59,14 @@ export const Toolbar: React.FC<{ onNewWorkbook?: () => void }> = ({ onNewWorkboo
     toggleMergeSelection, setTheme, dispatch,
   } = useWorkbook();
   const [tab, setTab] = useState<RibbonTab>('home');
+  const tabId = useId();
+  const tabButtons = useRef<Partial<Record<RibbonTab, HTMLButtonElement | null>>>({});
+  const ribbonRoot = useRef<HTMLDivElement>(null);
   const [findDialogOpen, setFindDialogOpen] = useState(false);
   const [condDialogOpen, setCondDialogOpen] = useState(false);
   const [valDialogOpen, setValDialogOpen] = useState(false);
   const [ioDialogOpen, setIoDialogOpen] = useState(false);
   const [ioDefaultTab, setIoDefaultTab] = useState<'export' | 'import'>('export');
-  const [showBorders, setShowBorders] = useState(false);
 
   const key = cellCoordToKey(activeCell.row, activeCell.col);
   const style = activeSheet.cells[key]?.style || {};
@@ -94,7 +97,7 @@ export const Toolbar: React.FC<{ onNewWorkbook?: () => void }> = ({ onNewWorkboo
   const fontSizes = [9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 36];
 
   return (
-    <div className="ys-ribbon" dir="ltr">
+    <div className="ys-ribbon" dir="ltr" ref={ribbonRoot}>
       <div className="ys-ribbon-titlebar">
         <YSheetsBrandMark size={38} className="ys-document-mark" />
         <div className="ys-document-identity">
@@ -104,6 +107,35 @@ export const Toolbar: React.FC<{ onNewWorkbook?: () => void }> = ({ onNewWorkboo
             onChange={e => dispatch({ type: 'SET_WORKBOOK_NAME', payload: e.target.value })}
             className="ys-document-name" />
         </div>
+        {chrome && (
+          <div className="ys-ribbon-host-actions" role="group" aria-label="Workbook controls">
+            <button type="button" className="ys-host-action" onClick={chrome.onMyFiles} disabled={chrome.busy}
+              title="My Files" aria-label="My Files"><Files size={16}/><span>My Files</span></button>
+            <span className="ys-save-chip" role="status" aria-live="polite" data-save-status={chrome.status}>
+              {chrome.status === 'saved' ? <Cloud size={16}/> : <CloudAlert size={16}/>}
+              <span>{chrome.status === 'saved' ? 'Saved' :
+                chrome.status === 'saving' ? 'Saving…' :
+                chrome.status === 'conflict' ? 'Save conflict' :
+                chrome.status === 'error' ? 'Save failed' : 'Unsaved changes'}</span>
+            </span>
+            <button type="button" className="ys-host-action" disabled={chrome.busy}
+              onClick={chrome.onRetry} title="Save or retry" aria-label="Save or retry"><Save size={16}/><span>Save</span></button>
+            <button type="button" className="ys-host-action" onClick={chrome.onDownloadRecovery}
+              title="Download Recovery Copy" aria-label="Download Recovery Copy"><Download size={16}/><span>Recovery</span></button>
+            {(chrome.status === 'error' || chrome.status === 'conflict') && (
+              <>
+                <button type="button" className="ys-host-action" disabled={chrome.busy}
+                  onClick={chrome.onSaveAsCopy} title="Save as new copy">Save as copy</button>
+                <button type="button" className="ys-host-action" disabled={chrome.busy}
+                  onClick={chrome.onKeepRecovery} title="Keep local recovery and return">Keep recovery</button>
+              </>
+            )}
+            <button type="button" className="ys-host-action" disabled={chrome.busy}
+              onClick={chrome.onReturnToHub} title="Back to Y-Hub" aria-label="Back to Y-Hub">
+              <ArrowLeft size={16}/><span>Y-Hub</span>
+            </button>
+          </div>
+        )}
         <button type="button" className="ys-theme-switch" title={theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
           aria-label="Switch editor theme"
           onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
@@ -113,14 +145,27 @@ export const Toolbar: React.FC<{ onNewWorkbook?: () => void }> = ({ onNewWorkboo
       <div className="ys-ribbon-tabs" role="tablist" aria-label="Spreadsheet tools">
         {tabs.map(item => (
           <button key={item.id} role="tab" type="button"
+            id={`${tabId}-${item.id}`} aria-controls={`${tabId}-panel`}
+            tabIndex={tab === item.id ? 0 : -1}
+            ref={node => { tabButtons.current[item.id] = node; }}
+            onKeyDown={event => {
+              const index = tabs.findIndex(t => t.id === item.id);
+              const next = event.key === 'ArrowRight' ? (index + 1) % tabs.length
+                : event.key === 'ArrowLeft' ? (index + tabs.length - 1) % tabs.length
+                : event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : -1;
+              if (next < 0) return;
+              event.preventDefault();
+              const id = tabs[next]!.id;
+              setTab(id); tabButtons.current[id]?.focus();
+            }}
             aria-selected={tab === item.id}
             className={tab === item.id ? 'ys-ribbon-tab is-active' : 'ys-ribbon-tab'}
-            onClick={() => { setShowBorders(false); setTab(item.id); }}>
+            onClick={() => setTab(item.id)}>
             {item.title}
           </button>
         ))}
       </div>
-      <div className="ys-ribbon-panel" role="tabpanel" aria-label={tabs.find(item => item.id === tab)?.title}>
+      <div className="ys-ribbon-panel" role="tabpanel" id={`${tabId}-panel`} aria-labelledby={`${tabId}-${tab}`}>
         {tab === 'file' && (
           <>
             <Group label="Workbooks">
@@ -175,20 +220,20 @@ export const Toolbar: React.FC<{ onNewWorkbook?: () => void }> = ({ onNewWorkboo
               <Action icon={<Hash />} label="Number" onClick={() => setNumberFormat('number')} disabled={!canEdit} />
             </Group>
             <Group label="Cells">
-              <div className="ys-ribbon-dropdown">
-                <Action icon={<><Grid /><ChevronDown size={11} /></>} label="Cell borders"
-                  onClick={() => setShowBorders(!showBorders)} disabled={!canEdit} />
-                {showBorders && (
-                  <div className="ys-ribbon-menu">
-                    {(['all', 'top', 'bottom', 'none'] as const).map(edge => (
-                      <button key={edge} type="button" onClick={() => {
-                        applyBorders(edge);
-                        setShowBorders(false);
-                      }}>{edge === 'all' ? 'All borders' : edge === 'none' ? 'No borders' : edge + ' border'}</button>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <select aria-label="Cell borders" className="ys-ribbon-select" value=""
+                disabled={!canEdit}
+                onChange={e => {
+                  const border = e.target.value;
+                  if (border === 'all' || border === 'top' || border === 'bottom' || border === 'none') {
+                    applyBorders(border);
+                  }
+                }}>
+                <option value="" disabled>Borders</option>
+                <option value="all">All borders</option>
+                <option value="top">Top border</option>
+                <option value="bottom">Bottom border</option>
+                <option value="none">No borders</option>
+              </select>
               <Action icon={<Combine />} label="Merge or unmerge cells" onClick={toggleMergeSelection} disabled={!canEdit} />
             </Group>
           </>
@@ -207,7 +252,7 @@ export const Toolbar: React.FC<{ onNewWorkbook?: () => void }> = ({ onNewWorkboo
           <>
             <Group label="Formula helpers">
               <Action icon={<FunctionSquare />} label="Open formula entry" onClick={() => {
-                const input = document.querySelector<HTMLInputElement>('.y-sheets-root input[placeholder^="Enter a value"]');
+                const input = ribbonRoot.current?.closest('.y-sheets-root')?.querySelector<HTMLInputElement>('input[placeholder^="Enter a value"]');
                 input?.focus();
               }} />
               <Action icon={<Search />} label="Find and replace" onClick={() => setFindDialogOpen(true)} />

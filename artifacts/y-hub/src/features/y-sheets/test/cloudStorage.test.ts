@@ -109,3 +109,10 @@ describe("Supabase workbook save protocol", () => {
     );
   });
 });
+it.each(['40001','P0002','PT409'])('retains the intent and classifies %s as a terminal conflict',async code=>{
+ const storage=createSupabaseWorkbookStorage(owner),wb=await storage.loadWorkbook(workbook().id);
+ api.rpc.mockResolvedValue({data:null,error:{code}});
+ await expect(storage.saveWorkbook(wb)).rejects.toMatchObject({kind:'conflict'});
+ expect(storage.checkpoint?.(wb.id)?.intent?.workbook.id).toBe(wb.id);
+ expect(api.rpc).toHaveBeenCalledTimes(1);
+});
