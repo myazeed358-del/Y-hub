@@ -73,3 +73,13 @@ Raw logs are retained at `/workspace/ai-tutor-*.log`. Pinned Edge packages and i
 - Hosted cross-device access revocation and live provider failure/timeout behavior.
 
 No production-ready or zero-hallucination claim is made. Phase 2 educational modes and Phase 3 math-engine verification remain separate work. Vercel's deferred Python bundle-size issue was not investigated.
+
+## GitHub delivery
+
+Implementation commit: `a95dcd9`. Code and verification checkpoint `ff378cf7f975af337dcea8256e3435689c797b5f` was pushed normally and verified with `git ls-remote` on `feature/ai-tutor-rag`. A subsequent documentation-only delivery commit records this result; Git establishes its final hash. Main remains `0405670e41624905c9829667fbf3927485286e8c`.
+
+The actual Draft PR creation attempt (`gh pr create --base main --head feature/ai-tutor-rag --draft --body-file docs/ai-tutor/PR_DESCRIPTION.md`) failed with `Post "https://api.github.com/graphql": Forbidden`. **No PR was created and no PR number is claimed.** The enforced environment network policy does not allow `api.github.com`; native Git pushes work. Existing environment draft configuration does not establish applied API access. Once that access is available, create the Draft PR using the saved description; do not merge or deploy production.
+
+Branch: https://github.com/myazeed358-del/Y-hub/tree/feature/ai-tutor-rag
+
+GitHub's PR creation page (not an existing PR): https://github.com/myazeed358-del/Y-hub/pull/new/feature/ai-tutor-rag

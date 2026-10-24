@@ -11,3 +11,5 @@ The Tutor previously sent browser-selected PDF excerpts and unverified page labe
 Migration **0038_ai_tutor_knowledge.sql** is local-tested only. No production SQL or Edge deployment, no main merge. Requires approved hosted deployment with server-only keys and an exact CORS origin allowlist. Actual external Groq/embedding calls and hosted Storage/Edge integration remain pending; local mocks are not claimed as live model verification.
 
 See `docs/ai-tutor/PHASE1.md`, `VERIFICATION.md` and `CHANGED_FILES.md` for limits, test results and deployment gates. Phases 2 (educational modes) and 3 (verified math tool integration) are deliberately not included. Known Vercel Python bundle-size limitation is deferred and unchanged.
+
+Local validation: **1963 Vitest /227 files** (68 Tutor tests), **36 Python**, **8 architecture guards**, workspace TypeScript/audits/build, both Edge Deno typechecks, **4 real PDF tests**, **18 native Auth/HTTP/database cases**, **134 existing SQL cases**, and **3 Chromium scenarios** passed. Browser/LLM mocks are explicitly distinguished from native local services in VERIFICATION.md; hosted provider and Storage tests remain pending.
