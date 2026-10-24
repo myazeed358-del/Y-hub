@@ -112,6 +112,7 @@ export const SheetTabs: React.FC = () => {
                 <input
                   ref={inputRef}
                   type="text"
+                  aria-label="Worksheet name"
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
                   onBlur={handleCommitRename}
@@ -130,9 +131,11 @@ export const SheetTabs: React.FC = () => {
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setContextMenu({ sheetId: sheet.id, x: e.clientX, y: e.clientY });
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  setContextMenu({ sheetId: sheet.id, x: rect.left, y: rect.top });
                 }}
-                className="opacity-0 group-hover:opacity-100 p-0.5 hover:bg-zinc-300 dark:hover:bg-zinc-700 rounded transition"
+                aria-label={`Options for worksheet ${sheet.name}`}
+                className="ys-sheet-options opacity-0 group-hover:opacity-100 p-0.5 hover:bg-zinc-300 dark:hover:bg-zinc-700 rounded transition"
               >
                 <MoreVertical className="w-3 h-3 text-zinc-400" />
               </button>

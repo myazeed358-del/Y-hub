@@ -1,8 +1,11 @@
 import React from "react";
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, expect, it } from "vitest";
-import css from "../App.css?raw";
-import workspaceCss from "../workspace/workspace.css?raw";
+import {readFileSync} from 'node:fs';
+import {resolve} from 'node:path';
+// Vitest stubs CSS imports (including ?raw); read real sources so these checks cannot pass on empty strings.
+const css=readFileSync(resolve(__dirname,'../App.css'),'utf8');
+const workspaceCss=readFileSync(resolve(__dirname,'../workspace/workspace.css'),'utf8');
 import { WorkbookProvider, useWorkbook } from "../state/workbookContext";
 afterEach(cleanup);
 it("scopes every style selector and animation definition to Y-Sheets", () => {
@@ -21,6 +24,7 @@ it("scopes every style selector and animation definition to Y-Sheets", () => {
         inspect((rule as CSSGroupingRule).cssRules);
     }
   };
+  expect(style.sheet!.cssRules.length).toBeGreaterThan(0);
   inspect(style.sheet!.cssRules);
   style.remove();
 });
@@ -80,6 +84,18 @@ it('scopes workspace layout rules and avoids fixed viewport subtraction', () => 
       else if('cssRules' in rule) inspect((rule as CSSGroupingRule).cssRules);
     }
   };
+  expect(style.sheet!.cssRules.length).toBeGreaterThan(0);
   inspect(style.sheet!.cssRules); style.remove();
   expect(workspaceCss).not.toMatch(/position:\s*fixed|calc\(100(?:d)?vh/);
+});
+it('defines cyan selection headers and subdued grid borders in dark mode',()=>{
+ // Assert the parsed declarations here; Chromium checks their actual cascade.
+ const style=document.createElement('style');style.textContent=css;document.head.appendChild(style);
+ const rules=[...style.sheet!.cssRules].filter(rule=>rule.type===CSSRule.STYLE_RULE) as CSSStyleRule[];
+ try {
+  const header=rules.find(rule=>rule.selectorText.includes('bg-emerald-950')&&rule.selectorText.endsWith('80'));
+  const cell=rules.find(rule=>rule.selectorText.includes('border-zinc-800')&&rule.selectorText.endsWith('80'));
+  expect(header?.style.getPropertyValue('background-color')).toBe('rgba(8, 51, 68, 0.8)');
+  expect(cell?.style.getPropertyValue('border-color')).toBe('rgba(39, 39, 42, 0.8)');
+ } finally {style.remove();}
 });

@@ -134,14 +134,22 @@ export function workbookReducer(state: WorkbookData, action: WorkbookAction): Wo
     }
 
     case 'SET_CELLS_BATCH': {
-      const { sheetId, updates } = action.payload;
+      const { sheetId, updates, clearSource } = action.payload;
       const nextSheets = state.sheets.map((sheet) => {
-        if (sheet.id !== sheetId) return sheet;
+        if (sheet.id !== sheetId && sheet.id !== clearSource?.sheetId) return sheet;
         const updatedCells = { ...sheet.cells };
 
-        for (const u of updates) {
+        // Clear captured source values first, then write the destination. This is
+        // one history/save transaction, including overlapping or cross-sheet cuts.
+        if (sheet.id === clearSource?.sheetId) {
+          for (const cell of clearSource.cells) {
+            const key = cellCoordToKey(cell.row, cell.col);
+            if ((updatedCells[key]?.raw ?? '') === cell.raw) delete updatedCells[key];
+          }
+        }
+        for (const u of sheet.id === sheetId ? updates : []) {
           const key = cellCoordToKey(u.row, u.col);
-          const current = updatedCells[key] || { raw: '' };
+          const current = sheet.cells[key] || { raw: '' };
           if (u.raw === '') {
             delete updatedCells[key];
           } else {

@@ -227,3 +227,13 @@ it('refuses departure if local recovery cannot be persisted', async () => {
   expect(result.current.active).not.toBeNull();
   expect(result.current.error).toContain('quota');
 });
+
+it('does not replace a completed search with an older initial directory response', async () => {
+  let initial!: (files: unknown[]) => void;
+  mocks.list.mockImplementationOnce(() => new Promise(resolve => { initial = resolve; }))
+    .mockResolvedValueOnce([{ id: 'match', name: 'Budget', updatedAt: '' }]);
+  const { result } = renderHook(() => useWorkbookWorkspace('owner'));
+  await act(async () => { await result.current.searchFiles('Budget'); });
+  await act(async () => { initial([{ id: 'old', name: 'Old directory', updatedAt: '' }]); });
+  expect(result.current.files.map(f => f.id)).toEqual(['match']);
+});

@@ -19,6 +19,9 @@ export const ImportExportDialog: React.FC<Props> = ({ isOpen, onClose, defaultTa
   const [activeTab, setActiveTab] = useState<'export' | 'import'>(defaultTab);
   const [errorMsg, setErrorMsg] = useState('');
   const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    if (isOpen) { setActiveTab(defaultTab); setErrorMsg(''); }
+  }, [isOpen, defaultTab]);
   const generation=useRef(0);
   useEffect(() => { if(!isOpen) generation.current++; return () => {generation.current++;}; },[isOpen]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -179,9 +182,8 @@ export const ImportExportDialog: React.FC<Props> = ({ isOpen, onClose, defaultTa
           </p>
         ) : activeTab === 'export' ? (
           <div className="py-4 space-y-3">
-            <div
-              role="button" tabIndex={0} aria-disabled={loading} onClick={() => { if(!loading) void handleExportXLSX(); }} onKeyDown={e => { if(!loading && (e.key==='Enter' || e.key===' ')) {e.preventDefault();void handleExportXLSX();} }}
-              className="flex items-center justify-between p-3.5 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700 hover:border-emerald-500 cursor-pointer transition group"
+            <button type="button" disabled={loading} onClick={() => void handleExportXLSX()}
+              className="flex w-full text-left items-center justify-between p-3.5 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700 hover:border-emerald-500 cursor-pointer transition group"
             >
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 rounded-lg">
@@ -197,11 +199,11 @@ export const ImportExportDialog: React.FC<Props> = ({ isOpen, onClose, defaultTa
                 </div>
               </div>
               <Download className="w-4 h-4 text-zinc-400 group-hover:text-emerald-600" />
-            </div>
+            </button>
 
-            <div
+            <button type="button" disabled={loading}
               onClick={handleExportCSV}
-              className="flex items-center justify-between p-3.5 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700 hover:border-emerald-500 cursor-pointer transition group"
+              className="flex w-full text-left items-center justify-between p-3.5 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700 hover:border-emerald-500 cursor-pointer transition group"
             >
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400 rounded-lg">
@@ -217,11 +219,11 @@ export const ImportExportDialog: React.FC<Props> = ({ isOpen, onClose, defaultTa
                 </div>
               </div>
               <Download className="w-4 h-4 text-zinc-400 group-hover:text-emerald-600" />
-            </div>
+            </button>
 
-            <div
+            <button type="button" disabled={loading}
               onClick={handleExportJSON}
-              className="flex items-center justify-between p-3.5 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700 hover:border-emerald-500 cursor-pointer transition group"
+              className="flex w-full text-left items-center justify-between p-3.5 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700 hover:border-emerald-500 cursor-pointer transition group"
             >
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 rounded-lg">
@@ -237,13 +239,14 @@ export const ImportExportDialog: React.FC<Props> = ({ isOpen, onClose, defaultTa
                 </div>
               </div>
               <Download className="w-4 h-4 text-zinc-400 group-hover:text-emerald-600" />
-            </div>
+            </button>
           </div>
         ) : (
           /* Tab 2: Import */
           <div className="py-4 space-y-4">
-            <div
-              onClick={() => fileInputRef.current?.click()}
+            <div role="button" tabIndex={loading ? -1 : 0} aria-label="Choose a spreadsheet file" aria-disabled={loading}
+              onKeyDown={event => { if (!loading && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); fileInputRef.current?.click(); } }}
+              onClick={() => { if (!loading) fileInputRef.current?.click(); }}
               className="border-2 border-dashed border-zinc-300 dark:border-zinc-700 hover:border-emerald-500 rounded-xl p-8 flex flex-col items-center justify-center gap-3 cursor-pointer transition bg-zinc-50/50 dark:bg-zinc-900/50"
             >
               <Upload className="w-8 h-8 text-emerald-600" />

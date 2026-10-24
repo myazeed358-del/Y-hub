@@ -217,6 +217,7 @@ export const WorkbookProvider: React.FC<WorkbookProviderProps> = ({
           cellsToCopy[`${r - minRow},${c - minCol}`] = cell;
           rowValues.push(cell.raw);
         } else {
+          cellsToCopy[`${r - minRow},${c - minCol}`] = { raw: '' };
           rowValues.push('');
         }
       }
@@ -269,26 +270,25 @@ export const WorkbookProvider: React.FC<WorkbookProviderProps> = ({
       }
     }
 
-    if (clipboard.isCut) {
-      // Clear original cut cells
-      const origMinR = Math.min(clipboard.range.startRow, clipboard.range.endRow);
-      const origMaxR = Math.max(clipboard.range.startRow, clipboard.range.endRow);
-      const origMinC = Math.min(clipboard.range.startCol, clipboard.range.endCol);
-      const origMaxC = Math.max(clipboard.range.startCol, clipboard.range.endCol);
-
-      for (let r = origMinR; r <= origMaxR; r++) {
-        for (let c = origMinC; c <= origMaxC; c++) {
-          updates.push({ row: r, col: c, raw: '' });
-        }
-      }
-      setClipboard(null);
-    }
+    // Never clear a source when the complete cut cannot fit at its destination.
+    if (clipboard.isCut && updates.length !== Object.keys(clipboard.cells).length) return;
+    const sourceRow = Math.min(clipboard.range.startRow, clipboard.range.endRow);
+    const sourceCol = Math.min(clipboard.range.startCol, clipboard.range.endCol);
+    const clearSource = clipboard.isCut ? {
+      sheetId: clipboard.sheetId,
+      cells: Object.entries(clipboard.cells).map(([key, cell]) => {
+        const pos = keyToCellCoord(key);
+        return { row: sourceRow + pos.row, col: sourceCol + pos.col, raw: cell.raw };
+      }),
+    } : undefined;
+    if (clipboard.isCut) setClipboard(null);
 
     dispatch({
       type: 'SET_CELLS_BATCH',
       payload: {
         sheetId: activeSheet.id,
         updates,
+        clearSource,
       },
     });
   }, [clipboard, selection, activeSheet, dispatch, canEdit]);

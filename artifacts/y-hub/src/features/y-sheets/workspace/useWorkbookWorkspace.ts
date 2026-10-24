@@ -45,6 +45,7 @@ export function useWorkbookWorkspace(ownerId: string) {
   const [recoveries, setRecoveries] = useState<RecoveryEntry[]>([]);
   const [hasMore, setHasMore] = useState(false);
   const search = useRef("");
+  const directoryRequest = useRef(0);
   const [corrupt, setCorrupt] = useState(0);
   const [active, setActive] = useState<WorkbookData | null>(null);
   const [status, setStatus] = useState<SaveStatus>("saved");
@@ -64,10 +65,15 @@ export function useWorkbookWorkspace(ownerId: string) {
   }, [journal]);
   const refresh = useCallback(async () => {
     refreshLocal();
-    const result = await storage.listWorkbooks!({ search: search.current });
-    if (alive.current) {
-      setFiles(result);
-      setHasMore(result.length === 50);
+    const request = ++directoryRequest.current;
+    try {
+      const result = await storage.listWorkbooks!({ search: search.current });
+      if (alive.current && request === directoryRequest.current) {
+        setFiles(result);
+        setHasMore(result.length === 50);
+      }
+    } catch (error) {
+      if (alive.current && request === directoryRequest.current) throw error;
     }
   }, [refreshLocal, storage]);
   useEffect(() => {
@@ -90,6 +96,7 @@ export function useWorkbookWorkspace(ownerId: string) {
     window.addEventListener("storage", changed);
     return () => {
       alive.current = false;
+      directoryRequest.current++;
       session.current?.dispose();
       window.removeEventListener("beforeunload", unload);
       window.removeEventListener("storage", changed);

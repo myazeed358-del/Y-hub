@@ -41,12 +41,16 @@ try {
     await page.waitForSelector('aside');
     // Link navigation enters the production guarded router and lazy module loader.
     await page.getByRole('link',{name:'Y-Sheets', exact:true}).click();
-    await page.getByRole('button',{name:/Synthetic geometry fixture/}).click();
-    const back = page.getByRole('button',{name:language==='ar'?'العودة إلى Y-Hub':'Back to Y-Hub'});
+    await page.getByRole('button',{name:/^Synthetic geometry fixture/}).click();
+    const back = page.getByRole('button',{name:'Back to Y-Hub',exact:true});
     const formula = page.getByPlaceholder(/Enter a value or formula/);
     await formula.waitFor();
     assert.equal(await page.locator('aside').count(),0);
     assert.equal(await page.locator('header.sticky').count(),0);
+    if(theme==='dark') {
+      assert.equal(await page.locator('[data-y-sheets-column="0"]').evaluate(e=>getComputedStyle(e).backgroundColor),'rgba(8, 51, 68, 0.8)');
+      assert.equal(await page.locator('[data-y-sheets-cell="0,0"]').evaluate(e=>getComputedStyle(e).borderRightColor),'rgba(39, 39, 42, 0.8)');
+    }
     for (const [width,height] of [[1920,1080],[1366,768],[768,1024],[390,844]]) {
       await page.setViewportSize({width,height});
       const grid = page.locator('[data-y-sheets-scroll]');
@@ -71,21 +75,20 @@ try {
     await page.goBack();
     await page.waitForURL('**/y-sheets');
     assert.equal(await formula.inputValue(),'=42');
-    page.once('dialog',dialog=>dialog.dismiss());
+    // Clicking away commits the formula; failed persistence must keep the editor.
+    conflict=true;
     await back.click();
     assert.equal(new URL(page.url()).pathname,'/y-sheets');
-    conflict=true;
-    await formula.press('Enter');
-    await page.getByText('Save conflict — your copy is retained').waitFor();
+    await page.locator('[data-save-status="conflict"]').waitFor();
     page.once('dialog',dialog=>dialog.accept());
-    await back.click();
+    await page.goBack();
     await page.waitForURL('**/dashboard'); await page.waitForSelector('aside');
     assert.equal(await page.locator('header.sticky').count(),1);
     assert(await page.evaluate(()=>Object.values(localStorage).some(value=>value.includes('=42'))));
     await page.setViewportSize({width:1366,height:768});
     await page.getByRole('link',{name:'Y-Sheets',exact:true}).click();
     await page.getByRole('button',{name:'Recover',exact:true}).click();
-    await page.getByText('Save conflict — your copy is retained').waitFor();
+    await page.locator('[data-save-status="conflict"]').waitFor();
     assert.equal(await formula.inputValue(),'=42');
     assert.deepEqual(errors,[]);
     await context.close();

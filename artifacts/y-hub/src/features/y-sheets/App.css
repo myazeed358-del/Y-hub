@@ -1,5 +1,4 @@
 /* All selectors and animation names belong to Y-Sheets. Never add global resets here. */
-@charset "UTF-8";
 
 .y-sheets-root {
   --bg-app: #ffffff;
@@ -304,7 +303,7 @@
 .y-sheets-root.dark .dark\:bg-red-950 { background-color: #450a0a; }
 .y-sheets-root.dark .dark\:bg-emerald-950 { background-color: #083344; }
 .y-sheets-root.dark .dark\:bg-emerald-950\/40 { background-color: rgba(8,51,68,.4); }
-.y-sheets-root.dark .dark\:bg-emerald-950\/80 { background-color: rgba(6, 78, 59, 0.8); }
+.y-sheets-root.dark .dark\:bg-emerald-950\/80 { background-color: rgba(8, 51, 68, 0.8); }
 .y-sheets-root.dark .dark\:bg-blue-950\/60 { background-color: rgba(23, 37, 84, 0.6); }
 .y-sheets-root.dark .dark\:bg-amber-950\/60 { background-color: rgba(69, 26, 3, 0.6); }
 .y-sheets-root.dark .dark\:text-zinc-100 { color: #f4f4f5; }
@@ -320,6 +319,7 @@
 .y-sheets-root.dark .dark\:text-amber-400 { color: #fbbf24; }
 .y-sheets-root.dark .dark\:border-zinc-700 { border-color: #3f3f46; }
 .y-sheets-root.dark .dark\:border-zinc-800 { border-color: #27272a; }
+.y-sheets-root.dark .dark\:border-zinc-800\/80 { border-color: rgba(39, 39, 42, 0.8); }
 .y-sheets-root.dark .dark\:border-red-800 { border-color: #991b1b; }
 .y-sheets-root.dark .dark\:border-emerald-900 { border-color: #083344; }
 
@@ -524,4 +524,16 @@
   .y-sheets-root .ys-document-name { max-width: 90px; }
   .y-sheets-root .ys-document-product { font-size: 11px; }
   .y-sheets-root .ys-ribbon-titlebar { gap: 5px; }
+}
+
+/* Visible focus for icon-only controls and native color inputs. */
+.y-sheets-root .ys-host-action:focus-visible,
+.y-sheets-root .ys-theme-switch:focus-visible,
+.y-sheets-root .ys-ribbon-select:focus-visible,
+.y-sheets-root .ys-ribbon-color:focus-within {
+  outline: 2px solid var(--accent); outline-offset: 1px;
+}
+
+.y-sheets-root .ys-sheet-options:focus-visible {
+  opacity: 1; outline: 2px solid var(--accent);
 }
