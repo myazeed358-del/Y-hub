@@ -1,8 +1,12 @@
+import { QuickAccessEditor } from './QuickAccessEditor';
+import type { QuickAccessController } from '../hooks/useQuickAccess';
 import { Calendar, Clock } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { useLanguage } from '@/i18n/LanguageContext';
 
 interface Props {
+  quickAccess?: QuickAccessController;
+  language?: 'ar'|'en';
   t: ReturnType<typeof useLanguage>['t'];
   tools: Array<{
     name: string;
@@ -15,6 +19,8 @@ interface Props {
 export function StudentDashboardSidebar({
   t,
   tools,
+  quickAccess,
+  language='en',
   setLocation,
 }: Props) {
   return (
@@ -33,6 +39,7 @@ export function StudentDashboardSidebar({
               );
             })}
           </div>
+          {quickAccess && <QuickAccessEditor state={quickAccess} language={language}/>}
         </div>
 
         {/* Exams */}

@@ -99,3 +99,11 @@ Existing branch and PR #15 head were both confirmed at `c7a2f1fa59ceba53a70cf4b0
 3. Separate follow-up debt: heavy Plotly/PDF/math chunks, dependency deprecations, optional AuthContext extraction, alternate Python protocol deployment/hardening and real-browser workflow/visual verification.
 
 No production-readiness or percentage-completion claim follows from local passing tests. Supabase configuration, migrations, student IDs, themes and mathematical algorithms remain unchanged.
+
+---
+
+## Historical checkpoint — PR #31 Quick Access
+
+# University features — Quick Access verified (2026-10-22)
+
+Current branch `feature/student-quick-access` is stacked on engine-access db0ae2d7b57efee2ed85621d8a3e9f2488abda02 (previous verified remote). Existing card enhanced; see docs/university/QUICK_ACCESS.md. 1872 Vitest/215 files,36 Python,107 PostgreSQL,workspace TS,audits/build PASS. Next implement attendance, online lectures, Owner labels and combined integration; continue automatically. No main merge or production writes. Git establishes newest checkpoint. Older NEXT below is superseded.

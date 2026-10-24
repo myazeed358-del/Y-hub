@@ -83,3 +83,11 @@ UNFINISHED WORK: none in the focused implementation. PR #15 remains for review; 
 NEXT EXACT STEP: inspect local/remote state and review existing Draft PR #15. API-2 source and docs are complete; do not repeat this migration or broaden scope. Do not create another PR, mark it ready or merge main. New product implementations require a separate task.
 RECOVERY COMMANDS: git status --short --branch; git log -5 --oneline; git ls-remote origin refs/heads/refactor/architecture-plug-and-play refs/pull/15/head; read PLUGIN_CONTRACT.md and REFACTOR_PROGRESS.md.
 IMPORTANT RISKS: API 1 is deliberately rejected; migrate manifests explicitly using PLUGIN_CONTRACT.md. Fuzzy Logic Lab stays an engine for existing computation/search compatibility; future laboratory-kind modules remain separate. Kinds/categories/capabilities/groups grant no privileges. No Supabase/RLS/migration/theme/math algorithm changes. Known Vercel Python bundle-size deployment limit is outside this task; do not investigate it here.
+
+---
+
+## Historical checkpoint — PR #31 Quick Access
+
+# University features — Quick Access verified (2026-10-22)
+
+Current branch `feature/student-quick-access` is stacked on engine-access db0ae2d7b57efee2ed85621d8a3e9f2488abda02 (previous verified remote). Existing card enhanced; see docs/university/QUICK_ACCESS.md. 1872 Vitest/215 files,36 Python,107 PostgreSQL,workspace TS,audits/build PASS. Next implement attendance, online lectures, Owner labels and combined integration; continue automatically. No main merge or production writes. Git establishes newest checkpoint. Older NEXT below is superseded.
