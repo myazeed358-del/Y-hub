@@ -417,3 +417,7 @@ enabled = true
 # Y-Hub AI Tutor: require a signed-in user's JWT.
 [functions.ai-tutor-chat]
 verify_jwt = true
+
+# Same signed-in boundary for instructor-managed source indexing.
+[functions.ai-tutor-index]
+verify_jwt = true

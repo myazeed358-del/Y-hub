@@ -1,38 +1,12 @@
-import * as React from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkMath from 'remark-math';
-import rehypeKatex from 'rehype-katex';
-import 'katex/dist/katex.min.css';
+import * as React from "react";
+import ReactMarkdown from "react-markdown";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import "katex/dist/katex.min.css";
 
-/**
- * Convert Groq's LaTeX delimiters to remark-math syntax.
- * Preserve literal delimiters inside fenced and inline code.
- */
-export function normalizeMathDelimiters(
-  content: string
-): string {
-  const sections = content.split(
-    /(```[\s\S]*?```|~~~[\s\S]*?~~~|`+[^`\n]*`+)/g
-  );
-
-  return sections.map((section, index) => {
-    if (index % 2 === 1) {
-      return section;
-    }
-
-    return section
-      .replace(
-        /\\\[([\s\S]*?)\\\]/g,
-        (_, expression: string) =>
-          '\n\n$$\n' + expression.trim() + '\n$$\n\n'
-      )
-      .replace(
-        /\\\(([\s\S]*?)\\\)/g,
-        (_, expression: string) =>
-          '$' + expression.trim() + '$'
-      );
-  }).join('');
-}
+import { messageDirection, normalizeMathDelimiters } from "./mathMarkdown";
+import "./chatMath.css";
+export { normalizeMathDelimiters } from "./mathMarkdown";
 
 interface ChatMessageContentProps {
   content: string;
@@ -43,20 +17,29 @@ export function ChatMessageContent({
 }: ChatMessageContentProps) {
   return (
     <div
-      dir="auto"
+      dir={messageDirection(content)}
       className={[
-        'prose prose-sm dark:prose-invert',
-        'max-w-none min-w-0 break-words',
-        '[&_.katex-display]:max-w-full',
-        '[&_.katex-display]:overflow-x-auto',
-        '[&_.katex-display]:overflow-y-hidden',
-        '[&_pre]:max-w-full',
-        '[&_pre]:overflow-x-auto',
-      ].join(' ')}
+        "ai-tutor-message prose prose-sm dark:prose-invert",
+        "max-w-none min-w-0 break-words",
+        "[&_.katex-display]:max-w-full",
+        "[&_.katex-display]:overflow-x-auto",
+        "[&_.katex-display]:overflow-y-hidden",
+        "[&_pre]:max-w-full",
+        "[&_pre]:overflow-x-auto",
+      ].join(" ")}
     >
       <ReactMarkdown
+        components={{
+          img: () => null,
+          a: ({ children }) => <span>{children}</span>,
+        }}
         remarkPlugins={[remarkMath]}
-        rehypePlugins={[rehypeKatex]}
+        rehypePlugins={[[rehypeKatex, {
+          strict: "ignore",
+          trust: false,
+          throwOnError: false,
+          maxExpand: 1000,
+        }]]}
       >
         {normalizeMathDelimiters(content)}
       </ReactMarkdown>

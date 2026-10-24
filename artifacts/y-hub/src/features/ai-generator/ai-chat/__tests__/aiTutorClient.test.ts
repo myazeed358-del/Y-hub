@@ -1,89 +1,61 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { askAiTutor } from '../aiTutorClient';
-
-const mocks = vi.hoisted(() => ({
-  invoke: vi.fn(),
-}));
-
-vi.mock('@/utils/supabaseClient', () => ({
-  supabase: {
-    functions: {
-      invoke: mocks.invoke,
-    },
-  },
-}));
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { askAiTutor } from "../aiTutorClient";
+const mocks = vi.hoisted(() => ({ invoke: vi.fn() }));
+vi.mock(
+  "@/utils/supabaseClient",
+  () => ({ supabase: { functions: { invoke: mocks.invoke } } }),
+);
 const request = {
-  courseId: '123e4567-e89b-12d3-a456-426614174000',
-  question: 'Explain linear algebra',
-  chunks: [{ text: 'Vector spaces', source: 'Page 1' }],
+  courseId: "123e4567-e89b-12d3-a456-426614174000",
+  question: "Explain vectors",
 };
-
 beforeEach(() => {
   mocks.invoke.mockReset();
 });
-
-describe('AI Tutor API Client', () => {
-  it('sends the correct request and returns an answer', async () => {
+describe("server-evidence tutor client", () => {
+  it("sends only identifiers and question, never browser excerpts", async () => {
     mocks.invoke.mockResolvedValue({
-      data: { answer: '  A vector space is...  ' },
+      data: { answer: " Answer ", citations: [], insufficient: true },
       error: null,
     });
-
-    await expect(askAiTutor(request)).resolves.toBe(
-      'A vector space is...'
-    );
-
-    expect(mocks.invoke).toHaveBeenCalledWith(
-      'ai-tutor-chat',
-      { body: request }
-    );
+    expect(
+      (await askAiTutor(
+        { ...request, chunks: [{ text: "forged" }] } as typeof request,
+      )).answer,
+    ).toBe("Answer");
+    expect(mocks.invoke).toHaveBeenCalledWith("ai-tutor-chat", {
+      body: request,
+    });
   });
-
-  it('rejects missing document excerpts', async () => {
-    await expect(
-      askAiTutor({ ...request, chunks: [] })
-    ).rejects.toThrow('1 to 4');
-
+  it("accepts source selection", async () => {
+    mocks.invoke.mockResolvedValue({
+      data: { answer: "No context", citations: [], insufficient: true },
+      error: null,
+    });
+    await askAiTutor({ ...request, sourceId: request.courseId });
+    expect(mocks.invoke.mock.calls[0][1].body.sourceId).toBe(request.courseId);
+  });
+  it("rejects oversized questions", async () => {
+    await expect(askAiTutor({ ...request, question: "a".repeat(1501) })).rejects
+      .toThrow("2–1500");
     expect(mocks.invoke).not.toHaveBeenCalled();
   });
-
-  it('rejects oversized questions before API calls', async () => {
-    await expect(
-      askAiTutor({ ...request, question: 'A'.repeat(1501) })
-    ).rejects.toThrow('2–1500');
-
-    expect(mocks.invoke).not.toHaveBeenCalled();
-  });
-
-  it('handles rate limits without exposing server details', async () => {
+  it.each([401, 403, 409, 429, 503])("reports status %s", async (status) => {
     mocks.invoke.mockResolvedValue({
       data: null,
-      error: { context: { status: 429 } },
+      error: { context: { status } },
     });
-
-    await expect(askAiTutor(request)).rejects.toMatchObject({
-      name: 'AiTutorClientError',
-      status: 429,
-    });
+    await expect(askAiTutor(request)).rejects.toMatchObject({ status });
   });
-
-  it('rejects malformed server responses', async () => {
+  it("rejects unstructured legacy evidence", async () => {
     mocks.invoke.mockResolvedValue({
-      data: { answer: '   ' },
+      data: { answer: "x", citations: ["Page 1"], insufficient: false },
       error: null,
     });
-
-    await expect(
-      askAiTutor(request)
-    ).rejects.toThrow('Invalid AI Tutor response');
+    await expect(askAiTutor(request)).rejects.toThrow("Invalid AI");
   });
-
-  it('handles network failures', async () => {
-    mocks.invoke.mockRejectedValue(new Error('Network failed'));
-
-    await expect(
-      askAiTutor(request)
-    ).rejects.toThrow('Cannot connect');
+  it("reports connection failures", async () => {
+    mocks.invoke.mockRejectedValue(new Error());
+    await expect(askAiTutor(request)).rejects.toThrow("Cannot connect");
   });
 });

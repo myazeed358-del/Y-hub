@@ -1,3 +1,19 @@
+# AI Tutor math/Arabic follow-up — verified locally (2026-10-24)
+
+Current branch remains `feature/ai-tutor-rag`. Read `docs/ai-tutor/MATH_ARABIC.md`; do not repeat Phase 1. Implementation pushed and verified by `git ls-remote`: `64a3b8d7899cefb3e2d9735079fe3cfd6178077f`. The following delivery-note commit records that previous verified checkpoint; Git/ls-remote establishes the final documentation SHA. Added robust delimiter handling, scoped LTR math/RTL prose, language selection, step-by-step/JSON-escaping prompt, and new 0039 Arabic retrieval normalization. RAG/citations/permissions/math engines preserved.
+
+Verification:1994 Vitest/229 files (99 Tutor),36 Python,8 architecture guards,workspace TS/audits/build,Edge Deno checks,20 native local Tutor Auth/SQL cases and5 Chromium scenarios PASS. Browser/Arabic model responses use controlled fixtures; actual provider/hosted deployment remain PENDING. No production migration/Edge deploy or main merge authorized/performed. Implementation delivery is complete. Next: approved isolated hosted/provider validation and deployment review; do not repeat implementation or create a duplicate Tutor. See the detailed report and screenshots. Prior Phase 1 checkpoints below remain historical.
+
+# AI Tutor Phase 1 — local implementation verified (2026-10-24)
+
+Current branch: `feature/ai-tutor-rag`, based on latest verified main `0405670e41624905c9829667fbf3927485286e8c`. Preserve all previous Y-Sheets/university work. Read `docs/ai-tutor/PHASE1.md` and `VERIFICATION.md`; do not resume the historical tasks below.
+
+Implemented server-owned per-section PDF/syllabus indexing, RLS, source-generation invalidation, trusted citations, optional semantic plus text retrieval, current-role/enrollment checks, quota/concurrency bounds and the existing Tutor UI. New 0038 only; no production SQL, Edge deployment or main merge. Phase 2/3 not started. Final local results:1963 Vitest/227 files (68 Tutor),36 Python,8 architecture guards,all workspace TS/audits/build;18 native local Auth/HTTP/database cases plus134 existing SQL cases;4 real PDF Deno tests;3 Chromium scenarios. See verification for exact scopes and pending hosted/provider evidence.
+
+Previous verified remote checkpoint: `ff378cf7f975af337dcea8256e3435689c797b5f` on `feature/ai-tutor-rag`; code commit `a95dcd9`. The final documentation-only delivery commit follows it; Git/ls-remote establish its SHA. Push succeeded. Actual Draft PR creation returned GraphQL Forbidden: no PR exists from this attempt. Next: restore approved GitHub API access and create the Draft PR with docs/ai-tutor/PR_DESCRIPTION.md, then authorized isolated hosted deployment/provider validation. Never invent a PR or treat mock provider/browser tests as live Supabase/LLM connectivity. No production or main action is authorized for this task. Supabase ledger and real Groq/embeddings/Storage/Edge integration remain PENDING.
+
+## Prior checkpoints (preserved)
+
 # Y-Sheets PR #35 — final local review complete (2026-10-24)
 
 Current branch: `feature/y-sheets-ui-refresh`. Read `docs/y-sheets/FINAL_UI_REVIEW.md` before continuing; do not restart historical university work below. Latest main `80fab4b8a026f508f63bdbcc7edb09da0cf6a622` was safely merged in `22e7ed3`. Previous verified remote checkpoint: `251b44b58711fd653725aaa3d97595f0bf96637e`, matched by both branch and PR #35 head after the push (original head `ba5c4a3fe5dbda867996fc0653f53dbd76e76bd9`). Git history and `ls-remote` establish the final delivery-note commit.
