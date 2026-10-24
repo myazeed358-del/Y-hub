@@ -1,3 +1,13 @@
+# AI Tutor Phase 1 — local implementation verified (2026-10-24)
+
+Current branch: `feature/ai-tutor-rag`, based on latest verified main `0405670e41624905c9829667fbf3927485286e8c`. Preserve all previous Y-Sheets/university work. Read `docs/ai-tutor/PHASE1.md` and `VERIFICATION.md`; do not resume the historical tasks below.
+
+Implemented server-owned per-section PDF/syllabus indexing, RLS, source-generation invalidation, trusted citations, optional semantic plus text retrieval, current-role/enrollment checks, quota/concurrency bounds and the existing Tutor UI. New 0038 only; no production SQL, Edge deployment or main merge. Phase 2/3 not started. Final local results:1963 Vitest/227 files (68 Tutor),36 Python,8 architecture guards,all workspace TS/audits/build;18 native local Auth/HTTP/database cases plus134 existing SQL cases;4 real PDF Deno tests;3 Chromium scenarios. See verification for exact scopes and pending hosted/provider evidence.
+
+Previous verified remote checkpoint is base main above; Git history and ls-remote establish the new feature commit. Next: secure feature push and Draft PR delivery, then authorized isolated hosted deployment/provider validation. API access was previously blocked; never invent a PR or treat mock provider/browser tests as live Supabase/LLM connectivity. No production or main action is authorized for this task. Supabase ledger and real Groq/embeddings/Storage/Edge integration remain PENDING.
+
+## Prior checkpoints (preserved)
+
 # Y-Sheets PR #35 — final local review complete (2026-10-24)
 
 Current branch: `feature/y-sheets-ui-refresh`. Read `docs/y-sheets/FINAL_UI_REVIEW.md` before continuing; do not restart historical university work below. Latest main `80fab4b8a026f508f63bdbcc7edb09da0cf6a622` was safely merged in `22e7ed3`. Previous verified remote checkpoint: `251b44b58711fd653725aaa3d97595f0bf96637e`, matched by both branch and PR #35 head after the push (original head `ba5c4a3fe5dbda867996fc0653f53dbd76e76bd9`). Git history and `ls-remote` establish the final delivery-note commit.

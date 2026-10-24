@@ -1,0 +1,41 @@
+# Phase 1 change inventory
+
+Relative to main `0405670e41624905c9829667fbf3927485286e8c`. Application changes are inside the existing ai-generator feature; other changes are its Edge functions, database migration, tests/configuration and documentation. No math engine or historical migration changes.
+
+- `artifacts/y-hub/src/features/ai-generator/ai-chat/ChatMessageContent.tsx`
+- `artifacts/y-hub/src/features/ai-generator/ai-chat/README.md`
+- `artifacts/y-hub/src/features/ai-generator/ai-chat/__tests__/aiTutorClient.test.ts`
+- `artifacts/y-hub/src/features/ai-generator/ai-chat/__tests__/generateTutorReply.test.ts`
+- `artifacts/y-hub/src/features/ai-generator/ai-chat/__tests__/knowledgeUi.test.tsx`
+- `artifacts/y-hub/src/features/ai-generator/ai-chat/__tests__/serverEvidence.test.ts`
+- `artifacts/y-hub/src/features/ai-generator/ai-chat/aiTutorClient.ts`
+- `artifacts/y-hub/src/features/ai-generator/ai-chat/chat.types.ts`
+- `artifacts/y-hub/src/features/ai-generator/ai-chat/generateTutorReply.ts`
+- `artifacts/y-hub/src/features/ai-generator/components/AITutorChatPanel.tsx`
+- `artifacts/y-hub/src/features/ai-generator/components/AITutorHeader.tsx`
+- `artifacts/y-hub/src/features/ai-generator/handlers/createHandleSend.ts`
+- `artifacts/y-hub/src/features/ai-generator/hooks/__tests__/useAITutor.test.tsx`
+- `artifacts/y-hub/src/features/ai-generator/hooks/useAITutor.ts`
+- `artifacts/y-hub/src/features/ai-generator/knowledge/KnowledgeSources.tsx`
+- `artifacts/y-hub/src/features/ai-generator/knowledge/SourceEvidence.tsx`
+- `artifacts/y-hub/src/features/ai-generator/pages/AITutorPage.tsx`
+- `artifacts/y-hub/supabase/config.toml`
+- `artifacts/y-hub/supabase/functions/_shared/tutor/core.ts`
+- `artifacts/y-hub/supabase/functions/_shared/tutor/indexing.ts`
+- `artifacts/y-hub/supabase/functions/_shared/tutor/pdf.ts`
+- `artifacts/y-hub/supabase/functions/_shared/tutor/pdf_test.ts`
+- `artifacts/y-hub/supabase/functions/_shared/tutor/runtime.ts`
+- `artifacts/y-hub/supabase/functions/ai-tutor-chat/index.ts`
+- `artifacts/y-hub/supabase/functions/ai-tutor-index/index.ts`
+- `artifacts/y-hub/supabase/functions/deno.json`
+- `artifacts/y-hub/supabase/functions/deno.lock`
+- `artifacts/y-hub/supabase/migrations/0038_ai_tutor_knowledge.sql`
+- `artifacts/y-hub/supabase/tests/integration/test_tutor.py`
+- `docs/ai-tutor/CHANGED_FILES.md`
+- `docs/ai-tutor/PHASE1.md`
+- `docs/ai-tutor/PR_DESCRIPTION.md`
+- `docs/ai-tutor/VERIFICATION.md`
+- `docs/architecture/AGENT_HANDOFF.md`
+- `docs/architecture/REFACTOR_PROGRESS.md`
+- `scripts/test-ai-tutor-browser.mjs`
+- `scripts/test-ai-tutor-http.sh`
