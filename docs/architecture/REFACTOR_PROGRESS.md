@@ -1,3 +1,15 @@
+# Approved decisions — first attendance group delivered (2026-10-24)
+
+Current branch: `feature/approved-attendance-lifecycle`, based on fresh main `b41b44875d9febc531a16c1eaa1e1f343593cc3a` (PR36 includes previous Tutor work). Read `docs/approved-specifications/PROGRESS.md` (all71 decisions) and `ATTENDANCE_PHASE1.md`; the user's later explicit message authorizes implementation of1–71, not recommendations72–80. Do not resume completed historical tasks below.
+
+Previous verified remote implementation checkpoint: `ef5e456164650af34bf252595940511efab486ea`. Code and tests pushed successfully; following documentation commits record delivery. Git/ls-remote establish final SHA. No production SQL, Edge deployment, main merge or unrelated feature changes.
+
+Implemented attendance decisions2,3,5,6,8,10,35,36; preserved9, advanced4/37 with explicit legacy-history limits. New0040 only. Server-time logical expiry, adjustable QR/duration, extension, early close, cancellation, fixed initial roster, reason-free audited corrections, nine-digit existing IDs. Do not use raw attendance_sessions.state alone as effective state. Full verification2002Vitest/230files (13attendance),36Python,8architecture guards,workspaceTS/audits/build,45localSQL+immutable-ID assertions,5nativeAuthHTTP,2browser workflows passed.
+
+Existing general HTTP suite FAILS15/21 on an independent unchanged main archive due to absent academic-creation RPCs (0031/0032). Next priority1 group: reconcile existing Phase3 branch contracts, then complete attendance entry points/tabs/reports and grants search/numbers. Do not invent missing functionality or claim all integration green. Hosted staging PENDING. GitHub API list returned Forbidden even outside command sandbox; create the requested Draft PR if access is restored using the prepared PR_DESCRIPTION.md. Do not merge. Vercel/Python issue remains deferred.
+
+## Earlier checkpoints (historical)
+
 # AI Tutor math/Arabic follow-up — verified locally (2026-10-24)
 
 Current branch remains `feature/ai-tutor-rag`. Read `docs/ai-tutor/MATH_ARABIC.md`; do not repeat Phase 1. Implementation pushed and verified by `git ls-remote`: `64a3b8d7899cefb3e2d9735079fe3cfd6178077f`. The following delivery-note commit records that previous verified checkpoint; Git/ls-remote establishes the final documentation SHA. Added robust delimiter handling, scoped LTR math/RTL prose, language selection, step-by-step/JSON-escaping prompt, and new 0039 Arabic retrieval normalization. RAG/citations/permissions/math engines preserved.
