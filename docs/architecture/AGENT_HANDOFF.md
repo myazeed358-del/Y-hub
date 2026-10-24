@@ -1,20 +1,16 @@
-# University features — grant UI follow-up verified (2026-10-23)
+# University features — online lectures verified (2026-10-23)
 
-Current branch feature/exceptional-engine-access fixes initial directory retry and adds server-paged grant history; four added regressions. Full verification:1869 Vitest/214 files,36 Python,eight architecture guards,workspace TypeScript/audits/build PASS. Previous verified remote SHA:db0ae2d7b57efee2ed85621d8a3e9f2488abda02; Git/ls-remote establishes the new commit.
+Current `feature/online-lectures` builds on attendance c1a4bd2dc286386230f2fe14103ff7f81da06e64 (previous verified remote). New0036/shared lecture model, LiveKit adapter/Edge admission+reconciler, audited blocks and current-role concurrency lock complete. Full1889 Vitest/218 files,36 Python,119 PostgreSQL,workspace TS,audits/build,Deno entrypoint check PASS. Concurrent promotion regression FAILED before target-role lock and PASSED after. See docs/university/ONLINE_LECTURES.md. Media/SFU/scheduler/staging operational tests PENDING; provider transport mocked. Next: independent Owner display-label branch from verified main8a5dde1, then combined Phase3+university real Auth/HTTP verification and final delivery. Preserve Quick Access f862ae29 and other branches. Continue automatically; no main merge/production writes. GitHub API Forbidden blocks Draft PR creation; descriptions committed. Older NEXT below superseded.
 
-All five requested university features are already implemented and pushed on their focused branches. Do NOT repeat the historical NEXT instructions below. Next: update the pinned engine UI overlay on test/university-integration, rerun final combined verification, document full dependency audit and final branch hashes, push integration evidence and attempt Draft PR delivery. GitHub API is blocked by proxy403 while Git push works. Hosted staging/live media deployment remain PENDING; no production writes or main merge.
+# University features — attendance verified (2026-10-22)
 
-## Historical checkpoints
+Current `feature/y-attendance` is based on engine-access db0ae2d7b57efee2ed85621d8a3e9f2488abda02; Quick Access separately pushed and verified f862ae29b547940dfe1790a9d9f14f63b35d6b3f. See docs/university/ATTENDANCE.md. 1870 Vitest/215 files,36 Python,111 PostgreSQL,workspace TypeScript,audits/build PASS. New0035, QR/rosters/corrections/reports/API-v2 implemented. Next: online lectures on a focused child branch sharing academic_lectures, then Owner labels and real Auth integration. Continue automatically. No production writes/main merge. GitHub API PR creation returns Forbidden; branch push works. Prepared online code may be in /tmp/yhub-online; inspect before continuing, not a completed commit. Older NEXT below is superseded.
 
 # University features — phase 1 verified (2026-10-22)
 
 Current task is the university feature request, not a repeat of Phase 3. Read `docs/university/ENGINE_ACCESS.md`. Branch `feature/exceptional-engine-access` independently based on verified main `8a5dde1b20f26161e7e26b8b0bf71ecd1097f136`; Phase 3 heads remain preserved and unmerged. New 0033 + grant UI/API/backend guards complete. Full phase verification: 1865 Vitest /214 files, 36 Python, 102 PostgreSQL, eight architecture guards, two export tests, all TS/audits/build PASS. Git/remote establishes newest checkpoint. No production operations/main merge.
 
 NEXT: create `feature/student-quick-access` from this verified feature branch (explicit dependency on server module policies), enhance the EXISTING StudentDashboardSidebar card with account preferences/CAS/0–3 tools and sync. Then implement Y-Attendance, Online Lectures and Owner labels on focused branches; full tests after each phase. Continue automatically, do not stop at this checkpoint. Do not repeat completed Phase 3 or grant functionality. GitHub API still previously blocked; Git push works. Hosted staging unavailable; mark pending. Vercel Python size issue remains deferred.
-
-# University features — Owner labels verified (2026-10-23)
-
-Independent `feature/owner-display-name` from main8a5dde1; display-only Owner labels preserve internal super_admin.1855 Vitest/211 files,29 Python,91 PostgreSQL,workspace TS,audits/build PASS. Previous verified remote online branch09168c2f0229e27952180be33a0d5cf47a0789e9; attendancec1a4bd2; Quick Accessf862ae29; enginedb0ae2d. NEXT: combined Phase3+university export/native Auth integration, no main merge. Prepared HTTP additions in /tmp/university-http-additions.py; preserve/review. Continue automatically. PR API Forbidden; branch pushes verified. Production/staging/media pending. Older NEXT below superseded.
 
 # Phase 2 — final verified checkpoint (2026-10-20)
 
@@ -83,27 +79,3 @@ UNFINISHED WORK: none in the focused implementation. PR #15 remains for review; 
 NEXT EXACT STEP: inspect local/remote state and review existing Draft PR #15. API-2 source and docs are complete; do not repeat this migration or broaden scope. Do not create another PR, mark it ready or merge main. New product implementations require a separate task.
 RECOVERY COMMANDS: git status --short --branch; git log -5 --oneline; git ls-remote origin refs/heads/refactor/architecture-plug-and-play refs/pull/15/head; read PLUGIN_CONTRACT.md and REFACTOR_PROGRESS.md.
 IMPORTANT RISKS: API 1 is deliberately rejected; migrate manifests explicitly using PLUGIN_CONTRACT.md. Fuzzy Logic Lab stays an engine for existing computation/search compatibility; future laboratory-kind modules remain separate. Kinds/categories/capabilities/groups grant no privileges. No Supabase/RLS/migration/theme/math algorithm changes. Known Vercel Python bundle-size deployment limit is outside this task; do not investigate it here.
-
----
-
-## Historical checkpoint — PR #34 Integration verification
-
-# University features — final local verification (2026-10-23)
-
-Implementation is complete on five focused branches; do NOT repeat historical NEXT instructions below. Read docs/university/FINAL_REPORT.md, CHANGED_FILES.md and DEPENDENCY_REVIEW.md. Current branch test/university-integration is test infrastructure/evidence based on Online Lectures; it does not merge independent implementations. Source verified at d6b5fd5293c9192966f07bf946d2395925b30822 with pinned Phase3/QuickAccess/Owner and grant UI overlays. Previous verified remote checkpoints: grant62a0565c75319e46881a473b1c6bcbc0bf8096f7 and online09168c2f0229e27952180be33a0d5cf47a0789e9; Git/ls-remote establishes the newest report commit.
-
-Final combined results:1935 Vitest/225 files,36 Python,145 PostgreSQL,21 native GoTrue/PostgREST JWT/HTTP tests,eight architecture guards,two policy-export tests,all workspace TypeScript/audits/build PASS. Full dependency audit has39 inherited advisory entries (7critical/13high/15moderate/4low), identical identities to main; older prod-only audit is not full security clearance.
-
-NEXT external gates: complete Draft PR creation when GitHub API access permits; review independently stacked branches and migrations0029–0036; provision authorized isolated hosted Supabase staging and actual LiveKit/TURN/Edge/scheduler operation; assess/remediate inherited dependency risks. Do not call this production-ready. No production writes/migrations, main merge or Vercel size workaround. Main remains8a5dde1b20f26161e7e26b8b0bf71ecd1097f136. Git pushes work; PR API attempts returned Forbidden/proxy403. All PR bodies are committed for review. Preserve every feature branch and user file.
-
-Delivery checkpoint: previous verified integration remote SHA f0190138531476964c9112a716f1539f29e6ae87. All feature heads match FINAL_REPORT.md; main is unchanged. Integration Draft PR creation failed with GraphQL Forbidden even outside the execution sandbox. Current enforced runtime policy lacks api.github.com although the saved environment draft already contains it; apply that intended network configuration and recheck API access, without proxy bypass or duplicate credentials. No PR number exists. Tests finished and their disposable containers were cleaned up.
-
-## Historical checkpoints (superseded continuation instructions)
-
-# University features — online lectures verified (2026-10-23)
-
-Current `feature/online-lectures` builds on attendance c1a4bd2dc286386230f2fe14103ff7f81da06e64 (previous verified remote). New0036/shared lecture model, LiveKit adapter/Edge admission+reconciler, audited blocks and current-role concurrency lock complete. Full1889 Vitest/218 files,36 Python,119 PostgreSQL,workspace TS,audits/build,Deno entrypoint check PASS. Concurrent promotion regression FAILED before target-role lock and PASSED after. See docs/university/ONLINE_LECTURES.md. Media/SFU/scheduler/staging operational tests PENDING; provider transport mocked. Next: independent Owner display-label branch from verified main8a5dde1, then combined Phase3+university real Auth/HTTP verification and final delivery. Preserve Quick Access f862ae29 and other branches. Continue automatically; no main merge/production writes. GitHub API Forbidden blocks Draft PR creation; descriptions committed. Older NEXT below superseded.
-
-# University features — attendance verified (2026-10-22)
-
-Current `feature/y-attendance` is based on engine-access db0ae2d7b57efee2ed85621d8a3e9f2488abda02; Quick Access separately pushed and verified f862ae29b547940dfe1790a9d9f14f63b35d6b3f. See docs/university/ATTENDANCE.md. 1870 Vitest/215 files,36 Python,111 PostgreSQL,workspace TypeScript,audits/build PASS. New0035, QR/rosters/corrections/reports/API-v2 implemented. Next: online lectures on a focused child branch sharing academic_lectures, then Owner labels and real Auth integration. Continue automatically. No production writes/main merge. GitHub API PR creation returns Forbidden; branch push works. Prepared online code may be in /tmp/yhub-online; inspect before continuing, not a completed commit. Older NEXT below is superseded.
