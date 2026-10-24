@@ -4,7 +4,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/utils/supabaseClient";
 import type { ChatMessage } from "../ai-chat/chat.types";
 import { generateTutorReply } from "../ai-chat/generateTutorReply";
-import { AiTutorClientError } from "../ai-chat/aiTutorClient";
+import {
+  AiTutorClientError,
+  type ExplanationLanguage,
+} from "../ai-chat/aiTutorClient";
 import type { KnowledgeSource } from "../knowledge/KnowledgeSources";
 export function useAITutor() {
   const [, params] = useRoute("/course/:id/ai-tutor");
@@ -19,6 +22,7 @@ export function useAITutor() {
     [errorState, setErrorState] = useState<string | null>(null),
     [isEnrolled, setIsEnrolled] = useState(false),
     [manage, setManage] = useState(false);
+  const [language, setLanguage] = useState<ExplanationLanguage>("auto");
   const [messages, setMessages] = useState<ChatMessage[]>([]),
     [input, setInput] = useState(""),
     [isThinking, setIsThinking] = useState(false),
@@ -35,6 +39,7 @@ export function useAITutor() {
     setCourse(null);
     setSources([]);
     setSelected("");
+    setLanguage("auto");
     setInput("");
     setIsThinking(false);
     setIsIndexing(false);
@@ -126,6 +131,7 @@ export function useAITutor() {
         courseId,
         question,
         selected || undefined,
+        language,
       );
       if (g === generation.current) setMessages((m) => [...m, reply]);
     } catch (e) {
@@ -188,6 +194,8 @@ export function useAITutor() {
     }
   }
   return {
+    language,
+    setLanguage,
     course,
     sources,
     selected,

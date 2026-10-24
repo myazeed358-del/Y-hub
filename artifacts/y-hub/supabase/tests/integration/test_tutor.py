@@ -121,3 +121,14 @@ class TutorHTTP(unittest.TestCase):
  def test_18_null_revision_cannot_bypass_index_compare_and_swap(self):
   with self.assertRaises(RuntimeError):self.stack.sql(f"SELECT public.publish_ai_tutor_source('{self.users['instructor']['id']}','{self.source}',NULL,'[]')")
   self.assertEqual(len(self.search()[1]),1)
+ def test_19_arabic_diacritics_and_letter_variants_retrieve_original_evidence(self):
+  original='إِشَارَةُ المُشْتَقَّةِ عند مُنْتَهَى المجال — f(x)'
+  self.publish([{'text':original,'page':3}])
+  status,rows=self.req('student','/rpc/search_ai_tutor',{'p_course':self.course,'p_query':'اشرح اشارة المشتقة عند منتهي المجال'})
+  self.assertEqual(status,200);self.assertEqual(len(rows),1);self.assertEqual(rows[0]['text'],original);self.assertEqual(rows[0]['page'],3)
+  self.assertEqual(self.req('other','/rpc/search_ai_tutor',{'p_course':self.course,'p_query':'المشتقة'}),(200,[]))
+ def test_20_mixed_language_questions_do_not_require_every_word_to_match(self):
+  self.publish([{'text':'مشتقة الدالة باستخدام قاعدة القوة. derivative f(x)','page':1}])
+  status,rows=self.req('student','/rpc/search_ai_tutor',{'p_course':self.course,'p_query':'احسب مشتقة polynomial f(x)'})
+  self.assertEqual(status,200);self.assertEqual(len(rows),1)
+  self.assertEqual(self.req('student','/rpc/search_ai_tutor',{'p_course':self.course,'p_query':'اشرح لي ما هي'}),(200,[]))

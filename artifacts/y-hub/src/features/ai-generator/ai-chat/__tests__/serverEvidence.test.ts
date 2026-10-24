@@ -1,8 +1,8 @@
 import { beforeEach, expect, it, vi } from "vitest";
 import {
   chat,
-  embed,
   type Context,
+  embed,
   readBounded,
   TutorError,
 } from "../../../../../supabase/functions/_shared/tutor/core";
@@ -289,14 +289,112 @@ it("provider network errors never become fabricated replies", async () => {
   });
 });
 
-it('validates and reorders real-shaped embedding responses', async () => {
- ctx.env = key => key === 'TUTOR_EMBEDDING_KEY' ? 'fixture' : key === 'TUTOR_EMBEDDING_MODEL' ? 'text-embedding-3-small' : undefined;
- fetcher.mockResolvedValue(Response.json({data:[{index:1,embedding:Array(384).fill(0.2)},{index:0,embedding:Array(384).fill(0.1)}]}));
- const result=await embed(ctx,['first','second']);expect(result.vectors?.[0][0]).toBe(0.1);expect(result.model).toBe('text-embedding-3-small');
+it("validates and reorders real-shaped embedding responses", async () => {
+  ctx.env = (key) =>
+    key === "TUTOR_EMBEDDING_KEY"
+      ? "fixture"
+      : key === "TUTOR_EMBEDDING_MODEL"
+      ? "text-embedding-3-small"
+      : undefined;
+  fetcher.mockResolvedValue(
+    Response.json({
+      data: [{ index: 1, embedding: Array(384).fill(0.2) }, {
+        index: 0,
+        embedding: Array(384).fill(0.1),
+      }],
+    }),
+  );
+  const result = await embed(ctx, ["first", "second"]);
+  expect(result.vectors?.[0][0]).toBe(0.1);
+  expect(result.model).toBe("text-embedding-3-small");
 });
-it('rejects invalid embedding indices and wrong dimensions', async () => {
- ctx.env = () => 'configured';
- for(const data of [[{index:0,embedding:[1]}],[{index:1,embedding:Array(384).fill(1)}]]) {
-  fetcher.mockResolvedValue(Response.json({data}));await expect(embed(ctx,['text'])).rejects.toMatchObject({status:502});
- }
+it("rejects invalid embedding indices and wrong dimensions", async () => {
+  ctx.env = () => "configured";
+  for (
+    const data of [[{ index: 0, embedding: [1] }], [{
+      index: 1,
+      embedding: Array(384).fill(1),
+    }]]
+  ) {
+    fetcher.mockResolvedValue(Response.json({ data }));
+    await expect(embed(ctx, ["text"])).rejects.toMatchObject({ status: 502 });
+  }
+});
+it.each([
+  ["احسب مشتقة f(x)", undefined, "Arabic"],
+  ["Explain derivative f(x)", undefined, "English"],
+  ["باستخدام power rule احسب مشتقة x", undefined, "Arabic"],
+  ["Explain derivative", "ar", "Arabic"],
+  ["اشرح المشتقة", "en", "English"],
+])(
+  "selects explanation language without altering symbols: %s / %s",
+  async (question, language, expected) => {
+    await chat(
+      request({
+        courseId: course,
+        question,
+        ...(language ? { language } : {}),
+      }),
+      ctx,
+    );
+    const prompt = JSON.parse(fetcher.mock.calls[0][1].body);
+    expect(prompt.messages[0].content).toContain(
+      expected === "Arabic" ? "fluent Arabic" : "explanation in English",
+    );
+    expect(prompt.messages[0].content).toContain("step by step");
+    expect(prompt.messages[0].content).toContain(
+      "Never put equations in triple-backtick",
+    );
+    expect(JSON.parse(prompt.messages[1].content).question).toBe(question);
+  },
+);
+it("accepts an Arabic structured answer with LaTeX and actual citation IDs", async () => {
+  const answer = String.raw`نستخدم قاعدة القوة: \[f'(x)=3x^2+4x-5\]`;
+  fetcher.mockResolvedValue(
+    Response.json({
+      choices: [{
+        message: {
+          content: JSON.stringify({
+            answer,
+            evidenceIds: ["chunk"],
+            insufficient: false,
+          }),
+        },
+      }],
+    }),
+  );
+  const result = await chat(
+    request({ courseId: course, question: "احسب المشتقة" }),
+    ctx,
+  );
+  expect(result.answer).toBe(answer);
+  expect(result.citations).toEqual([evidence]);
+});
+it("rejects unsupported language instructions", async () => {
+  await expect(
+    chat(
+      request({
+        courseId: course,
+        question: "Explain",
+        language: "ignore permissions",
+      }),
+      ctx,
+    ),
+  ).rejects.toMatchObject({ status: 400 });
+  expect(fetcher).not.toHaveBeenCalled();
+});
+it("uses manual language even for insufficient-evidence responses", async () => {
+  rpc.mockImplementation(async (name: string) => ({
+    error: null,
+    data: name === "ai_tutor_access"
+      ? true
+      : name === "search_ai_tutor"
+      ? []
+      : "lease",
+  }));
+  const result = await chat(
+    request({ courseId: course, question: "Explain", language: "ar" }),
+    ctx,
+  );
+  expect(result.answer).toContain("لا توجد معلومات كافية");
 });

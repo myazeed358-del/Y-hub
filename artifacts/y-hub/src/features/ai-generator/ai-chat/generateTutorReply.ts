@@ -1,11 +1,17 @@
 import type { ChatMessage } from "./chat.types";
-import { askAiTutor } from "./aiTutorClient";
+import { askAiTutor, type ExplanationLanguage } from "./aiTutorClient";
 export async function generateTutorReply(
   courseId: string,
   question: string,
   sourceId?: string,
+  language?: ExplanationLanguage,
 ): Promise<ChatMessage> {
-  const result = await askAiTutor({ courseId, question, sourceId });
+  const result = await askAiTutor({
+    courseId,
+    question,
+    sourceId,
+    ...(language ? { language } : {}),
+  });
   return {
     id: crypto.randomUUID(),
     role: "ai",

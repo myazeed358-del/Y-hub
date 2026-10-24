@@ -8,7 +8,9 @@ export interface TutorCitation {
   unit_id: string | null;
   text: string;
 }
+export type ExplanationLanguage = "auto" | "ar" | "en";
 export interface AiTutorRequest {
+  language?: ExplanationLanguage;
   courseId: string;
   question: string;
   sourceId?: string;
@@ -27,7 +29,10 @@ export class AiTutorClientError extends Error {
 export async function askAiTutor(
   request: AiTutorRequest,
 ): Promise<AiTutorResponse> {
-  const { courseId, sourceId } = request;
+  const { courseId, sourceId, language } = request;
+  if (language !== undefined && !["auto", "ar", "en"].includes(language)) {
+    throw new AiTutorClientError("Invalid explanation language.");
+  }
   const question = request.question?.trim();
   if (!/^[\da-f]{8}(-[\da-f]{4}){3}-[\da-f]{12}$/i.test(courseId)) {
     throw new AiTutorClientError("Invalid course ID.");
@@ -38,7 +43,12 @@ export async function askAiTutor(
   let result;
   try {
     result = await supabase.functions.invoke<AiTutorResponse>("ai-tutor-chat", {
-      body: { courseId, question, ...(sourceId ? { sourceId } : {}) },
+      body: {
+        courseId,
+        question,
+        ...(sourceId ? { sourceId } : {}),
+        ...(language && language !== "auto" ? { language } : {}),
+      },
     });
   } catch {
     throw new AiTutorClientError("Cannot connect to AI Tutor. / تعذر الاتصال.");

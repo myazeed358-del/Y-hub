@@ -43,3 +43,24 @@ it("propagates failures without synthetic answers", async () => {
     "offline",
   );
 });
+it("passes manual explanation language and preserves JSON-decoded LaTeX", async () => {
+  const answer = String.raw`نشتق: \[\frac{d}{dx}x^2=2x\]`;
+  mocks.askAiTutor.mockResolvedValue({
+    answer,
+    citations: [],
+    insufficient: true,
+  });
+  const result = await generateTutorReply(
+    "course",
+    "question",
+    undefined,
+    "ar",
+  );
+  expect(mocks.askAiTutor).toHaveBeenCalledWith({
+    courseId: "course",
+    question: "question",
+    sourceId: undefined,
+    language: "ar",
+  });
+  expect(result.content).toBe(answer);
+});

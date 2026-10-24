@@ -9,6 +9,8 @@ import { useAITutor } from "../hooks/useAITutor";
 
 export default function AITutorPage() {
   const {
+    language,
+    setLanguage,
     sources,
     selected,
     setSelected,
@@ -102,6 +104,8 @@ export default function AITutorPage() {
       <div className="flex-1 flex flex-col md:flex-row gap-4 overflow-hidden">
         {/* Chat Area */}
         <AITutorChatPanel
+          language={language}
+          setLanguage={setLanguage}
           scrollRef={scrollRef}
           messages={messages}
           input={input}

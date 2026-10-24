@@ -1,3 +1,4 @@
+import type { ExplanationLanguage } from "../ai-chat/aiTutorClient";
 import { SourceEvidence } from "../knowledge/SourceEvidence";
 import type { Dispatch, RefObject, SetStateAction } from "react";
 import type { ChatMessage } from "@/features/ai-generator/ai-chat/chat.types";
@@ -17,6 +18,8 @@ import { ChatMessageContent } from "@/features/ai-generator/ai-chat/ChatMessageC
 import { QuizComponent } from "@/features/ai-generator/quiz/QuizComponent";
 
 interface Props {
+  language: ExplanationLanguage;
+  setLanguage: (language: ExplanationLanguage) => void;
   scrollRef: RefObject<HTMLDivElement | null>;
   messages: ChatMessage[];
   input: string;
@@ -31,6 +34,8 @@ interface Props {
 }
 
 export function AITutorChatPanel({
+  language,
+  setLanguage,
   scrollRef,
   messages,
   input,
@@ -49,7 +54,8 @@ export function AITutorChatPanel({
         {messages.map((msg, index) => (
           <div
             key={msg.id}
-            className={`flex gap-4 min-w-0 max-w-[85%] ${
+            data-message-role={msg.role}
+            className={`flex gap-2 sm:gap-4 min-w-0 max-w-full sm:max-w-[85%] ${
               msg.role === "user" ? "ml-auto flex-row-reverse" : "mr-auto"
             }`}
           >
@@ -155,6 +161,20 @@ export function AITutorChatPanel({
       </div>
 
       <div className="p-4 border-t border-[hsl(var(--border))] bg-[hsl(var(--background))]">
+        <label className="flex items-center gap-2 mb-2 text-sm">
+          لغة الشرح / Explanation language
+          <select
+            aria-label="لغة الشرح / Explanation language"
+            className="rounded border bg-background p-1"
+            value={language}
+            disabled={isThinking || isIndexing}
+            onChange={(e) => setLanguage(e.target.value as ExplanationLanguage)}
+          >
+            <option value="auto">تلقائي / Auto</option>
+            <option value="ar">العربية</option>
+            <option value="en">English</option>
+          </select>
+        </label>
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -163,6 +183,7 @@ export function AITutorChatPanel({
           className="flex gap-2 relative"
         >
           <Input
+            dir="auto"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             maxLength={1500}

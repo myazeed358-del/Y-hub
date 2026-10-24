@@ -1,3 +1,9 @@
+# AI Tutor math/Arabic follow-up — verified locally (2026-10-24)
+
+Current branch remains `feature/ai-tutor-rag`. Read `docs/ai-tutor/MATH_ARABIC.md`; do not repeat Phase 1. Previous verified remote checkpoint: `60cb76360529c44ca1d2124a926b1f6416a2ef0f`. Git/ls-remote establishes the new push. Added robust delimiter handling, scoped LTR math/RTL prose, language selection, step-by-step/JSON-escaping prompt, and new 0039 Arabic retrieval normalization. RAG/citations/permissions/math engines preserved.
+
+Verification:1994 Vitest/229 files (99 Tutor),36 Python,8 architecture guards,workspace TS/audits/build,Edge Deno checks,20 native local Tutor Auth/SQL cases and5 Chromium scenarios PASS. Browser/Arabic model responses use controlled fixtures; actual provider/hosted deployment remain PENDING. No production migration/Edge deploy or main merge authorized/performed. Push the current branch normally and verify SHA; do not create a duplicate Tutor. See the detailed report and screenshots. Prior Phase 1 checkpoints below remain historical.
+
 # AI Tutor Phase 1 — local implementation verified (2026-10-24)
 
 Current branch: `feature/ai-tutor-rag`, based on latest verified main `0405670e41624905c9829667fbf3927485286e8c`. Preserve all previous Y-Sheets/university work. Read `docs/ai-tutor/PHASE1.md` and `VERIFICATION.md`; do not resume the historical tasks below.

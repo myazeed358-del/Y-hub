@@ -1,0 +1,11 @@
+/* Local to Tutor messages: surrounding prose may be RTL, math/code never are. */
+.ai-tutor-message { text-align: start; overflow-wrap: anywhere; }
+.ai-tutor-message .katex,
+.ai-tutor-message .katex-display,
+.ai-tutor-message pre,
+.ai-tutor-message code { direction: ltr; unicode-bidi: isolate; }
+.ai-tutor-message .katex { display: inline-block; max-width: 100%; overflow-x: auto; overflow-y: hidden; vertical-align: middle; text-align: left; padding-block: .15em; }
+.ai-tutor-message .katex-display { max-width: 100%; overflow-x: auto; overflow-y: hidden; padding-block: .25em; text-align: center; }
+.ai-tutor-message .katex-display > .katex { display: block; overflow: visible; max-width: none; width: max-content; min-width: 100%; text-align: center; padding-block: 0; }
+.ai-tutor-message pre { max-width: 100%; overflow-x: auto; text-align: left; }
+.ai-tutor-message .katex-error { direction: ltr; unicode-bidi: isolate; white-space: pre-wrap; overflow-wrap: anywhere; }
