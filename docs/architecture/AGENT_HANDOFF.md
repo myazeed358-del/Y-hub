@@ -1,12 +1,20 @@
-# University features — Quick Access verified (2026-10-22)
+# University features — grant UI follow-up verified (2026-10-23)
 
-Current branch `feature/student-quick-access` is stacked on engine-access db0ae2d7b57efee2ed85621d8a3e9f2488abda02 (previous verified remote). Existing card enhanced; see docs/university/QUICK_ACCESS.md. 1872 Vitest/215 files,36 Python,107 PostgreSQL,workspace TS,audits/build PASS. Next implement attendance, online lectures, Owner labels and combined integration; continue automatically. No main merge or production writes. Git establishes newest checkpoint. Older NEXT below is superseded.
+Current branch feature/exceptional-engine-access fixes initial directory retry and adds server-paged grant history; four added regressions. Full verification:1869 Vitest/214 files,36 Python,eight architecture guards,workspace TypeScript/audits/build PASS. Previous verified remote SHA:db0ae2d7b57efee2ed85621d8a3e9f2488abda02; Git/ls-remote establishes the new commit.
+
+All five requested university features are already implemented and pushed on their focused branches. Do NOT repeat the historical NEXT instructions below. Next: update the pinned engine UI overlay on test/university-integration, rerun final combined verification, document full dependency audit and final branch hashes, push integration evidence and attempt Draft PR delivery. GitHub API is blocked by proxy403 while Git push works. Hosted staging/live media deployment remain PENDING; no production writes or main merge.
+
+## Historical checkpoints
 
 # University features — phase 1 verified (2026-10-22)
 
 Current task is the university feature request, not a repeat of Phase 3. Read `docs/university/ENGINE_ACCESS.md`. Branch `feature/exceptional-engine-access` independently based on verified main `8a5dde1b20f26161e7e26b8b0bf71ecd1097f136`; Phase 3 heads remain preserved and unmerged. New 0033 + grant UI/API/backend guards complete. Full phase verification: 1865 Vitest /214 files, 36 Python, 102 PostgreSQL, eight architecture guards, two export tests, all TS/audits/build PASS. Git/remote establishes newest checkpoint. No production operations/main merge.
 
 NEXT: create `feature/student-quick-access` from this verified feature branch (explicit dependency on server module policies), enhance the EXISTING StudentDashboardSidebar card with account preferences/CAS/0–3 tools and sync. Then implement Y-Attendance, Online Lectures and Owner labels on focused branches; full tests after each phase. Continue automatically, do not stop at this checkpoint. Do not repeat completed Phase 3 or grant functionality. GitHub API still previously blocked; Git push works. Hosted staging unavailable; mark pending. Vercel Python size issue remains deferred.
+
+# University features — Owner labels verified (2026-10-23)
+
+Independent `feature/owner-display-name` from main8a5dde1; display-only Owner labels preserve internal super_admin.1855 Vitest/211 files,29 Python,91 PostgreSQL,workspace TS,audits/build PASS. Previous verified remote online branch09168c2f0229e27952180be33a0d5cf47a0789e9; attendancec1a4bd2; Quick Accessf862ae29; enginedb0ae2d. NEXT: combined Phase3+university export/native Auth integration, no main merge. Prepared HTTP additions in /tmp/university-http-additions.py; preserve/review. Continue automatically. PR API Forbidden; branch pushes verified. Production/staging/media pending. Older NEXT below superseded.
 
 # Phase 2 — final verified checkpoint (2026-10-20)
 
@@ -75,3 +83,11 @@ UNFINISHED WORK: none in the focused implementation. PR #15 remains for review; 
 NEXT EXACT STEP: inspect local/remote state and review existing Draft PR #15. API-2 source and docs are complete; do not repeat this migration or broaden scope. Do not create another PR, mark it ready or merge main. New product implementations require a separate task.
 RECOVERY COMMANDS: git status --short --branch; git log -5 --oneline; git ls-remote origin refs/heads/refactor/architecture-plug-and-play refs/pull/15/head; read PLUGIN_CONTRACT.md and REFACTOR_PROGRESS.md.
 IMPORTANT RISKS: API 1 is deliberately rejected; migrate manifests explicitly using PLUGIN_CONTRACT.md. Fuzzy Logic Lab stays an engine for existing computation/search compatibility; future laboratory-kind modules remain separate. Kinds/categories/capabilities/groups grant no privileges. No Supabase/RLS/migration/theme/math algorithm changes. Known Vercel Python bundle-size deployment limit is outside this task; do not investigate it here.
+
+---
+
+## Historical checkpoint — PR #31 Quick Access
+
+# University features — Quick Access verified (2026-10-22)
+
+Current branch `feature/student-quick-access` is stacked on engine-access db0ae2d7b57efee2ed85621d8a3e9f2488abda02 (previous verified remote). Existing card enhanced; see docs/university/QUICK_ACCESS.md. 1872 Vitest/215 files,36 Python,107 PostgreSQL,workspace TS,audits/build PASS. Next implement attendance, online lectures, Owner labels and combined integration; continue automatically. No main merge or production writes. Git establishes newest checkpoint. Older NEXT below is superseded.
