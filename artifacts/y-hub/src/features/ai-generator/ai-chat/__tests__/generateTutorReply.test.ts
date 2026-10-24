@@ -1,114 +1,45 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { generateTutorReply } from '../generateTutorReply';
-
-const mocks = vi.hoisted(() => ({
-  askAiTutor: vi.fn(),
-}));
-
-vi.mock('../aiTutorClient', () => ({
-  askAiTutor: mocks.askAiTutor,
-}));
-
-const courseId = '123e4567-e89b-12d3-a456-426614174000';
-
+import { beforeEach, expect, it, vi } from "vitest";
+import { generateTutorReply } from "../generateTutorReply";
+const mocks = vi.hoisted(() => ({ askAiTutor: vi.fn() }));
+vi.mock("../aiTutorClient", () => ({ askAiTutor: mocks.askAiTutor }));
 beforeEach(() => {
   mocks.askAiTutor.mockReset();
 });
-
-describe('AI Tutor reply service', () => {
-  it('retrieves relevant context and sends it to the real client', async () => {
-    mocks.askAiTutor.mockResolvedValue('Vectors belong to vector spaces.');
-
-    const relevant = {
-      text: 'Vectors are objects in a vector space.',
-      source: 'Page 1',
-    };
-
-    const result = await generateTutorReply(
-      courseId,
-      'Explain vectors',
-      [
-        relevant,
-        { text: 'Biology studies cells.', source: 'Page 2' },
-      ]
-    );
-
-    expect(mocks.askAiTutor).toHaveBeenCalledTimes(1);
-    expect(mocks.askAiTutor).toHaveBeenCalledWith({
-      courseId,
-      question: 'Explain vectors',
-      chunks: [relevant],
-    });
-
-    expect(result.role).toBe('ai');
-    expect(result.content).toBe('Vectors belong to vector spaces.');
-    expect(result.citations).toEqual(['Page 1']);
-    expect(result.canTestKnowledge).toBe(true);
+it("uses server evidence, no local keyword matching or fabricated page labels", async () => {
+  const citations = [{
+    id: "c",
+    source_id: "s",
+    title: "Lecture",
+    page: 2,
+    text: "Vector",
+    revision: "r",
+    unit_id: null,
+  }];
+  mocks.askAiTutor.mockResolvedValue({
+    answer: "Explanation",
+    citations,
+    insufficient: false,
   });
-
-  it('does not call Groq when context has no match', async () => {
-    const result = await generateTutorReply(
-      courseId,
-      'Explain matrices',
-      [{ text: 'Biology studies cells.', source: 'Page 3' }]
-    );
-
-    expect(mocks.askAiTutor).not.toHaveBeenCalled();
-    expect(result.content).toContain('could not find relevant');
-    expect(result.citations).toEqual([]);
+  const reply = await generateTutorReply("course", "Explain", "source");
+  expect(mocks.askAiTutor).toHaveBeenCalledWith({
+    courseId: "course",
+    question: "Explain",
+    sourceId: "source",
   });
-
-  it('deduplicates document context labels', async () => {
-    mocks.askAiTutor.mockResolvedValue('Vector explanation.');
-
-    const result = await generateTutorReply(
-      courseId,
-      'vector',
-      [
-        { text: 'Vector addition', source: 'Page 1' },
-        { text: 'Vector axioms', source: 'Page 1' },
-        { text: 'Vector norms', source: 'Page 2' },
-      ]
-    );
-
-    expect(result.citations).toEqual(['Page 1', 'Page 2']);
-    expect(mocks.askAiTutor).toHaveBeenCalledTimes(1);
+  expect(reply.sources).toEqual(citations);
+  expect(reply.canTestKnowledge).toBe(false);
+});
+it("preserves the explicit server insufficient response", async () => {
+  mocks.askAiTutor.mockResolvedValue({
+    answer: "لا توجد معلومات كافية",
+    citations: [],
+    insufficient: true,
   });
-
-  it.each([
-    "I'm sorry, but the provided excerpts do not contain any information about Newton's Second Law.",
-    'There is insufficient information in the provided excerpts to answer this question.',
-    'I cannot answer this question based on the provided material.',
-    'لا تحتوي المقاطع المقدمة على معلومات عن قانون نيوتن.',
-  ])('hides unsupported answer metadata: %s', async (answer) => {
-    mocks.askAiTutor.mockResolvedValue(answer);
-
-    const result = await generateTutorReply(
-      courseId,
-      'Explain Newton law',
-      [{
-        text: 'Newton appears in an unrelated reference.',
-        source: 'Page 20',
-      }]
-    );
-
-    expect(mocks.askAiTutor).toHaveBeenCalledTimes(1);
-    expect(result.content).toBe(answer);
-    expect(result.citations).toEqual([]);
-    expect(result.canTestKnowledge).toBe(false);
-  });
-
-  it('propagates API failures without fabricating answers', async () => {
-    mocks.askAiTutor.mockRejectedValue(
-      new Error('AI Tutor rate limit reached.')
-    );
-
-    await expect(
-      generateTutorReply(
-        courseId,
-        'Explain vector addition',
-        [{ text: 'Vector addition', source: 'Page 1' }]
-      )
-    ).rejects.toThrow('AI Tutor rate limit reached.');
-  });
+  expect((await generateTutorReply("course", "question")).sources).toEqual([]);
+});
+it("propagates failures without synthetic answers", async () => {
+  mocks.askAiTutor.mockRejectedValue(new Error("offline"));
+  await expect(generateTutorReply("course", "question")).rejects.toThrow(
+    "offline",
+  );
 });
