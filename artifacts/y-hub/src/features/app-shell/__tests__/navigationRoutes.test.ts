@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  Activity,
   Box,
   BrainCircuit,
   Calculator,
@@ -39,6 +40,7 @@ describe('navigationRoutes', () => {
     expect(paths('student', 'mathematics')).toEqual([
       '/',
       '/quiz',
+      '/y-attendance',
       '/calculus-1',
       '/calculus',
       '/math-solver',
@@ -54,6 +56,7 @@ describe('navigationRoutes', () => {
     expect(paths('student', 'medicine')).toEqual([
       '/',
       '/quiz',
+      '/y-attendance',
       '/y-sheets',
     ]);
   });
@@ -62,6 +65,7 @@ describe('navigationRoutes', () => {
     expect(paths('instructor', 'mathematics')).toEqual([
       '/',
       '/engine-access',
+      '/y-attendance',
       '/calculus-1',
       '/calculus',
       '/math-solver',
@@ -79,6 +83,7 @@ describe('navigationRoutes', () => {
         '/',
         '/quiz',
         '/engine-access',
+      '/y-attendance',
         '/calculus-1',
         '/calculus',
         '/math-solver',
@@ -112,6 +117,7 @@ describe('navigationRoutes', () => {
     expect(items.map((item) => item.iconId)).toEqual([
       'home',
       'brainCircuit',
+      'activity',
       'lineChart',
       'lineChart',
       'box',
@@ -167,6 +173,7 @@ describe('navigationRoutes', () => {
     expect(items.map((item) => item.icon)).toEqual([
       Home,
       BrainCircuit,
+      Activity,
       LineChart,
       LineChart,
       Box,

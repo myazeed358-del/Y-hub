@@ -5,6 +5,7 @@ import {
 } from 'vitest';
 
 import {
+  Activity,
   Box,
   BrainCircuit,
   Calculator,
@@ -122,6 +123,7 @@ describe('NavigationPresentationBoundary', () => {
     expect(icons).toEqual([
       Home,
       BrainCircuit,
+      Activity,
       LineChart,
       LineChart,
       Box,

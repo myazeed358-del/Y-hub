@@ -28,6 +28,7 @@ describe('Y-Hub navigation', () => {
     expect(visibleRoutes('student', 'mathematics')).toEqual([
       '/',
       '/quiz',
+      '/y-attendance',
       ...mathEngines,
       '/y-sheets',
     ]);
@@ -37,6 +38,7 @@ describe('Y-Hub navigation', () => {
     expect(visibleRoutes('student', 'medicine')).toEqual([
       '/',
       '/quiz',
+      '/y-attendance',
       '/y-sheets',
     ]);
   });
@@ -45,6 +47,7 @@ describe('Y-Hub navigation', () => {
     expect(visibleRoutes('student', null)).toEqual([
       '/',
       '/quiz',
+      '/y-attendance',
       '/y-sheets',
     ]);
   });
@@ -53,6 +56,7 @@ describe('Y-Hub navigation', () => {
     expect(visibleRoutes('instructor', 'mathematics')).toEqual([
       '/',
       '/engine-access',
+      '/y-attendance',
       ...mathEngines,
       '/y-sheets',
     ]);
@@ -62,6 +66,7 @@ describe('Y-Hub navigation', () => {
     expect(visibleRoutes('instructor', 'medicine')).toEqual([
       '/',
       '/engine-access',
+      '/y-attendance',
       '/y-sheets',
     ]);
   });
@@ -73,6 +78,7 @@ describe('Y-Hub navigation', () => {
         '/',
         '/quiz',
         '/engine-access',
+      '/y-attendance',
         ...mathEngines,
       '/audit-log',
         '/y-sheets',

@@ -178,6 +178,7 @@ describe('AppRoutes', () => {
       '/y-sheets',
       '/audit-log',
       '/engine-access',
+      '/y-attendance',
       '/legacy-home',
       '/legacy-course',
       '/lesson/:slug',

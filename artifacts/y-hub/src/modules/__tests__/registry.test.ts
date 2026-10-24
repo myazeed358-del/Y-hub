@@ -21,7 +21,7 @@ describe('module validation and dependency isolation', () => {
   it('discovers existing engines with no eager entry execution', () => {
     expect(moduleRegistry.issues).toEqual([]);
     expect(moduleRegistry.routes.map(route => route.path)).toEqual([
-      '/ode', '/linear-algebra', '/math-solver', '/solver', '/calculus-1', '/calculus', '/lab', '/y-sheets', '/audit-log', '/engine-access',
+      '/ode', '/linear-algebra', '/math-solver', '/solver', '/calculus-1', '/calculus', '/lab', '/y-sheets', '/audit-log', '/engine-access', '/y-attendance',
     ]);
     const registry = createModuleRegistry({ example: manifest() });
     expect(registry.routes).toHaveLength(1);

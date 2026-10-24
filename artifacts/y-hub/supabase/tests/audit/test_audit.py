@@ -349,7 +349,7 @@ class AuditTests(unittest.TestCase):
     def test_all_domain_columns_have_an_explicit_audit_classification(self):
         # A future schema addition must be deliberately tracked/redacted; no silent gaps.
         rows = query("SELECT c.relname,encode(t.tgargs,'escape') AS args FROM pg_trigger t JOIN pg_class c ON c.oid=t.tgrelid WHERE t.tgname='audit_capture'")
-        self.assertEqual({r['relname'] for r in rows}, {'courses','course_definitions','course_materials','exams','questions','course_enrollments','syllabus_units','syllabus_sections','users','engine_grants'})
+        self.assertEqual({r['relname'] for r in rows}, {'courses','course_definitions','course_materials','exams','questions','course_enrollments','syllabus_units','syllabus_sections','users','engine_grants','academic_lectures','attendance_sessions','attendance_records'})
         for row in rows:
             tracked = set(row['args'].split('\\000')[0].split(','))
             if row['relname'] == 'users':
