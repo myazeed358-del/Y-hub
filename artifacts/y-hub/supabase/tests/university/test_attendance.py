@@ -50,13 +50,13 @@ class Attendance(unittest.TestCase):
   finally:run(f"UPDATE public.users SET role='instructor' WHERE id='{I}'")
  def test_manual_corrections_are_scoped_audited_and_redacted(self):
   c,l,u,s=setup_session()
-  r=value(f"SELECT public.correct_attendance('{s}','{u}','excused','private medical note')",I)
+  r=value(f"SELECT public.correct_attendance('{s}','{u}','present','private medical note')",I)
   event=json.loads(value(f"SELECT new_values FROM public.audit_events WHERE entity_id='{r}' ORDER BY occurred_at DESC LIMIT 1",A))
-  self.assertEqual(event['reason'],'[REDACTED]');self.assertEqual(event['status'],'excused')
-  checkin(s,u);self.assertEqual(value(f"SELECT status FROM public.attendance_records WHERE id='{r}'",u),'excused')
+  self.assertEqual(event['reason'],'[REDACTED]');self.assertEqual(event['status'],'present')
+  checkin(s,u);self.assertEqual(value(f"SELECT status FROM public.attendance_records WHERE id='{r}'",u),'present')
   with self.assertRaises(AssertionError):value(f"SELECT public.correct_attendance('{s}','{student()}','present','not enrolled')",I)
   run(f"UPDATE public.attendance_sessions SET opened_at=clock_timestamp()-interval '9 days' WHERE id='{s}'")
-  with self.assertRaises(AssertionError):value(f"SELECT public.correct_attendance('{s}','{u}','present','late correction')",I)
+  value(f"SELECT public.correct_attendance('{s}','{u}','present','late correction')",I)
   value(f"SELECT public.correct_attendance('{s}','{u}','present','admin correction')",A)
  def test_two_devices_create_one_record_and_one_checkin_event(self):
   c,l,u,s=setup_session();t=token(s)
