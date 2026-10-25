@@ -1,3 +1,5 @@
+import {SectionActivityLinks} from '@/shared/academic/SectionActivityLinks';
+import {useLanguage} from '@/i18n/LanguageContext';
 import type { ReactNode } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Link } from 'wouter';
@@ -10,6 +12,7 @@ import { useCourseManager } from '../hooks/useCourseManager';
 
 export default function CourseManagerPage({ renderSyllabus }: { renderSyllabus?: (courseId: string, editable: boolean) => ReactNode }) {
   const { user, role } = useAuth();
+  const {language}=useLanguage();
   const {
     course,
     courseId,
@@ -75,6 +78,7 @@ export default function CourseManagerPage({ renderSyllabus }: { renderSyllabus?:
         </Link>
       </div>
 
+      {course && <div className="mb-6"><SectionActivityLinks sectionId={courseId} ar={language==='ar'}/></div>}
       {renderSyllabus?.(courseId, course?.instructor_id === user?.id && !!role && ['instructor','admin','super_admin'].includes(role))}
       <Tabs defaultValue="materials" className="w-full">
         <TabsList className="mb-6 grid w-full max-w-md grid-cols-2 h-12">

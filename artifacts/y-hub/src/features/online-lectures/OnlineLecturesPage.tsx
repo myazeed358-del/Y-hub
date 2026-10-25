@@ -1,3 +1,4 @@
+import {authorizedSectionSelection} from '@/shared/academic/SectionActivityLinks';
 import {useEffect,useState} from 'react';
 import {useAuth} from '@/contexts/AuthContext';
 import {useLanguage} from '@/i18n/LanguageContext';
@@ -9,7 +10,7 @@ export default function OnlineLecturesPage(){
  const [sections,setSections]=useState<Awaited<ReturnType<typeof repo.sections>>>([]),[course,setCourse]=useState(''),[items,setItems]=useState<AcademicLecture[]>([]),[joined,setJoined]=useState('');
  const [title,setTitle]=useState(''),[start,setStart]=useState(''),[end,setEnd]=useState(''),[offset,setOffset]=useState(0),[version,setVersion]=useState(0),[error,setError]=useState(false),[loading,setLoading]=useState(false),[busy,setBusy]=useState(false);
  useEffect(()=>{setJoined('');setCourse('');setSections([]);},[user?.id]);
- useEffect(()=>{let active=true;repo.sections().then(s=>{if(active)setSections(s);},()=>{if(active)setError(true);});return()=>{active=false;};},[user?.id,version]);
+ useEffect(()=>{let active=true;repo.sections().then(s=>{if(active){setSections(s);setCourse(current=>authorizedSectionSelection(window.location.search,s,current));}},()=>{if(active)setError(true);});return()=>{active=false;};},[user?.id,version]);
  useEffect(()=>{let active=true;setItems([]);if(!course)return;setLoading(true);repo.upcoming(course,offset).then(l=>{if(active){setItems(l);setLoading(false);}},()=>{if(active){setError(true);setLoading(false);}});return()=>{active=false;};},[course,offset,version,user?.id]);
  async function mutate(fn:()=>Promise<unknown>){if(busy)return;setBusy(true);setError(false);try{await fn();setVersion(v=>v+1);}catch{setError(true);}finally{setBusy(false);}}
  const field='w-full rounded-md border border-border bg-background p-2';

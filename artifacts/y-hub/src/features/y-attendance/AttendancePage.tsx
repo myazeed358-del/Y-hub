@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { authorizedSectionSelection } from "@/shared/academic/SectionActivityLinks";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { Button } from "@workspace/y-hub-ds/components/ui/button";
 import {
@@ -50,6 +51,7 @@ export default function AttendancePage() {
     repo.sections().then((s) => {
       if (active) {
         setSections(s);
+        setCourse((current) => authorizedSectionSelection(window.location.search, s, current));
         setLoading(false);
       }
     }, () => {

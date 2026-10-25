@@ -1,14 +1,16 @@
-# Approved decisions — first attendance group delivered (2026-10-24)
+# Approved specifications — academic integration checkpoint (2026-10-25)
 
-Current branch: `feature/approved-attendance-lifecycle`, based on fresh main `b41b44875d9febc531a16c1eaa1e1f343593cc3a` (PR36 includes previous Tutor work). Read `docs/approved-specifications/PROGRESS.md` (all71 decisions) and `ATTENDANCE_PHASE1.md`; the user's later explicit message authorizes implementation of1–71, not recommendations72–80. Do not resume completed historical tasks below.
+Current branch: `feature/approved-academic-integration`, based on verified latest main `b41b44875d9febc531a16c1eaa1e1f343593cc3a`. Read `docs/approved-specifications/ACADEMIC_INTEGRATION.md` and `PROGRESS.md` first. Do not restart Tutor/Y-Sheets or historical phases below.
 
-Previous verified remote checkpoint: `1bce19efaa794db74ae291596401b28a0a2de95b` (implementation `ef5e456164650af34bf252595940511efab486ea`). Code, tests, decision audit and report pushed successfully; the following delivery note records the confirmed checkpoint. Git/ls-remote establish final SHA. No production SQL, Edge deployment, main merge or unrelated feature changes.
+Previous verified remote checkpoint: `5941f4b640e98c8d298dae48c628062579d5cae4` (implementation). The following documentation commit records it; Git/ls-remote establishes the latest SHA. Decision1 completed; missing Phase3 academic contracts reconciled in new0041 without historical SQL or Y-Sheets function changes. The71-row table is cumulative across independent, unmerged review branches:11 complete,24 partial,34 missing,2 need repair.72–80 not authorized or implemented.
 
-Implemented attendance decisions2,3,5,6,8,10,35,36; preserved9, advanced4/37 with explicit legacy-history limits. New0040 only. Server-time logical expiry, adjustable QR/duration, extension, early close, cancellation, fixed initial roster, reason-free audited corrections, nine-digit existing IDs. Do not use raw attendance_sessions.state alone as effective state. Full verification2002Vitest/230files (13attendance),36Python,8architecture guards,workspaceTS/audits/build,45localSQL+immutable-ID assertions,5nativeAuthHTTP,2browser workflows passed.
+Preserved attendance branch `feature/approved-attendance-lifecycle` at `3c718931810ce8dbbcb4504e08001a1b967610c8` contains0040 and prior completed attendance work; this branch is based directly on main and does not include0040. Its historical report is copied only for continuity. Do not mistake composite progress for one branch's contents or production deployment.
 
-Existing general HTTP suite FAILS15/21 on an independent unchanged main archive due to absent academic-creation RPCs (0031/0032). Next priority1 group: reconcile existing Phase3 branch contracts, then complete attendance entry points/tabs/reports and grants search/numbers. Do not invent missing functionality or claim all integration green. Hosted staging PENDING. GitHub API list AND Draft PR creation returned Forbidden, including the permitted retry outside the command sandbox. No PR was created by this attempt; restore API access and use the prepared PR_DESCRIPTION.md. Git push and remote SHA verification succeeded. Do not merge. Vercel/Python issue remains deferred.
+Verification:2018 Vitest/234files;146 targeted subset after final Arabic accessibility edits;36 Python;8 architectural guards;workspace TS/audits/build;44 isolated academic SQL;48 actual local GoTrue JWT/PostgREST/SQL tests;3 fixture-backed Chromium scenarios. Combined SQL snapshot0040+0041:44 academic +45 university tests PASS. Local student-number immutability assertion passed. No production write/migration/deploy/main merge. Hosted Staging, real Storage/Edge/provider integration remain PENDING. Known Vercel Python issue remains deferred.
 
-## Earlier checkpoints (historical)
+Git push works; Draft PR creation currently returns GitHub GraphQL Forbidden. No PR number is confirmed; body ready in `docs/approved-specifications/ACADEMIC_PR.md`. Complete review creation when API access is available; never invent a PR. Next implementation priorities:attendance reports/tabs7/33, grants/search/numbers11–14/34, then24/25/32. Review both branches and reconcile AttendancePage changes before any user-approved merge; do not reapply old0032 over0037.
+
+## Historical checkpoints (preserved)
 
 # AI Tutor math/Arabic follow-up — verified locally (2026-10-24)
 

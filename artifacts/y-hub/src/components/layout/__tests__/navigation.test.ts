@@ -58,6 +58,7 @@ describe('Y-Hub navigation', () => {
   it('shows instructor engines without student quiz navigation', () => {
     expect(visibleRoutes('instructor', 'mathematics')).toEqual([
       '/',
+      '/academic-management',
       '/engine-access',
       '/y-attendance',
       '/online-lectures',
@@ -69,6 +70,7 @@ describe('Y-Hub navigation', () => {
   it('limits instructor sidebar to their teaching major', () => {
     expect(visibleRoutes('instructor', 'medicine')).toEqual([
       '/',
+      '/academic-management',
       '/engine-access',
       '/y-attendance',
       '/online-lectures',
@@ -82,6 +84,7 @@ describe('Y-Hub navigation', () => {
       expect(visibleRoutes(role, null)).toEqual([
         '/',
         '/quiz',
+        '/academic-management',
         '/engine-access',
       '/y-attendance',
       '/online-lectures',

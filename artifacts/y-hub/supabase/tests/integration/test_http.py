@@ -268,3 +268,24 @@ class SupabaseHTTP(unittest.TestCase):
   self.ok('instructor','/rpc/block_lecture_participant',{'p_lecture':l,'p_student':u,'p_reason':'reconcile now'})
   status,allowed=self.stack.request('rest','/rpc/lecture_participant_allowed',payload,token);self.assertEqual(status,200);self.assertFalse(allowed)
   for actor in ['student','instructor','admin','super']:self.denied(actor,'/rpc/lecture_participant_allowed',payload)
+
+ def test_22_legacy_course_insert_returning_preserves_row_security(self):
+  c=uid();owner=self.accounts['instructor']['id']
+  rows=self.ok('instructor','/courses',{'id':c,'instructor_id':owner,'title':'Legacy creation','is_published':False})
+  self.assertEqual(rows[0]['id'],c);self.assertTrue(rows[0]['course_definition_id'])
+  self.assertEqual(self.ok('other',f'/courses?id=eq.{c}'),[])
+  self.assertEqual(self.ok('student',f'/courses?id=eq.{c}'),[])
+  self.assertEqual(self.ok('admin',f'/courses?id=eq.{c}')[0]['id'],c)
+  forged=uid()
+  self.denied('student','/courses',{'id':forged,'instructor_id':self.accounts['student']['id'],'title':'Denied'})
+  self.assertEqual(self.ok('admin',f'/courses?id=eq.{forged}'),[])
+ def test_23_section_activity_directories_follow_actual_membership_and_assignment(self):
+  _,c=self.section();self.enroll(c)
+  for endpoint in ['my_attendance_sections','my_online_lecture_sections']:
+   self.assertIn(c,[r['id'] for r in self.ok('student','/rpc/'+endpoint,{})])
+   self.assertNotIn(c,[r['id'] for r in self.ok('student2','/rpc/'+endpoint,{})])
+   self.assertNotIn(c,[r['id'] for r in self.ok('other','/rpc/'+endpoint,{})])
+  self.ok('admin','/rpc/assign_academic_section',{'p_section':c,'p_expected_instructor':self.accounts['instructor']['id'],'p_instructor':self.accounts['other']['id']})
+  for endpoint in ['my_attendance_sections','my_online_lecture_sections']:
+   self.assertNotIn(c,[r['id'] for r in self.ok('instructor','/rpc/'+endpoint,{})])
+   self.assertIn(c,[r['id'] for r in self.ok('other','/rpc/'+endpoint,{})])
