@@ -1,3 +1,4 @@
+import {authorizedSectionSelection} from '@/shared/academic/SectionActivityLinks';
 import {useEffect,useState} from 'react';
 import {useAuth} from '@/contexts/AuthContext';
 import {useLanguage} from '@/i18n/LanguageContext';
@@ -14,7 +15,7 @@ export default function AttendancePage(){
  const [token,setToken]=useState(()=>window.location.hash.slice(1)),[version,setVersion]=useState(0),[offset,setOffset]=useState(0),[busy,setBusy]=useState(false),[error,setError]=useState(false),[loading,setLoading]=useState(true),[success,setSuccess]=useState(false);
  useEffect(()=>{if(window.location.hash)window.history.replaceState(null,'',window.location.pathname+window.location.search);},[]);
  useEffect(()=>{setCourse('');setSections([]);setLecture('');setSession(null);},[user?.id]);
- useEffect(()=>{let active=true;repo.sections().then(s=>{if(active){setSections(s);setLoading(false);}},()=>{if(active){setError(true);setLoading(false);}});return()=>{active=false;};},[user?.id,version]);
+ useEffect(()=>{let active=true;repo.sections().then(s=>{if(active){setSections(s);setCourse(current=>authorizedSectionSelection(window.location.search,s,current));setLoading(false);}},()=>{if(active){setError(true);setLoading(false);}});return()=>{active=false;};},[user?.id,version]);
  useEffect(()=>{let active=true;setItems([]);setRoster([]);if(!course)return;setLoading(true);
  Promise.all([lectures.list(course,offset),manager?repo.roster(course):Promise.resolve([])]).then(([l,r])=>{if(active){setItems(l);if(!lecture)setRoster(r);setLoading(false);}},()=>{if(active){setError(true);setLoading(false);}});return()=>{active=false;};},[course,user?.id,manager,offset,version]);
  useEffect(()=>{let active=true;setSession(null);if(lecture)repo.session(lecture).then(async s=>{if(!active)return;setSession(s);if(s&&manager){try{const rows=await repo.sessionRoster(s.id);if(active)setRoster(rows);}catch{if(active)setError(true);}}},()=>{if(active)setError(true);});return()=>{active=false;};},[lecture,version,manager]);

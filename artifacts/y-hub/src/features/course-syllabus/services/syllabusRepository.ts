@@ -18,7 +18,7 @@ export const syllabusRepository = {
     const { data, error } = await supabase.rpc('save_course_syllabus', {
       p_course_id: snapshot.courseId, p_expected_revision: snapshot.revision, p_units: result.data.units,
     });
-    if (error) throw new SyllabusError(error.code === '40001' ? 'conflict' : error.code === '42501' ? 'denied' : 'unavailable');
+    if (error) throw new SyllabusError(['PT409', '40001'].includes(error.code) ? 'conflict' : error.code === '42501' ? 'denied' : 'unavailable');
     if (!Number.isSafeInteger(data) || data < snapshot.revision) throw new SyllabusError('invalid');
     return { ...result.data, revision: data };
   },
