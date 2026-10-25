@@ -43,4 +43,4 @@
 
 تحذيرات حجم حزم Vite، وPDF.js في Node، وتقادم Starlette/httpx غير مانعة ومعلنة. مشكلة Vercel/Python مؤجلة. لم يُطبّق SQL على الإنتاج، ولم يُنشر Edge Function أو يُدمج main. التالي: القرارات 11–14 و34 في فرع مستقل.
 
-حالة GitHub: DELIVERY_PENDING.
+حالة GitHub: رُفع الفرع وتحقق تطابق SHA `0294fd93f9ba6915996ef3611240ec211c6684ed` مع GitHub. محاولة إنشاء Draft PR أعادت `Post "https://api.github.com/graphql": Forbidden`؛ لا رقم PR مؤكد. وصفه جاهز في ATTENDANCE_REPORTS_PR.md. سجل Git يحدد commit التوثيق اللاحق..
