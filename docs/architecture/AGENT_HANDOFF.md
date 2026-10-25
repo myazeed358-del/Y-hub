@@ -1,3 +1,17 @@
+# Approved specifications — academic integration checkpoint (2026-10-25)
+
+Current branch: `feature/approved-academic-integration`, based on verified latest main `b41b44875d9febc531a16c1eaa1e1f343593cc3a`. Read `docs/approved-specifications/ACADEMIC_INTEGRATION.md` and `PROGRESS.md` first. Do not restart Tutor/Y-Sheets or historical phases below.
+
+Previous verified remote checkpoint: `5941f4b640e98c8d298dae48c628062579d5cae4` (implementation). The following documentation commit records it; Git/ls-remote establishes the latest SHA. Decision1 completed; missing Phase3 academic contracts reconciled in new0041 without historical SQL or Y-Sheets function changes. The71-row table is cumulative across independent, unmerged review branches:11 complete,24 partial,34 missing,2 need repair.72–80 not authorized or implemented.
+
+Preserved attendance branch `feature/approved-attendance-lifecycle` at `3c718931810ce8dbbcb4504e08001a1b967610c8` contains0040 and prior completed attendance work; this branch is based directly on main and does not include0040. Its historical report is copied only for continuity. Do not mistake composite progress for one branch's contents or production deployment.
+
+Verification:2018 Vitest/234files;146 targeted subset after final Arabic accessibility edits;36 Python;8 architectural guards;workspace TS/audits/build;44 isolated academic SQL;48 actual local GoTrue JWT/PostgREST/SQL tests;3 fixture-backed Chromium scenarios. Combined SQL snapshot0040+0041:44 academic +45 university tests PASS. Local student-number immutability assertion passed. No production write/migration/deploy/main merge. Hosted Staging, real Storage/Edge/provider integration remain PENDING. Known Vercel Python issue remains deferred.
+
+Git push works; Draft PR creation currently returns GitHub GraphQL Forbidden. No PR number is confirmed; body ready in `docs/approved-specifications/ACADEMIC_PR.md`. Complete review creation when API access is available; never invent a PR. Next implementation priorities:attendance reports/tabs7/33, grants/search/numbers11–14/34, then24/25/32. Review both branches and reconcile AttendancePage changes before any user-approved merge; do not reapply old0032 over0037.
+
+## Historical checkpoints (preserved)
+
 # AI Tutor math/Arabic follow-up — verified locally (2026-10-24)
 
 Current branch remains `feature/ai-tutor-rag`. Read `docs/ai-tutor/MATH_ARABIC.md`; do not repeat Phase 1. Implementation pushed and verified by `git ls-remote`: `64a3b8d7899cefb3e2d9735079fe3cfd6178077f`. The following delivery-note commit records that previous verified checkpoint; Git/ls-remote establishes the final documentation SHA. Added robust delimiter handling, scoped LTR math/RTL prose, language selection, step-by-step/JSON-escaping prompt, and new 0039 Arabic retrieval normalization. RAG/citations/permissions/math engines preserved.

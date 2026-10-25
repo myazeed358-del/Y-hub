@@ -1,0 +1,44 @@
+academic-full
+PASS: no static cycles or direct cross-feature dependencies
+PASS: math core does not import UI/features/platform storage or its composition root
+ℹ tests 8
+ℹ pass 8
+ℹ fail 0
+PASS: module/public-feature boundaries and static runtime cycles (608 files)
+ Test Files  234 passed (234)
+      Tests  2018 passed (2018)
+✓ built in 58.39s
+Ran 36 tests in 1.140s
+OK
+PASS: complete architecture verification suite
+
+academic-targeted
+ Test Files  17 passed (17)
+      Tests  146 passed (146)
+
+academic-sql
+Ran 44 tests in 30.493s
+OK
+NOTICE:  PASS: final user number is immutable
+PASS: isolated academic architecture and RLS tests
+
+academic-http
+Ran 48 tests in 76.744s
+OK
+
+academic-combined-sql
+Ran 44 tests in 38.254s
+OK
+NOTICE:  PASS: final user number is immutable
+PASS: isolated academic architecture and RLS tests
+
+academic-combined-university
+Ran 45 tests in 55.502s
+OK
+NOTICE:  PASS: final user number is immutable
+PASS: isolated academic architecture and RLS tests
+
+academic-browser
+PASS 390/ar/admin: creation, existing roster number, scoped attendance link, rejected foreign section and responsive layout.
+PASS 1280/en/instructor: creation, existing roster number, scoped attendance link, rejected foreign section and responsive layout.
+PASS student: guarded module denied before loading academic resources.
