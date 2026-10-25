@@ -231,7 +231,10 @@ class SupabaseHTTP(unittest.TestCase):
   self.assertEqual(self.ok('student','/rpc/attendance_report',{'p_course':c})['stats']['present'],1)
  def test_18_attendance_audit_scope_and_required_failure_over_http(self):
   c,l=self.lecture();s=self.ok('instructor','/rpc/open_attendance',{'p_lecture':l});u=self.accounts['student']['id']
-  record=self.ok('instructor','/rpc/correct_attendance',{'p_session':s,'p_student':u,'p_status':'excused','p_reason':'private supporting detail'})
+  # Approved binary attendance (0040): old excused records survive, new writes are denied.
+  self.denied('instructor','/rpc/correct_attendance',{'p_session':s,'p_student':u,'p_status':'excused'})
+  self.assertEqual(self.ok('student',f'/attendance_records?session_id=eq.{s}')[0]['status'],'absent')
+  record=self.ok('instructor','/rpc/correct_attendance',{'p_session':s,'p_student':u,'p_status':'present','p_reason':'private supporting detail'})
   events=self.ok('admin',f'/audit_events?entity_id=eq.{record}');self.assertTrue(events);self.assertNotIn('private supporting detail',json.dumps(events))
   self.ok('admin','/rpc/correct_attendance',{'p_session':s,'p_student':u,'p_status':'absent','p_reason':'administrative correction'})
   self.assertFalse(any(e['actor_role']=='admin' for e in self.ok('admin',f'/audit_events?entity_id=eq.{record}')))
