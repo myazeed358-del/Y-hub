@@ -12,7 +12,7 @@ const record = z.object({
   method: z.string(),
   state: z.string(),
 });
-const report = z.object({
+export const attendanceReportSchema = z.object({
   rows: z.array(record),
   total: z.number(),
   stats: z.object({
@@ -22,7 +22,7 @@ const report = z.object({
     excused: z.number(),
   }),
 });
-export type AttendanceReport = z.infer<typeof report>;
+export type AttendanceReport = z.infer<typeof attendanceReportSchema>;
 export const attendanceRepository = {
   sections() {
     return academicRpc(
@@ -101,7 +101,7 @@ export const attendanceRepository = {
       p_course: course,
       p_offset: offset,
       p_limit: 100,
-    }, report);
+    }, attendanceReportSchema);
   },
   sessionRoster(session: string) {
     return academicRpc(
