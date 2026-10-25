@@ -1,3 +1,15 @@
+# Approved specifications — engine grant workflows (2026-10-25)
+
+Current branch: `feature/approved-engine-grants`, from main `06cabec3b1fee1b5cfe6a9457d9dd914a3398155`. Read `docs/approved-specifications/ENGINE_GRANTS.md` and `PROGRESS.md` before resuming. Decisions11–14/34 implemented; do not recreate the old grants page or repeat completed attendance work.
+
+Independent attendance-report branch is verified on remote at `4456949caaf346f2b43e35c5da5e5555f308def0`, contains0042, and is not merged by this task. Its reports/screenshots are copied for continuity only. This grant branch contains0043 (independent of0042): scoped directory/history, atomic batch grant, real nullable enrollment lifetime, trusted revocation causes and compatible legacy API. Parent-before-child revoke locking is tested with concurrent assignment. Existing algorithms, Quick Access and student numbers remain unchanged.
+
+Verified2036 Vitest/236files,24 targeted subset,36 Python,8 architecture guards,workspace TS/audits/build;52 SQL university tests;57 real local Auth/JWT/PostgREST tests;3 fixture-backed Chromium scenarios. Combined SQL0042+0043 snapshot:58 university +44 academic tests pass. The71-row table is cumulative:18 complete,20 partial,31 missing,2 need repair; not production readiness. Hosted Staging/load/production ledger remain PENDING. No production migration, Edge deploy or main merge performed.72–80 remain unauthorized.
+
+Previous verified remote group is attendance4456949 above; Git/ls-remote establish this branch's final checkpoint. Git push works, GitHub GraphQL PR API has repeatedly returned Forbidden; do not invent a PR. Body: ENGINE_GRANTS_PR.md. Next: priority1 decisions25/24/32, then learning/practice and subsequent dependencies. Keep independent branches;0044 is the next migration number unless remote changes first.
+
+## Historical checkpoints (preserved)
+
 # Approved specifications — academic integration checkpoint (2026-10-25)
 
 Current branch: `feature/approved-academic-integration`, based on verified latest main `b41b44875d9febc531a16c1eaa1e1f343593cc3a`. Read `docs/approved-specifications/ACADEMIC_INTEGRATION.md` and `PROGRESS.md` first. Do not restart Tutor/Y-Sheets or historical phases below.
