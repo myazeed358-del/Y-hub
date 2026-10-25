@@ -41,4 +41,4 @@ Staging المستضاف وسجل ترحيلات الإنتاج واختبار �
 
 يجب مراجعة أثر ALTER TABLE على حجم الجدول قبل نشر0043، ثم SQL قبل الواجهة الجديدة. لم يطبق أي ترحيل على الإنتاج، ولم ينشر Edge أو يدمج main. مشكلة Vercel/Python مؤجلة. التالي:25/24/32، ثم بقية التبعيات المسجلة في جدول71؛72–80 غير منفذة.
 
-GitHub: DELIVERY_PENDING.
+GitHub: رُفع الفرع وتحقق SHA `13104c11cd1efb17533ec4070acc47c10c02fc12` عبر git ls-remote. إنشاء Draft PR أعاد `Post "https://api.github.com/graphql": Forbidden`؛ لا رقم PR مؤكد، ووصفه في ENGINE_GRANTS_PR.md. سجل Git يحدد commit التوثيق اللاحق..

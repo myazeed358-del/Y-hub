@@ -6,7 +6,7 @@ Independent attendance-report branch is verified on remote at `4456949caaf346f2b
 
 Verified2036 Vitest/236files,24 targeted subset,36 Python,8 architecture guards,workspace TS/audits/build;52 SQL university tests;57 real local Auth/JWT/PostgREST tests;3 fixture-backed Chromium scenarios. Combined SQL0042+0043 snapshot:58 university +44 academic tests pass. The71-row table is cumulative:18 complete,20 partial,31 missing,2 need repair; not production readiness. Hosted Staging/load/production ledger remain PENDING. No production migration, Edge deploy or main merge performed.72–80 remain unauthorized.
 
-Previous verified remote group is attendance4456949 above; Git/ls-remote establish this branch's final checkpoint. Git push works, GitHub GraphQL PR API has repeatedly returned Forbidden; do not invent a PR. Body: ENGINE_GRANTS_PR.md. Next: priority1 decisions25/24/32, then learning/practice and subsequent dependencies. Keep independent branches;0044 is the next migration number unless remote changes first.
+Previous verified remote group is attendance4456949 above; Grant implementation/docs verified on remote at `13104c11cd1efb17533ec4070acc47c10c02fc12`. The following documentation commit records it; Git/ls-remote establishes the latest checkpoint. Git push works, GitHub GraphQL PR API has repeatedly returned Forbidden; do not invent a PR. Body: ENGINE_GRANTS_PR.md. Next: priority1 decisions25/24/32, then learning/practice and subsequent dependencies. Keep independent branches;0044 is the next migration number unless remote changes first.
 
 ## Historical checkpoints (preserved)
 
