@@ -33,6 +33,7 @@ export function AttendanceSessionPanel(
     async function refresh() {
       try {
         const s = await repo.session(lecture);
+        // Show the roster saved for this session.
         const rows = s ? await repo.sessionRoster(s.id) : [];
         if (!active) return;
         setSession(s);

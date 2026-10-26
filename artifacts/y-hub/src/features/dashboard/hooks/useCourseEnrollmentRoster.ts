@@ -28,6 +28,7 @@ export function useCourseEnrollmentRoster(
     setCounts({});
     setCountsError(false);
 
+    // Only show counts for courses on this dashboard.
     void courseEnrollmentRepository.listCounts()
       .then((rows) => {
         if (!active) return;

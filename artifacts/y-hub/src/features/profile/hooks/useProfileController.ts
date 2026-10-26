@@ -159,6 +159,7 @@ export function useProfileController() {
     setPasswordSaving(true);
 
     try {
+      // Verify the old password before accepting a new one.
       const verified = await profileAuthService.verifyCurrentPassword(
         user.email, passwordData.current, user.id
       );

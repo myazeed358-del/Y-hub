@@ -33,6 +33,7 @@ export default function AttendancePage() {
     [loading, setLoading] = useState(true),
     [success, setSuccess] = useState(false);
   useEffect(() => {
+    // Clear the check-in token from the address bar after reading it.
     if (window.location.hash) {
       window.history.replaceState(
         null,

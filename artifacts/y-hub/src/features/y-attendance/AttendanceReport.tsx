@@ -48,6 +48,7 @@ export function AttendanceReport(
       let rows: Report["rows"] = [];
       let page: Report;
       let start = 0;
+      // Export every page, not just the rows currently displayed.
       do {
         page = await repo.report(course, start);
         rows.push(...page.rows);

@@ -15,6 +15,7 @@ export const syllabusRepository = {
   async save(snapshot: SyllabusSnapshot): Promise<SyllabusSnapshot> {
     const result = snapshotSchema.safeParse(snapshot);
     if (!result.success) throw new SyllabusError('invalid');
+    // Let the server check the revision before saving new units.
     const { data, error } = await supabase.rpc('save_course_syllabus', {
       p_course_id: snapshot.courseId, p_expected_revision: snapshot.revision, p_units: result.data.units,
     });

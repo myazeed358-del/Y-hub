@@ -20,6 +20,7 @@ export function useQuickAccess(owner:string|undefined,language:'ar'|'en'){
   return()=>{++generation.current;clearInterval(timer);window.removeEventListener('focus',refresh);};
  },[refresh]);
  const data=snapshot&&snapshot.owner===owner?snapshot.data:null;
+ // Hide saved shortcuts if their tools are no longer registered.
  const available=(data?.available??[]).filter(a=>moduleRegistry.routes.some(r=>r.path===a.path&&r.module.id===a.moduleId));
  const optionMap=new Map(available.map(a=>[a.path,a]));
  const tools=(data?.paths??[]).flatMap(path=>{const item=optionMap.get(path);return item?[{path,name:item.title[language],icon:MODULE_ICON_COMPONENTS[item.icon as ModuleIcon]??MODULE_ICON_COMPONENTS.box}]:[];});
@@ -27,6 +28,7 @@ export function useQuickAccess(owner:string|undefined,language:'ar'|'en'){
  async function save(){
   if(!owner||!data||pending.current||draft.some(path=>!optionMap.has(path)))return;
   const requestOwner=owner,paths=[...draft];pending.current=true;++generation.current;setBusy(true);setError(null);
+  // Use the original revision to catch edits from another tab.
   try{const revision=await repo.save(base,paths);if(identity.current!==requestOwner)return;
    setSnapshot({owner:requestOwner,data:{...data,revision,paths}});setEditing(false);await refresh();
   }catch(e){if(identity.current===requestOwner)setError(e instanceof Error?e.message:'unavailable');}
