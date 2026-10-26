@@ -57,6 +57,7 @@ export function useExamRunner() {
   }, [confirmed]);
 
   useEffect(() => {
+    // Discard late responses after switching exams or accounts.
     const current = ++generation.current;
     busy.current = false;
     ready.current = false;
@@ -113,6 +114,7 @@ export function useExamRunner() {
       )
         return;
       syncing = true;
+      // Don't replace newer exam state with an older sync result.
       const requestedVersion = version.current;
       try {
         const started = performance.now();

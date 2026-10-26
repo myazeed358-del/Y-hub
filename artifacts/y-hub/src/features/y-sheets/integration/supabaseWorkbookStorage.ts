@@ -45,10 +45,12 @@ export function createSupabaseWorkbookStorage(ownerId: string,
   };
   const saveWorkbook = async (workbook: WorkbookData) => {
     const snapshot = validateWorkbook(workbook);
+    // Save each workbook in order to avoid revision clashes.
     const previous = pending.get(snapshot.id) ?? Promise.resolve();
     const operation = previous.catch(() => {}).then(async () => {
       let checkpoint = checkpoints.get(snapshot.id);
       if (!checkpoint) throw new Error('Load or create the workbook before saving.');
+      // Finish a pending save before applying newer changes.
       if (checkpoint.intent) {
         const prior = checkpoint.intent.workbook;
         await send(snapshot.id, checkpoint);

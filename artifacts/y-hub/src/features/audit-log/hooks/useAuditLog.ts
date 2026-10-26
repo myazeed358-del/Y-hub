@@ -11,6 +11,7 @@ export function useAuditLog() {
   const [error, setError] = useState(false);
   const cursor = cursors[cursors.length - 1];
   useEffect(() => {
+    // Cancel the old request when the filters or page change.
     const controller = new AbortController();
     setLoading(true); setError(false); setPage({ events: [], next: null });
     listAuditEvents(filters, cursor, controller.signal).then(result => {

@@ -35,6 +35,7 @@ export function useAnswerRecovery(owner: string | undefined, exam: string) {
     }
   }, []);
   const setAnswers = useCallback((update: SetStateAction<ExamAnswers>) => {
+    // Don't save answers under a different exam or account.
     const target = scope.current;
     if (!target || target.owner !== identity.current.owner || target.exam !== identity.current.exam) return;
     const next = typeof update === 'function' ? update(current.current) : update;

@@ -74,6 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let active=true, sequence=0; const owner=user?.id;
     if(!owner || role!=='student'){setGrants({owner:'',ids:[]});return;}
     const refresh=async()=>{
+      // Let only the newest permission check update the page.
       const request=++sequence;
       try {
         const {data,error}=await supabase.rpc('my_module_access');

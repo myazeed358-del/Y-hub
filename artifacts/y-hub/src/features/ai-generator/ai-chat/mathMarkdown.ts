@@ -62,6 +62,7 @@ function transform(content: string, omitProtected = false) {
     fence: { char: string; length: number } | null = null;
   for (const line of lines) {
     const marker = line.match(/^ {0,3}(`{3,}|~{3,})([^\n]*)/);
+    // Leave fenced code alone, even when it contains math markers.
     if (fence) {
       if (!omitProtected) out += line;
       if (
