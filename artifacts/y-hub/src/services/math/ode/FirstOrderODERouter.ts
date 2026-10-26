@@ -74,6 +74,7 @@ public routeSymbolicFirstOrder(req: ODERequest, context: ODEOrchestrationContext
             }
         }
 
+        // Try the supported solving methods one at a time.
         for (const strategy of this.firstOrderStrategies) {
             if (context.depth >= context.maxDepth) break;
 

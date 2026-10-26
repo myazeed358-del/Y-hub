@@ -67,6 +67,7 @@ export class LAMatrix {
         const pivotColumns: number[] = [];
         const steps: any[] = [];
 
+        // Skip columns with no pivot; those variables stay free.
         for (let c = 0; c < n && r < m; c++) {
             let pivotRow = r;
             while (pivotRow < m && Rat.isZero(matrix[pivotRow][c])) {
@@ -146,6 +147,7 @@ export class LAMatrix {
                 const temp = matrix[i];
                 matrix[i] = matrix[pivot];
                 matrix[pivot] = temp;
+                // A row swap changes the sign of the determinant.
                 det = Rat.mul(det, { num: -1n, den: 1n });
             }
 

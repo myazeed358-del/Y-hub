@@ -17,6 +17,7 @@ export class SystemSolver {
         const rankA = pivotColsA.length;
         const rankAug = pivotColumns.length; // rref computes pivots across all cols including the augmented one
         
+        // A pivot in the augmented column means the equations conflict.
         if (rankAug > rankA) {
             return {
                 systemType: 'inconsistent',
