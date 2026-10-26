@@ -1,8 +1,9 @@
+import { validProfileName } from '@/shared/identity/profileName';
 import type { LoginFormData } from '../types';
 
 type SignUpFields = Pick<
   LoginFormData,
-  'full_name' | 'major' | 'study_year'
+  'full_name_ar' | 'full_name_en' | 'major' | 'study_year'
 >;
 
 export function validateSignUpForm(
@@ -10,9 +11,7 @@ export function validateSignUpForm(
   nameError: string,
   requiredError: string
 ): void {
-  const nameRegex = /^[\p{L}\s]+$/u;
-
-  if (!nameRegex.test(data.full_name)) {
+  if (!validProfileName(data.full_name_ar, 'ar') || !validProfileName(data.full_name_en, 'en')) {
     throw new Error(nameError);
   }
 

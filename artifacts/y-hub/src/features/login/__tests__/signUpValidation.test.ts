@@ -3,7 +3,8 @@ import { validateSignUpForm } from '../domain/validateSignUpForm';
 
 describe('validateSignUpForm', () => {
   const valid = {
-    full_name: 'Ahmad Abdullah',
+    full_name_ar: 'أحمد عبد الله',
+    full_name_en: 'Ahmad Abdullah',
     major: 'mathematics',
     study_year: '1',
   };
@@ -17,7 +18,7 @@ describe('validateSignUpForm', () => {
   it('accepts Arabic letters', () => {
     expect(() =>
       validateSignUpForm(
-        { ...valid, full_name: 'أحمد عبدالله' },
+        { ...valid, full_name_ar: 'أحمد عبدالله' },
         'name',
         'required'
       )
@@ -27,7 +28,7 @@ describe('validateSignUpForm', () => {
   it('rejects digits in the name', () => {
     expect(() =>
       validateSignUpForm(
-        { ...valid, full_name: 'Ahmad123' },
+        { ...valid, full_name_en: 'Ahmad123' },
         'name',
         'required'
       )

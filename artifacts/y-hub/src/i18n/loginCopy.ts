@@ -24,6 +24,8 @@ export const loginCopy = {
     integratedTitle: 'تجربة جامعية متكاملة',
     integratedDescription: 'بيئة واحدة ترافقك خلال رحلتك الجامعية',
 
+    arabicName: 'الاسم الكامل بالعربية',
+    englishName: 'الاسم الكامل بالإنجليزية',
     fullName: 'الاسم الثنائي',
     fullNamePlaceholder: 'مثال: أحمد عبد الله',
 
@@ -89,7 +91,7 @@ export const loginCopy = {
       'بعد التسجيل قد نطلب منك تأكيد بريدك الإلكتروني قبل تسجيل الدخول إلى حسابك.',
 
     nameError:
-      'الاسم يجب أن يحتوي على حروف فقط بدون أرقام أو رموز.',
+      'أدخل الاسم بالعربية والإنجليزية، من 2 إلى 120 حرفًا لكل اسم.',
 
     requiredError:
       'يرجى تعبئة التخصص والسنة الدراسية.',
@@ -134,6 +136,8 @@ export const loginCopy = {
     integratedDescription:
       'One environment that supports your university journey',
 
+    arabicName: 'Full name in Arabic',
+    englishName: 'Full name in English',
     fullName: 'Full name',
     fullNamePlaceholder: 'Example: Ahmad Abdullah',
 
@@ -199,7 +203,7 @@ export const loginCopy = {
       'After registration, you may need to confirm your email before signing in.',
 
     nameError:
-      'The name must contain letters only, without numbers or symbols.',
+      'Enter Arabic and English names of 2–120 characters each.',
 
     requiredError:
       'Please select your major and study year.',

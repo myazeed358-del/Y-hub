@@ -1,3 +1,4 @@
+import { profileName } from '@/shared/identity/profileName';
 import { useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import { toast } from 'sonner';
@@ -60,7 +61,7 @@ export function useProfileController() {
   const accountEmail = profile?.email || user?.email || copy.notAvailable;
 
   const initials = useMemo(() => {
-    const name = profile?.full_name?.trim();
+    const name = profileName(profile, language);
     if (!name) return 'Y';
 
     const parts = name.split(/\s+/).filter(Boolean);
@@ -70,7 +71,7 @@ export function useProfileController() {
       .map((part) => part[0])
       .join('')
       .toUpperCase();
-  }, [profile?.full_name]);
+  }, [profile?.full_name, profile?.full_name_ar, profile?.full_name_en, language]);
 
   const memberSince = useMemo(() => {
     if (!profile?.created_at) return copy.notAvailable;

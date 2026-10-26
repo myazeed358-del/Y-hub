@@ -1,8 +1,10 @@
+import { profileName } from '@/shared/identity/profileName';
+import { useLanguage } from '@/i18n/LanguageContext';
 import { CalendarDays, ShieldCheck } from 'lucide-react';
 import type { getProfileCopy } from '@/i18n/profileCopy';
 
 interface ProfileSidebarProps {
-  profile: { full_name?: string | null };
+  profile: { full_name?: string | null; full_name_ar?: string | null; full_name_en?: string | null };
   copy: ReturnType<typeof getProfileCopy>;
   initials: string;
   accountEmail: string;
@@ -20,6 +22,7 @@ export function ProfileSidebar({
   majorLabel,
   memberSince,
 }: ProfileSidebarProps) {
+  const { language } = useLanguage();
   return (
         <aside className="space-y-5">
           <section className="overflow-hidden rounded-[2rem] border border-[hsl(var(--border))] bg-[hsl(var(--card))]">
@@ -33,7 +36,7 @@ export function ProfileSidebar({
                 </div>
 
                 <h2 className="text-xl font-black">
-                  {profile.full_name || copy.notAvailable}
+                  {profileName(profile, language, copy.notAvailable)}
                 </h2>
 
                 <p className="mt-1 truncate text-sm text-[hsl(var(--muted-foreground))]">

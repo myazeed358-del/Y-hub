@@ -1,7 +1,10 @@
+import { profileName } from '@/shared/identity/profileName';
 import type { Language } from '@/i18n/uiCopy';
 
 export interface AcademicProfileIdentity {
   full_name?: string | null;
+  full_name_ar?: string | null;
+  full_name_en?: string | null;
   role?: string | null;
   major?: string | null;
   study_year?: number | string | null;
@@ -82,7 +85,7 @@ export function buildAcademicIdentity({
   const user = email == null ? null : { email };
 
   const accountName =
-    authProfile?.full_name?.trim() ||
+    profileName(authProfile, language) ||
     user?.email?.split('@')[0] ||
     (language === 'ar' ? 'مستخدم Y HUB' : 'Y HUB User');
 

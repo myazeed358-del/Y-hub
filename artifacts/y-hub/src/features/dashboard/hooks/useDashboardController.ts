@@ -1,3 +1,4 @@
+import { profileName } from '@/shared/identity/profileName';
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -167,7 +168,7 @@ export function useDashboardController() {
   };
 
   const accountName =
-    profile?.full_name?.trim() ||
+    profileName(profile, language) ||
     user?.email?.split("@")[0] ||
     (isArabic ? "مستخدم Y HUB" : "Y HUB User");
 
