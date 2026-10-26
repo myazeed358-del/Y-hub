@@ -1,3 +1,15 @@
+# Approved decision25 — bilingual profiles verified (2026-10-26)
+
+Current branch `feature/approved-bilingual-profiles`, independent from latest verified main `06cabec3b1fee1b5cfe6a9457d9dd914a3398155`. Implementation commits `62dc27a` (SQL/tests) and `1ccca7a` (UI/tests). Read `docs/approved-specifications/BILINGUAL_PROFILES.md` and `PROGRESS.md`; do not restart the earlier completed groups. Decision25 complete locally; cumulative20complete/20partial/30missing/1repair across71.72–80excluded.
+
+New0044 adds required Arabic/English names for future signup and a locked, self-only, idempotent missing-name completion RPC. Legacy full_name/user_number/roles remain unchanged. Stored names cannot be replaced via completion; Auth metadata updates do not overwrite profiles. API conflict is PT409: actual HTTP tests proved40001 triggers unwanted PostgREST retries. No historicalSQL,math implementation,Sheets implementation or Vercel changes.
+
+Verification:2048Vitest/237files,36Python,8guard tests,workspaceTS/audits/build,165directSQL tests +14historicalRLS assertions,58actual localGoTrue/JWT/PostgREST tests,3fixture browser scenarios PASS. Combined0042+0043+0044 snapshot58SQL PASS; no Git merge.39focused tests and reruns are subsets. See report for superseded failures and exact limits. CoordinatedSQL/client rollout required:old signup clients without both names will be rejected. Hosted Staging/SMTP/provider validation remains PENDING; no production write/deploy/migration or main merge.
+
+Previous remote-verified branches: attendance reports `4456949caaf346f2b43e35c5da5e5555f308def0`, engine grants `6ffa7961eac416d3efc8c9281fa2a2d8e25a8c5c`, breadcrumbs `a47474ad27d5f96d44dea820b590fcbea407922b`. Their implementations are not included here; cumulative documents only. Next priority1:decision24 scoped audit actor/affected-person search, suggestions/counts and9digitnumbers, then priorities2–6 from the table. Do not conflate legacy names in old roster RPCs with new live translation support; those consumers safely retain full_name fallback until updated. GitHub API was restricted in previous groups; create Draft PR with BILINGUAL_PROFILES_PR.md if available and never invent a PR or merge.
+
+## Historical checkpoints (preserved)
+
 # Approved specifications — academic integration checkpoint (2026-10-25)
 
 Current branch: `feature/approved-academic-integration`, based on verified latest main `b41b44875d9febc531a16c1eaa1e1f343593cc3a`. Read `docs/approved-specifications/ACADEMIC_INTEGRATION.md` and `PROGRESS.md` first. Do not restart Tutor/Y-Sheets or historical phases below.
