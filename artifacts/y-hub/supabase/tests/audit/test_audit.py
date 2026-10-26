@@ -94,7 +94,7 @@ class AuditTests(unittest.TestCase):
 
     def test_role_change_reserved_and_snapshot(self):
         target = str(uuid.uuid4())
-        run(f"INSERT INTO auth.users(id,email) VALUES('{target}','role-test@example.invalid')")
+        run(f"INSERT INTO auth.users(id,email,raw_user_meta_data) VALUES('{target}','role-test@example.invalid',jsonb_build_object('full_name_ar','مستخدم تجريبي','full_name_en','Local Test'))")
         run(f"SELECT public.admin_set_user_role('{target}','instructor')", A)
         event = events(target)[-1]
         self.assertEqual(event['actor_role'], 'admin')
@@ -108,7 +108,7 @@ class AuditTests(unittest.TestCase):
 
     def test_system_identity_and_personal_data_omission(self):
         target = str(uuid.uuid4())
-        run(f"INSERT INTO auth.users(id,email,raw_user_meta_data) VALUES('{target}','secret@example.invalid','{{\"phone\":\"secret-phone\"}}')")
+        run(f"INSERT INTO auth.users(id,email,raw_user_meta_data) VALUES('{target}','secret@example.invalid',jsonb_build_object('full_name_ar','مستخدم تجريبي','full_name_en','Local Test')||'{{\"phone\":\"secret-phone\"}}'::jsonb)")
         event = events(target)[0]
         self.assertIsNone(event['actor_id'])
         self.assertEqual(event['actor_role'], 'system')
@@ -242,7 +242,7 @@ class AuditTests(unittest.TestCase):
 
     def test_reader_role_is_current_not_stale_jwt_metadata(self):
         target = str(uuid.uuid4())
-        run(f"INSERT INTO auth.users(id,email) VALUES('{target}','reader@example.invalid')")
+        run(f"INSERT INTO auth.users(id,email,raw_user_meta_data) VALUES('{target}','reader@example.invalid',jsonb_build_object('full_name_ar','مستخدم تجريبي','full_name_en','Local Test'))")
         run(f"SELECT public.admin_set_user_role('{target}','admin')", S)
         course()
         self.assertTrue(query("SELECT * FROM public.audit_events", target))
@@ -278,7 +278,7 @@ class AuditTests(unittest.TestCase):
 
     def test_free_text_major_is_redacted_at_creation_and_change(self):
         target = str(uuid.uuid4())
-        run(f"INSERT INTO auth.users(id,email,raw_user_meta_data) VALUES('{target}','privacy@example.invalid','{{\"major\":\"secret-api-key\"}}')")
+        run(f"INSERT INTO auth.users(id,email,raw_user_meta_data) VALUES('{target}','privacy@example.invalid',jsonb_build_object('full_name_ar','مستخدم تجريبي','full_name_en','Local Test')||'{{\"major\":\"secret-api-key\"}}'::jsonb)")
         run(f"UPDATE public.users SET major='another-private-token' WHERE id='{target}'")
         ev = events(target, S)
         self.assertEqual(len(ev), 2)
@@ -333,13 +333,13 @@ class AuditTests(unittest.TestCase):
 
     def test_account_deletion_retains_actor_snapshot_and_system_cascade(self):
         target = str(uuid.uuid4())
-        run(f"INSERT INTO auth.users(id,email,raw_user_meta_data) VALUES('{target}','gone@example.invalid','{{\"full_name\":\"Retained Actor\"}}')")
+        run(f"INSERT INTO auth.users(id,email,raw_user_meta_data) VALUES('{target}','gone@example.invalid',jsonb_build_object('full_name_ar','مستخدم تجريبي','full_name_en','Local Test')||'{{\"full_name\":\"Retained Actor\"}}'::jsonb)")
         run(f"SELECT public.admin_set_user_role('{target}','instructor')", S)
         cid = course(target)
         run(f"DELETE FROM auth.users WHERE id='{target}'")
         ev = events(cid, S)
         self.assertEqual(ev[0]['actor_id'], target)
-        self.assertEqual(ev[0]['actor_name'], 'Retained Actor')
+        self.assertEqual(ev[0]['actor_name'], 'مستخدم تجريبي')
         self.assertEqual(ev[1]['actor_role'], 'system')
         self.assertIsNone(ev[1]['actor_id'])
         self.assertEqual(ev[1]['operation'], 'DELETE')
@@ -386,7 +386,7 @@ class AuditTests(unittest.TestCase):
 
     def test_demoted_owner_cannot_mutate_academic_content(self):
         target, mid, eid, qid = [str(uuid.uuid4()) for _ in range(4)]
-        run(f"INSERT INTO auth.users(id,email) VALUES('{target}','demoted@example.invalid')")
+        run(f"INSERT INTO auth.users(id,email,raw_user_meta_data) VALUES('{target}','demoted@example.invalid',jsonb_build_object('full_name_ar','مستخدم تجريبي','full_name_en','Local Test'))")
         run(f"SELECT public.admin_set_user_role('{target}','instructor')", S)
         cid = course(target)
         run(f"""INSERT INTO public.course_materials(id,course_id,title,type,url) VALUES('{mid}','{cid}','Original','link','https://example.invalid');

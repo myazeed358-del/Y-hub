@@ -3,7 +3,7 @@ from concurrent.futures import ThreadPoolExecutor
 from support import run,value,course,I,A,S,U,O
 ENGINE='linear-algebra'
 def student():
- id=str(uuid.uuid4());run(f"INSERT INTO auth.users(id) VALUES('{id}'); UPDATE public.users SET major='medicine' WHERE id='{id}'");return id
+ id=str(uuid.uuid4());run(f"INSERT INTO auth.users(id,raw_user_meta_data) VALUES('{id}','{{\"full_name_ar\":\"مستخدم تجريبي\",\"full_name_en\":\"Local Test\"}}'); UPDATE public.users SET major='medicine' WHERE id='{id}'");return id
 def setup():
  c=course();u=student();run(f"INSERT INTO public.course_enrollments(course_id,student_id) VALUES('{c}','{u}')");return c,u
 def grant(c,u,actor=I,engine=ENGINE):return value(f"SELECT public.grant_engine_access('{c}','{u}','{engine}',clock_timestamp()+interval '1 day')",actor)

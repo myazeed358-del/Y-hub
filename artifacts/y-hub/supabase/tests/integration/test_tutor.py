@@ -7,7 +7,7 @@ class TutorHTTP(unittest.TestCase):
  def setUpClass(cls):
   cls.stack=Stack(Path.cwd());cls.addClassCleanup(cls.stack.close);cls.stack.start();cls.users={}
   for role in ['student','instructor','admin','super_admin','other']:
-   status,data=cls.stack.request('auth','/signup',{'email':role+'@tutor.invalid','password':'Local-test-only-123!','data':{'full_name':role}})
+   status,data=cls.stack.request('auth','/signup',{'email':role+'@tutor.invalid','password':'Local-test-only-123!','data':{'full_name_ar':'مستخدم تجريبي','full_name_en':'Local Test','full_name':role}})
    assert status==200,data
    cls.users[role]={'id':data['user']['id'],'token':data['access_token']}
    if role in ['instructor','admin','super_admin']:cls.stack.sql(f"UPDATE public.users SET role='{role}' WHERE id='{data['user']['id']}'")

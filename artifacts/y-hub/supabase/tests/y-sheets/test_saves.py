@@ -23,7 +23,7 @@ def new():
 class Saves(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        run(f"INSERT INTO auth.users(id) VALUES('{A}'),('{B}')")
+        run(f"INSERT INTO auth.users(id,raw_user_meta_data) VALUES('{A}',jsonb_build_object('full_name_ar','مستخدم تجريبي','full_name_en','Local Test')),('{B}',jsonb_build_object('full_name_ar','مستخدم تجريبي','full_name_en','Local Test'))")
     def test_replay_lost_ack_and_payload_binding(self):
         id,request=new()
         self.assertEqual(save(id,request,0).stdout.strip(),'1')
@@ -78,7 +78,7 @@ class Saves(unittest.TestCase):
         actors=[str(uuid.uuid4()) for _ in range(4)]
         roles=['student','instructor','admin','super_admin']
         for actor,role in zip(actors,roles):
-            run(f"INSERT INTO auth.users(id) VALUES('{actor}'); UPDATE public.users SET role='{role}' WHERE id='{actor}'")
+            run(f"INSERT INTO auth.users(id,raw_user_meta_data) VALUES('{actor}',jsonb_build_object('full_name_ar','مستخدم تجريبي','full_name_en','Local Test')); UPDATE public.users SET role='{role}' WHERE id='{actor}'")
         for owner in actors:
             id,request=str(uuid.uuid4()),str(uuid.uuid4())
             self.assertEqual(save(id,request,0,owner).stdout.strip(),'1')
