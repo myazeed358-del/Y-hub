@@ -100,6 +100,7 @@ export function workbookReducer(state: WorkbookData, action: WorkbookAction): Wo
       };
     }
 
+    // Recalculate formulas after a cell value changes.
     case 'SET_CELL_RAW': {
       const { sheetId, row, col, raw } = action.payload;
       const key = cellCoordToKey(row, col);

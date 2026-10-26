@@ -5,6 +5,7 @@ export function canPerformWorkbookAction(
   action: WorkbookAction,
   permissions: HostPermissions,
 ): boolean {
+  // Read-only users can still switch between sheets.
   if (action.type === 'SET_ACTIVE_SHEET') return true;
 
   if (permissions.canEdit !== true) return false;

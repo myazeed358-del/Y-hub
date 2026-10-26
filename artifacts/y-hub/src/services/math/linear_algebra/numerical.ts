@@ -22,6 +22,7 @@ export class NumericalLAEngine {
             
             for (let i = 0; i < n; i++) nextX[i] /= maxVal;
             
+            // Stop when the eigenvalue estimate settles.
             if (Math.abs(maxVal - lambda) < tol) {
                 return { eigenvalue: maxVal, eigenvector: nextX, status: 'tolerance_met' };
             }

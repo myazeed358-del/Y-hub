@@ -13,6 +13,7 @@ export function createHandleDeleteMaterial({
   return async (id: string) => {
     if (confirm('هل أنت متأكد من حذف هذه المادة؟')) {
       const mat = materials.find(m => m.id === id);
+      // Remove the stored PDF before deleting its course entry.
       if (mat?.type === 'pdf' && mat.url) {
         const fileName = mat.url.split('/').pop();
         if (fileName) {

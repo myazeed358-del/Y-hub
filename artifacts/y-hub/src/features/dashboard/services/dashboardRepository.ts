@@ -44,6 +44,7 @@ export const dashboardRepository = {
       .eq('id', id)
       .select('id, enrollment_open')
       .maybeSingle();
+    // An update without a returned row is not a confirmed success.
     return {
       error: error ?? (!data ? new Error('Enrollment update was not authorized') : null),
     };

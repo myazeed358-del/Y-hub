@@ -32,6 +32,7 @@ export function buildNavigationRouteGroups(
   modules: ModuleRegistry = moduleRegistry,
   engineGrants?: readonly string[],
 ): NavigationRouteGroup[] {
+  // Build the menu from modules visible to this account.
   const contributions = getModuleNavigation(modules, { role, major, engineGrants });
   const itemsFor = (group: ModuleNavigationGroup): NavigationRouteItem[] => contributions
     .filter(item => item.group === group).map(item => ({

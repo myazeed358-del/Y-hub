@@ -53,6 +53,7 @@ export const examRunnerRepository = {
     return parseAttempt(data);
   },
 
+  // Let the server confirm submission before returning the result.
   async submitExam(examId: string, answers: ExamAnswers) {
     const { data, error } = await supabase.rpc("submit_exam", {
       p_exam_id: examId,

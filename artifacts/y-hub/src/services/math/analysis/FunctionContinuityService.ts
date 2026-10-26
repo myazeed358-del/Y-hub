@@ -58,6 +58,7 @@ public computeDomain(restrictions: any[], variable: string, steps: MathStep[]): 
         continue;
       }
 
+      // Keep only inputs that satisfy every supported restriction.
       const res = this.inequalityEngine.solve(ineqAST, variable);
       if (res.kind === 'solution_set') {
         combinedDomain = {
@@ -75,6 +76,7 @@ public computeXIntercepts(ast: CanonicalAST, variable: string, domain: SolutionS
     const eq: CanonicalAST = { type: 'Equation', lhs: ast, rhs: { type: 'Number', value: '0' } };
     const solverRes = this.equationSolver.solve(eq, variable, { domain: 'real', mode: 'EXACT' });
 
+    // Don't claim a complete list of roots without proof.
     if (solverRes.completeness !== 'all_roots_found') {
       return 'root_isolation_incomplete';
     }
