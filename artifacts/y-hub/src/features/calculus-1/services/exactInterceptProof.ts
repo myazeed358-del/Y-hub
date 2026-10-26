@@ -100,6 +100,7 @@ function verified(
   }
 
   const sorted = [...roots].sort(compare);
+  // Don't show the same root twice.
   const unique = sorted.filter(
     (root, index) =>
       index === 0 || compare(root, sorted[index - 1]) !== 0

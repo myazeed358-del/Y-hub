@@ -8,6 +8,7 @@ export function parseCSV(csvText: string): string[][] {
   if(new TextEncoder().encode(csvText).length>WORKBOOK_LIMITS.bytes) throw new Error('CSV exceeds 5 MiB.');
   const rows: string[][] = [];
   let count=0;
+  // Check size limits while reading each CSV field.
   const field=() => {
     if(currentField.length>32767 || currentRow.length>=WORKBOOK_LIMITS.columns || ++count>WORKBOOK_LIMITS.cells || rows.length>=WORKBOOK_LIMITS.rows) throw new Error('CSV exceeds worksheet limits.');
     currentRow.push(currentField);

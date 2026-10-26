@@ -123,6 +123,7 @@ const schema = z.object({
 export function parseWorkbookJSON(text: string): WorkbookData {
   if (new TextEncoder().encode(text).length > WORKBOOK_LIMITS.bytes)
     throw new Error("Workbook exceeds the 5 MiB limit.");
+  // Block object keys that could make imported data unsafe.
   const raw = JSON.parse(text, (key, value) => {
     if (["__proto__", "prototype", "constructor"].includes(key))
       throw new Error("Unsafe workbook key.");
@@ -137,6 +138,7 @@ export function parseWorkbookJSON(text: string): WorkbookData {
     !wb.sheets.some((s) => s.id === wb.activeSheetId)
   )
     throw new Error("Invalid sheet identity.");
+  // Count filled cells across every sheet, not just one.
   let cells = 0;
   for (const s of wb.sheets) {
     const validCoord = (key: string) => {

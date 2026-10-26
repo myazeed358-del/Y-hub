@@ -66,6 +66,7 @@ export async function solveDerivativeConstraintCandidates(
       relation
     };
 
+    // Leave unsupported restrictions unresolved instead of guessing.
     if (relation === null) {
       candidates.push({
         ...base,

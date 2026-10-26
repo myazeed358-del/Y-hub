@@ -147,6 +147,7 @@ export function proveAbsoluteValueAtZero(
   const value = Rat.simplify(coefficients[0]);
   const slope = Rat.simplify(coefficients[1]);
 
+  // A nonzero value keeps its sign near this point.
   if (!Rat.isZero(value)) {
     const sign = value.num > 0n ? 1n : -1n;
     const derivative = Rat.mul(
