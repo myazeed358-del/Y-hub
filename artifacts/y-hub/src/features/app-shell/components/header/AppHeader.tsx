@@ -1,4 +1,5 @@
 import * as React from 'react';
+import type { PageBreadcrumb } from '../../domain/breadcrumbs';
 
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { HeaderLanguageToggle } from '@/features/app-shell/components/header/HeaderLanguageToggle';
@@ -8,6 +9,7 @@ import { HeaderWelcomeMessage } from '@/features/app-shell/components/header/Hea
 
 interface AppHeaderProps {
   currentTitle: string;
+  breadcrumbs?: readonly PageBreadcrumb[];
   firstName: string;
   academicMeta: string;
   accountName: string;
@@ -20,6 +22,7 @@ interface AppHeaderProps {
 
 export function AppHeader({
   currentTitle,
+  breadcrumbs,
   firstName,
   academicMeta,
   accountName,
@@ -33,10 +36,11 @@ export function AppHeader({
     <header className="sticky top-0 z-20 flex h-[72px] items-center justify-between border-b border-border bg-background/80 px-4 backdrop-blur-2xl sm:px-6 lg:px-10">
       <HeaderPageContext
         currentTitle={currentTitle}
+        breadcrumbs={breadcrumbs}
         onOpenMobileNav={onOpenMobileNav}
       />
 
-      <div className="flex items-center gap-2 sm:gap-3">
+      <div className="flex shrink-0 items-center gap-2 sm:gap-3">
         <HeaderWelcomeMessage
           firstName={firstName}
           academicMeta={academicMeta}

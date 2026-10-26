@@ -8,6 +8,7 @@ import {
   buildAcademicIdentity,
   majorLabels,
 } from '@/features/app-shell/domain/academicIdentity';
+import { resolveBreadcrumbs } from '@/features/app-shell/domain/breadcrumbs';
 import { resolvePageTitle } from '@/features/app-shell/domain/resolvePageTitle';
 import { useAppNavigation } from '@/features/app-shell/hooks/useAppNavigation';
 import { useInstructorEngineSearch } from '@/features/app-shell/hooks/useInstructorEngineSearch';
@@ -97,6 +98,9 @@ export function AppShell({ children }: { children: ReactNode }) {
       }}
       headerProps={{
         currentTitle: currentTitle,
+        breadcrumbs: resolveBreadcrumbs(location, currentTitle, language, t, {
+          role: authProfile?.role, major: authProfile?.major, engineGrants,
+        }),
         firstName: firstName,
         academicMeta: academicMeta,
         accountName: accountName,

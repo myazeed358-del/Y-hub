@@ -51,19 +51,23 @@ describe('HeaderPageContext', () => {
       .toBeTruthy();
   });
 
-  it('preserves the Y-Hub brand', () => {
+  it('hides the breadcrumb on root pages while retaining their title', () => {
     render(<HeaderPageContext {...makeProps()} />);
-
-    expect(screen.getByText('Y HUB'))
-      .toBeTruthy();
+    expect(screen.queryByRole('navigation')).toBeNull();
+    expect(screen.getByTestId('header-page-title').textContent).toBe('Calculus');
   });
 
-  it('renders the academy breadcrumb', () => {
-    render(<HeaderPageContext {...makeProps()} />);
-
-    expect(
-      screen.getByText('translation:academy')
-    ).toBeTruthy();
+  it('renders linked ancestors and a non-linked accessible current page', () => {
+    render(<HeaderPageContext {...makeProps()} breadcrumbs={[
+      { label: 'Overview', href: '/dashboard' },
+      { label: 'Course', href: '/course/course-id/view' },
+      { label: 'Calculus' },
+    ]} />);
+    expect(screen.getByRole('navigation', { name: 'Breadcrumb' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Course' }).getAttribute('href')).toBe('/course/course-id/view');
+    expect(screen.getByRole('link', { name: 'Overview' }).parentElement?.className).toContain('hidden sm:flex');
+    expect(screen.getByText('Calculus', { selector: '[aria-current="page"]' })).toBeTruthy();
+    expect(screen.getByTestId('header-page-title').textContent).toBe('Calculus');
   });
 
   it('opens the mobile navigation', () => {
@@ -91,7 +95,7 @@ describe('HeaderPageContext', () => {
 
   it('rotates the breadcrumb icon in English', () => {
     const { container } = render(
-      <HeaderPageContext {...makeProps()} />
+      <HeaderPageContext {...makeProps()} breadcrumbs={[{ label: 'Overview', href: '/dashboard' }, { label: 'Calculus' }]} />
     );
 
     expect(
@@ -103,7 +107,7 @@ describe('HeaderPageContext', () => {
     languageState.current = 'ar';
 
     const { container } = render(
-      <HeaderPageContext {...makeProps()} />
+      <HeaderPageContext {...makeProps()} breadcrumbs={[{ label: 'Overview', href: '/dashboard' }, { label: 'Calculus' }]} />
     );
 
     expect(
