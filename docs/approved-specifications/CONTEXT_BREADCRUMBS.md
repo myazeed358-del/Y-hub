@@ -29,3 +29,9 @@
 - الفشل/التجاوز في التشغيل النهائي: **0**. لم تُعد SQL/HTTP suites لأن هذه المجموعة لا تغير خدمات أو صلاحيات أو SQL؛ لا تُنسب نتائج الفروع السابقة إليها.
 - التحذيرات القائمة: PDF.js legacy build في Node، Starlette/httpx deprecation، وحزم Vite الكبيرة؛ لا فشل بناء. مشكلة نشر Vercel مؤجلة.
 - الأدلة المحلية: `/workspace/breadcrumbs-full.log`, `breadcrumbs-targeted.log`, `breadcrumbs-browser.log` و`/workspace/breadcrumb-screenshots/`.
+
+## GitHub
+
+رُفعت نقطة التحقق `1c354d9a43827fa7716ab3747ce69c28121b108e` وتأكد تطابقها عبر `git ls-remote` على `feature/approved-context-breadcrumbs`. Commit التوثيق التالي يحفظ هذا الدليل؛ Git يحدد SHA النهائي.
+
+محاولة `gh pr create --draft --base main --head feature/approved-context-breadcrumbs --body-file docs/approved-specifications/CONTEXT_BREADCRUMBS_PR.md` فشلت بالنص: `Post "https://api.github.com/graphql": Forbidden`. لا رقم PR مؤكد لهذه المجموعة. وصف الطلب جاهز والفرع موجود؛ [رابط إنشاء المراجعة](https://github.com/myazeed358-del/Y-hub/pull/new/feature/approved-context-breadcrumbs). هذا رابط إنشاء وليس PR مفتوحًا. لا دمج أو تعديل إنتاج.
