@@ -87,3 +87,9 @@ Hosted Staging مع حسابات حقيقية معزولة: PENDING. اختبا�
 - `scripts/test-profile-names-browser.mjs`
 
 التغييرات الإضافية وثائق هذه المجموعة، جدولPROGRESS، وتسليمAGENT_HANDOFF/REFACTOR_PROGRESS؛ تقارير الفروع السابقة نُسخت للاستمرارية فقط. لا تغييرات في خوارزميات المحركات أو ملفاتY-Sheetsالتنفيذية أو إعدادVercel. اختبارات الأنظمة الأخرى تغيرت بيانات إنشاء حساباتها فقط لتطابق شرط الاسمين، مع تصحيح اختبارexcusedالموثق أعلاه.
+
+## نقطة GitHub المتحققة
+
+رُفعت نقطة التحقق `f3f31c253e2fae043c66dd2c41def87d8b9c8577` على `feature/approved-bilingual-profiles`، وطابقها `git ls-remote`. Commit التوثيق التالي يحفظ هذه النتيجة؛ Git يحدد SHA النهائي. البناء الأخير بعد أصناف التنسيق PASS خلال55.82ث.
+
+محاولة إنشاء Draft PR إلىmain باستخدام الوصف المحفوظ فشلت بالنص `Post "https://api.github.com/graphql": Forbidden`. لا رقمPRمؤكد لهذه المجموعة. [رابط إنشاء المراجعة](https://github.com/myazeed358-del/Y-hub/pull/new/feature/approved-bilingual-profiles) ليسPRمفتوحًا. وصف الطلب جاهز في`BILINGUAL_PROFILES_PR.md`. لا دمجmain أو تطبيقSQLعلىالإنتاج.
