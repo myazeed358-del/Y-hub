@@ -124,6 +124,7 @@ export class RecoveryJournal {
       )
         throw new Error("Invalid pending save.");
     }
+    // Check that the unfinished edit still fits the sheet.
     if (r.draft) {
       const s = r.workbook.sheets.find((s) => s.id === r.draft!.sheetId),
         d = r.draft;

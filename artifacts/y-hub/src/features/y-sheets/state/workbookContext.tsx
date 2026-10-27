@@ -120,6 +120,7 @@ export const WorkbookProvider: React.FC<WorkbookProviderProps> = ({
   }, [workbook]);
 
   const dispatch = useCallback((action: WorkbookAction, pushHistory = true) => {
+    // Check host permissions before changing the workbook.
     if (!canEdit || !canPerformWorkbookAction(action, permissions ?? {
       canEdit: true,
       canCreateSheet: true,

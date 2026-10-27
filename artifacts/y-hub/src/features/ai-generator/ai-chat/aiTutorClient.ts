@@ -69,6 +69,7 @@ export async function askAiTutor(
       status,
     );
   }
+  // Don't pass an unexpected response shape to the chat UI.
   const data = result.data;
   if (
     !data || typeof data.answer !== "string" || !data.answer.trim() ||

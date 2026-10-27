@@ -120,6 +120,7 @@ public evaluateRules(fuzzified: Record<string, FuzzifiedVariable>): RuleEvaluati
       }
       const trace: any[] = [];
       const strength = this.evaluateNode(rule.antecedent, fuzzified, trace);
+      // Apply the rule's weight after evaluating its conditions.
       const finalStrength = strength * (rule.weight ?? 1.0);
       
       evals.push({

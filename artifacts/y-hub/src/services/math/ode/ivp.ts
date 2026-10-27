@@ -38,6 +38,7 @@ export class IVPEngine {
                     eq = ASTUtils.replaceNode(eq, { type: 'Symbol', name: x }, x0) as CanonicalAST;
                     eq = ASTUtils.replaceNode(eq, { type: 'Symbol', name: y }, y0) as CanonicalAST;
                     
+                    // Use the initial condition to find the integration constant.
                     const cSols = this.eqEngine.solveEquation(eq, 'C');
                     const validC = cSols.find(s => s.status === 'exact' && s.value);
                     const cValue =

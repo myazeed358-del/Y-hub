@@ -15,6 +15,7 @@ export function QrPanel({ session, ar }: { session: string; ar: boolean }) {
       try {
         const started = performance.now();
         const qr = await repo.qr(session);
+        // Use server time so a wrong device clock can't extend the QR.
         const remaining = Date.parse(qr.expiresAt) - Date.parse(qr.serverTime) -
           (performance.now() - started);
         if (remaining <= 0) throw new Error("Expired");

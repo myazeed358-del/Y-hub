@@ -48,6 +48,7 @@ export function createHandleAddQuestion({
         return;
       }
       optionsToSave = validOptions;
+      // The chosen correct answer must be one of the saved options.
       if (!validOptions.includes(qCorrect)) {
         toast.error('الإجابة الصحيحة غير موجودة في الخيارات');
         return;

@@ -35,6 +35,7 @@ export function useResetPassword(
         const { data, error } = await recoveryAuthService.getSession();
         if (!active) return;
 
+        // A regular signed-in session isn't enough for password recovery.
         const recoveryLinkSeen = hasRecoveryIndicator(
           window.location.href,
           recoveryLinkStorage.wasVisited()

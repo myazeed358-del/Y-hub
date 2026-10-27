@@ -155,6 +155,7 @@ export function solveCalculus1TangentNormal(
 
   const tangent = line(a, value, slope);
 
+  // A flat tangent has a vertical normal, not a finite slope.
   const normalSlope = Rat.isZero(slope)
     ? null
     : Rat.div(

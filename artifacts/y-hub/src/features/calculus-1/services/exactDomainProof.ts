@@ -217,6 +217,7 @@ function collect(
   if (node.type === 'Function') {
     if (node.args.length !== 1) return false;
 
+    // These functions do not restrict the real input domain.
     const allowedTotal = [
       'sin', 'cos', 'exp', 'abs', 'atan'
     ];

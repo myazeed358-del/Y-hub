@@ -64,6 +64,7 @@ export class WorkbookSaveCoordinator {
   }
 
   private async persist(workbook: WorkbookData): Promise<void> {
+    // Retry temporary network issues, but leave conflicts for the user.
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
         await this.save(workbook);
@@ -122,6 +123,7 @@ export class WorkbookSaveCoordinator {
       );
     }
 
+    // Reuse the active save instead of starting another one.
     if (this.running) return this.running;
     if (!this.pending) return Promise.resolve();
 

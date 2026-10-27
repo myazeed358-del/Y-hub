@@ -9,6 +9,7 @@ const resultSchema = z
 const instant = z
   .string()
   .refine((value) => Number.isFinite(Date.parse(value)));
+// Make sure attempt states match their deadlines and results.
 const schema = z
   .object({
     status: z.enum(["not_started", "active", "submitted", "expired"]),

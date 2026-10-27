@@ -12,6 +12,7 @@ export function useSyllabus(courseId: string, actorId: string | undefined) {
   const pending = useRef(false);
   const report = (e: unknown) => e instanceof SyllabusError ? e.kind : 'unavailable';
   const reload = useCallback(async () => {
+    // Ignore older loads when the course or account changes.
     const current = ++generation.current;
     pending.current = true; setBusy(true); setError('');
     try {

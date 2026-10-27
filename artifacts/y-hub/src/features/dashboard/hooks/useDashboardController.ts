@@ -93,9 +93,11 @@ export function useDashboardController() {
     if (!user || deleting.current.has(id)) return;
     if (!window.confirm(copy.deleteConfirm)) return;
     const actor = user.id;
+    // Block another delete click until this request finishes.
     deleting.current.add(id);
     try {
       const { data, error } = await dashboardRepository.deleteCourse(id);
+      // Ignore results that belong to the previous account.
       if (viewer.current !== actor) return;
       if (error) {
         toast.error(

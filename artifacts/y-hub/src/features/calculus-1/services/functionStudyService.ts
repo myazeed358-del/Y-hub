@@ -171,6 +171,7 @@ export async function studyCalculus1Function(
     derivativeSteps
   );
 
+  // Try simpler polynomial proofs before the harder cases.
   const lowerDegreeProof = provePolynomialMonotonicity(
     expression
   );

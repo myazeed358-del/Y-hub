@@ -40,6 +40,7 @@ export class ForcingTrialBuilder {
             };
         }
 
+        // Check the factors before choosing a trial solution.
         const factors =
             g.type === 'Operator' &&
             (

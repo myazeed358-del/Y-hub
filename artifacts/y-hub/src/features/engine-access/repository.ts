@@ -3,6 +3,7 @@ export interface Grant {id:string;course_id:string;student_id:string;engine_id:s
 export const engineAccessRepository={
  async sections(){
   const rows:{id:string;title:string;section_label:string|null;instructor_id:string|null}[]=[];
+  // Keep paging until every available section is loaded.
   for(let offset=0;;offset+=100){
    const {data,error}=await supabase.from('courses').select('id,title,section_label,instructor_id').order('title').order('id').range(offset,offset+99);
    if(error)throw error;rows.push(...(data??[]));if(!data||data.length<100)return rows;

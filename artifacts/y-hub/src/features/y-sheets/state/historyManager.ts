@@ -25,6 +25,7 @@ export class HistoryManager {
       ...newState,
       version: this.present.version + 1,
     };
+    // A new edit clears the redo history.
     this.future = [];
   }
 

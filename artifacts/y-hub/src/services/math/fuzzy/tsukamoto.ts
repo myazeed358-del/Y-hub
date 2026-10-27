@@ -45,6 +45,7 @@ export class TsukamotoEngine {
           if (!term) throw new Error(`Undefined output term ${consequent.term} for variable ${varName}`);
           
           const w = evalResult.firingStrength;
+          // Get each rule's output from its monotonic membership curve.
           const z = this.evaluateInverse(w, term.membership.type, term.membership.params);
           
           numSum += w * z;

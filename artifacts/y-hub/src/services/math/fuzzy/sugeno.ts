@@ -66,6 +66,7 @@ export class SugenoEngine {
       }
       
       let finalCrisp = 0;
+      // No active output means there is nothing to average.
       if (denSum === 0) {
         outStatus = 'zero_area';
         globalStatus = 'zero_area';

@@ -92,6 +92,7 @@ export function createModuleRegistry(
     invalid.add(source);
     issues.push({ source, code, message });
   };
+  // Reject all duplicate IDs instead of picking one by load order.
   for (const candidate of candidates) {
     if (candidates.filter(other => other.manifest.id === candidate.manifest.id).length > 1) {
       reject(candidate.source, 'duplicate-id', 'Duplicate module ID: ' + candidate.manifest.id);

@@ -38,6 +38,7 @@ function Workspace(
   const [tab, setTab] = useState(manager ? "sessions" : "qr");
   const inFlight = useRef(false);
   useEffect(() => {
+    // Clear the check-in token from the address bar after reading it.
     if (window.location.hash) {
       window.history.replaceState(
         null,

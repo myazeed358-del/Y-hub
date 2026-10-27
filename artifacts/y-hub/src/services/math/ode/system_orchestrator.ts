@@ -17,6 +17,7 @@ export class SystemODEOrchestrator {
             }
         }
     } catch(e) {}
+    // Keep a local fallback if the Python route fails.
     const tsRes = this.solveSystem(req);
     (tsRes as any).provider = 'fallback_typescript';
     return tsRes;

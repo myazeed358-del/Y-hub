@@ -12,6 +12,7 @@ export class EigenEngine {
         
         const tr2 = Rat.mul(tr, tr);
         const fourDet = Rat.mul({num: 4n, den: 1n}, det);
+        // The discriminant separates distinct, repeated, and complex roots.
         const D = Rat.sub(tr2, fourDet);
         
         const two = {num: 2n, den: 1n};

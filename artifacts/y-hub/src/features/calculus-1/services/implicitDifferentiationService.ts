@@ -143,6 +143,7 @@ export function solveCalculus1ImplicitDerivative(
     }
   ];
 
+  // We can't isolate dy/dx when Fy is identically zero.
   if (
     partialY.type === 'Number' &&
     Number(partialY.value) === 0

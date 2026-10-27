@@ -18,6 +18,7 @@ export function generateMathSolverPlotData(
             const zRow = [];
             for(let j = 0; j < x.length; j++) {
               const val = mathEngine.evaluateNumerically(plotExpr, { x: x[j], y: y[i] });
+              // Leave gaps instead of drawing invalid surface values.
               zRow.push(isNaN(val) ? null : val);
             }
             z.push(zRow);

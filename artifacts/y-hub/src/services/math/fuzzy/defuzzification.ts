@@ -17,6 +17,7 @@ export class DefuzzificationEngine {
       if (p.y > maxY) maxY = p.y;
     }
     
+    // An empty membership area cannot produce a weighted center.
     if (sumY === 0 && (method === 'centroid' || method === 'bisector' || method === 'weighted_average')) {
       return { value: 0, status: 'zero_area', trace: [{ step: 'Validation', desc: 'Zero area blocks operation' }] };
     }

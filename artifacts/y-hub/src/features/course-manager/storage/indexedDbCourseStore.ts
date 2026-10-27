@@ -76,6 +76,7 @@ export async function updateCourse(course: Course): Promise<void> {
 export async function deleteCourse(id: string): Promise<void> {
   const db = await getDB();
   return new Promise((resolve, reject) => {
+    // Keep course, file, and plan cleanup in one transaction.
     const tx = db.transaction(['courses', 'files', 'plans'], 'readwrite');
 
     // Delete course

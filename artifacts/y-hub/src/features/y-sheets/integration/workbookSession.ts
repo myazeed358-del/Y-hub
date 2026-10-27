@@ -28,6 +28,7 @@ export class WorkbookSession {
       onStatus,
       700,
       (wb) => {
+        // Clear matching recovery data only after a successful save.
         journal.acknowledge(wb);
         if (
           JSON.stringify(validateWorkbook(this.workbook)) === JSON.stringify(wb)

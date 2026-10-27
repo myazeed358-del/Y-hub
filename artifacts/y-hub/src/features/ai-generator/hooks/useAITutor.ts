@@ -45,6 +45,7 @@ export function useAITutor() {
     setIsIndexing(false);
     setIsLoading(true);
     setErrorState(null);
+    // Clear course data as soon as access is lost.
     const deny = () => {
       if (alive) {
         generation.current++;
@@ -117,6 +118,7 @@ export function useAITutor() {
     if (busy.current || !isEnrolled || input.trim().length < 2) return;
     busy.current = true;
     setIsThinking(true);
+    // Keep a reply from appearing in a different course session.
     const g = generation.current, question = input.trim();
     setInput("");
     setMessages(

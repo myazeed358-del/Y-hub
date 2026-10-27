@@ -41,6 +41,7 @@ export async function assessDerivativeDomain(
     original, derivative, variable
   );
 
+  // Check the special point where absolute value may not be differentiable.
   const zeroPoint =
     original.type === 'Function' &&
     original.name === 'abs' &&

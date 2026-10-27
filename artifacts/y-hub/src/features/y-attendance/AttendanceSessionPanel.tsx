@@ -34,6 +34,7 @@ export function AttendanceSessionPanel(
     async function refresh() {
       try {
         const s = await repo.session(lecture);
+        // Show the roster saved for this session only when its view needs it.
         const rows = s && (mode === "all" || mode === "students")
           ? await repo.sessionRoster(s.id)
           : [];

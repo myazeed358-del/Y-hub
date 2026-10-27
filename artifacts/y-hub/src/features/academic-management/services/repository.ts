@@ -1,8 +1,10 @@
 import { supabase } from '@/utils/supabaseClient';
 import type { CourseDefinition, CourseSection } from '@/shared/academic/contracts';
 import { definitionInput, sectionInput, pageSize, type Instructor, type DefinitionInput, type SectionInput } from '../domain/contracts';
+// Treat search symbols as text, not wildcard patterns.
 const filter = (search: string) => `%${search.replace(/[\\%_]/g, '\\$&')}%`;
 function page(value: number) { if (!Number.isSafeInteger(value) || value < 0) throw Error('Invalid page'); return value * pageSize; }
+// A write only counts when the server returns the expected ID.
 async function confirmed(request: PromiseLike<{ data: unknown; error: unknown }>, expected: string) {
   const { data, error } = await request;
   if (error) throw error;

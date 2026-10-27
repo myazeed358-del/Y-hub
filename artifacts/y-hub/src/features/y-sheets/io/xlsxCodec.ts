@@ -109,6 +109,7 @@ export function encodeWorkbook(workbook: WorkbookData): Uint8Array {
  * Imports an XLSX file buffer into a WorkbookData object
  */
 export function decodeWorkbook(data: ArrayBuffer | Uint8Array): WorkbookData {
+  // Check the file container before asking the Excel parser to read it.
   validateExcelContainer(
     data instanceof Uint8Array ? data : new Uint8Array(data),
   );

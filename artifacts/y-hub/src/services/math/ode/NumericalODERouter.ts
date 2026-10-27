@@ -28,6 +28,7 @@ public routeNumerical(req: ODERequest, context: ODEOrchestrationContext, trace: 
                 );
             }
 
+            // Run the numerical solver only after isolating the derivative.
             const res = this.numericalEngine.solve(req, norm.explicit);
 
             if (!res) {

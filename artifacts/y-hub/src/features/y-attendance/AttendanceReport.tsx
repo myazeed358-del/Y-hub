@@ -73,6 +73,7 @@ export function AttendanceReport(
     setExporting(true);
     setError(false);
     try {
+      // Export every page through the bounded, consistent reporting contract.
       const rows = await collectReport(course, filters, controller.signal);
       if (format === "xlsx") {
         const bytes = await attendanceWorkbook(rows, ar);

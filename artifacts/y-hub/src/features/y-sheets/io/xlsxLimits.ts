@@ -123,6 +123,7 @@ export function validateExcelContainer(bytes: Uint8Array): void {
       }
       for (const byte of chunk)
         crc = crcTable[(crc ^ byte) & 255]! ^ (crc >>> 8);
+      // Reject XML entity declarations before parsing the workbook.
       if (xml) {
         const text = tail + decoder.decode(chunk).replace(/\0/g, "");
         if (/<!\s*(DOCTYPE|ENTITY)/i.test(text)) {

@@ -108,6 +108,7 @@ export function useWorkbookWorkspace(ownerId: string) {
     if (!window.confirm(language === 'ar'
       ? 'توجد تعديلات غير مؤكدة الحفظ أو حفظ جارٍ. هل تريد الاحتفاظ بنسخة استعادة على هذا المتصفح ومغادرة التطبيق؟ يمكنك استعادتها من ملفاتي.'
       : 'Changes are unsaved or saving. Keep a recovery copy on this browser and leave? Restore it from My Files.')) return false;
+    // Save a local recovery copy before allowing navigation away.
     try { current.keepRecovery(); return true; }
     catch (e) { report(e); return false; }
   });

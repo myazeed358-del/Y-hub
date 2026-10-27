@@ -24,6 +24,7 @@ export class LinearAlgebraOrchestrator {
             return pyRes;
         }
     } catch(e) {}
+    // Use the local solver if Python cannot return a result.
     const tsRes = this.execute(req);
     (tsRes as any).provider = 'fallback_typescript';
     return tsRes;

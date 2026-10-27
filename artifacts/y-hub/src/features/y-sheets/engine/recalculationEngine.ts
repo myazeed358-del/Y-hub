@@ -52,6 +52,7 @@ export class RecalculationEngine {
     this.dependencyGraph.clear();
     this.parsedASTs.clear();
 
+    // Work on a copy so the original workbook stays untouched.
     const updatedWorkbook: WorkbookData = {
       ...workbook,
       sheets: workbook.sheets.map((sheet) => ({

@@ -5,6 +5,7 @@ export function useAcademicResource<T>(key: string, load: () => Promise<T>) {
   useEffect(() => {
     let active = true;
     setState({ key });
+    // Ignore results from a page that's already gone.
     loader.current().then(data => { if (active) setState({ key, data }); }, () => { if (active) setState({ key, error: true }); });
     return () => { active = false; };
   }, [key]);
@@ -18,6 +19,7 @@ export function useAcademicMutation() {
   const alive = useRef(true);
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
   async function run(operation: () => Promise<void>) {
+    // Prevent two updates from running at once.
     if (pending.current) return false;
     pending.current = true; setBusy(true); setError(false);
     try { await operation(); return alive.current; }
