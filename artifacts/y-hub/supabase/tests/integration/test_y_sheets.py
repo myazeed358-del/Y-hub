@@ -9,7 +9,7 @@ class SheetsHTTP(unittest.TestCase):
   cls.stack=Stack(Path.cwd());cls.addClassCleanup(cls.stack.close);cls.stack.start();cls.users={}
   for i,role in enumerate(['student','instructor','admin','super_admin']):
    email=f'sheets-{i}@local.example.invalid';password='Local-fixture-only-123!'
-   status,data=cls.stack.request('auth','/signup',{'email':email,'password':password,'data':{'full_name':'Local sheets test','role':'super_admin'}})
+   status,data=cls.stack.request('auth','/signup',{'email':email,'password':password,'data':{'full_name_ar':'مستخدم تجريبي','full_name_en':'Local Test','full_name':'Local sheets test','role':'super_admin'}})
    assert status==200 and data.get('access_token')
    cls.users[role]={'id':data['user']['id'],'token':data['access_token'],'email':email,'password':password}
    if role!='student':cls.stack.sql(f"UPDATE public.users SET role='{role}' WHERE id='{data['user']['id']}'")

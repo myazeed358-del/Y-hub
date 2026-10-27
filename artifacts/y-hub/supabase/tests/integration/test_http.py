@@ -11,7 +11,7 @@ class SupabaseHTTP(unittest.TestCase):
   cls.stack=Stack(Path.cwd());cls.addClassCleanup(cls.stack.close);cls.stack.start();cls.accounts={}
   for name,role in [('student','student'),('student2','student'),('instructor','instructor'),('other','instructor'),('admin','admin'),('super','super_admin')]:
    email=f'{name}@phase3.example.com';password='Local-fixture-only-123!'
-   status,data=cls.stack.request('auth','/signup',{'email':email,'password':password,'data':{'full_name':'Local '+name,'major':'mathematics','role':'super_admin'}})
+   status,data=cls.stack.request('auth','/signup',{'email':email,'password':password,'data':{'full_name_ar':'مستخدم تجريبي','full_name_en':'Local Test','full_name':'Local '+name,'major':'mathematics','role':'super_admin'}})
    if status!=200 or not data.get('access_token'):raise AssertionError('Real signup failed: '+str(status))
    user=data['user']['id'];cls.accounts[name]={'id':user,'token':data['access_token'],'email':email,'password':password}
    # Provision synthetic test roles only via the disposable database, never from metadata.
@@ -87,7 +87,7 @@ class SupabaseHTTP(unittest.TestCase):
   self.denied('student','/rpc/save_course_syllabus',payload)
   self.conflict('instructor','/rpc/save_course_syllabus',payload)
   roster=self.ok('admin','/rpc/get_managed_course_enrollment_roster_v2',{'p_course_id':c})
-  self.assertEqual(roster[0]['full_name'],'Local student')
+  self.assertEqual(roster[0]['full_name'],'مستخدم تجريبي')
   self.denied('other','/rpc/get_managed_course_enrollment_roster_v2',{'p_course_id':c})
  def test_07_exam_snapshot_timer_and_concurrent_exactly_once_result(self):
   c,e,q=self.exam();payload={'p_exam_id':e}

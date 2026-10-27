@@ -31,29 +31,22 @@ export function LoginSignupFields({
 }: LoginSignupFieldsProps) {
   return (
     <>
-                    <div className="space-y-2">
-                      <label
-                        htmlFor="full_name"
-                        className="text-sm font-bold text-foreground dark:text-slate-300"
-                      >
-                        {copy.fullName}
-                      </label>
-
-                      <div className="relative">
-                        <User className="absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground dark:text-slate-500" />
-
-                        <Input
-                          id="full_name"
-                          type="text"
-                          name="full_name"
-                          required
-                          value={formData.full_name}
-                          onChange={handleChange}
-                          placeholder={copy.fullNamePlaceholder}
-                          className="h-12 border-input bg-background dark:border-white/[0.08] dark:bg-white/[0.025] pr-11 text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-slate-600 focus-visible:ring-primary/40 dark:focus-visible:ring-cyan-400/40"
-                        />
-                      </div>
-                    </div>
+                    {(['ar', 'en'] as const).map(language => {
+                      const field = `full_name_${language}` as const;
+                      return <div key={field} className="space-y-2">
+                        <label htmlFor={field} className="text-sm font-bold text-foreground dark:text-slate-300">
+                          {language === 'ar' ? copy.arabicName : copy.englishName}
+                        </label>
+                        <div className="relative">
+                          <User className="absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground dark:text-slate-500" />
+                          <Input id={field} name={field} type="text" required maxLength={120}
+                            dir={language === 'ar' ? 'rtl' : 'ltr'} autoComplete="off"
+                            value={formData[field]} onChange={handleChange}
+                            placeholder={language === 'ar' ? 'أحمد عبد الله' : 'Ahmad Abdullah'}
+                            className="h-12 border-input bg-background dark:border-white/[0.08] dark:bg-white/[0.025] pr-11 text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-slate-600 focus-visible:ring-primary/40 dark:focus-visible:ring-cyan-400/40" />
+                        </div>
+                      </div>;
+                    })}
 
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <div className="space-y-2">

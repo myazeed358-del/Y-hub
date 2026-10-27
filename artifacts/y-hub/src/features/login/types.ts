@@ -6,7 +6,8 @@ export interface LoginProps {
 export interface LoginFormData {
   email: string;
   password: string;
-  full_name: string;
+  full_name_ar: string;
+  full_name_en: string;
   age: string;
   major: string;
   study_year: string;

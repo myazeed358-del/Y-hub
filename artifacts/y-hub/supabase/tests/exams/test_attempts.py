@@ -123,7 +123,7 @@ class Attempts(unittest.TestCase):
   run(f"UPDATE public.questions SET correct_answer='99',points=9 WHERE id='{self.q}'",I)
   self.assertEqual(self.submit()['result']['score'],3)
   other=str(uuid.uuid4())
-  run(f"INSERT INTO auth.users(id,email) VALUES('{other}','local@example.invalid'); INSERT INTO public.course_enrollments(course_id,student_id) VALUES('{self.c}','{other}')")
+  run(f"INSERT INTO auth.users(id,email,raw_user_meta_data) VALUES('{other}','local@example.invalid',jsonb_build_object('full_name_ar','مستخدم تجريبي','full_name_en','Local Test')); INSERT INTO public.course_enrollments(course_id,student_id) VALUES('{self.c}','{other}')")
   self.rpc('start_exam_attempt',actor=other)
   result=self.rpc('submit_exam',",'"+json.dumps({self.q:'99'})+"'",actor=other)
   self.assertEqual(result['result']['score'],9)

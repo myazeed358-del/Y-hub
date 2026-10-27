@@ -10,6 +10,8 @@ export interface UserProfile {
   email?: string;
   user_number?: string | null;
   full_name?: string;
+  full_name_ar?: string | null;
+  full_name_en?: string | null;
   age?: number;
   major?: string;
   study_year?: string;
@@ -27,7 +29,8 @@ export interface ProfileUpdates {
 export interface SignUpData {
   email: string;
   password: string;
-  full_name?: string;
+  full_name_ar: string;
+  full_name_en: string;
   age?: string | number;
   major?: string;
   study_year?: string;
@@ -181,7 +184,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       password: formData.password,
       options: {
         data: {
-          full_name: formData.full_name,
+          full_name_ar: formData.full_name_ar?.trim(),
+          full_name_en: formData.full_name_en?.trim(),
           age: formData.age ? parseInt(formData.age as string, 10) : null,
           major: formData.major,
           study_year: formData.study_year,

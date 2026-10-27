@@ -1,3 +1,5 @@
+import { profileName } from '@/shared/identity/profileName';
+import { useLanguage } from '@/i18n/LanguageContext';
 import {
   GraduationCap,
   LockKeyhole,
@@ -10,7 +12,7 @@ import { ReadOnlyField } from '@/features/profile/components/ReadOnlyField';
 import type { getProfileCopy } from '@/i18n/profileCopy';
 
 interface ProfileAccountInfoProps {
-  profile: { full_name?: string | null; user_number?: string | null };
+  profile: { full_name?: string | null; full_name_ar?: string | null; full_name_en?: string | null; user_number?: string | null };
   copy: ReturnType<typeof getProfileCopy>;
   accountEmail: string;
   roleLabel: string;
@@ -24,6 +26,7 @@ export function ProfileAccountInfo({
   roleLabel,
   majorLabel,
 }: ProfileAccountInfoProps) {
+  const { language } = useLanguage();
   return (
           <section className="rounded-[2rem] border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5 sm:p-7">
             <div className="mb-6">
@@ -34,7 +37,7 @@ export function ProfileAccountInfo({
               <ReadOnlyField
                 icon={<UserRound size={17} />}
                 label={copy.fullName}
-                value={profile.full_name || copy.notAvailable}
+                value={profileName(profile, language, copy.notAvailable)}
                 badge={copy.readonly}
               />
 

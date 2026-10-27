@@ -26,7 +26,8 @@ export function useLoginController(
   const [formData, setFormData] = useState<LoginFormData>({
     email: '',
     password: '',
-    full_name: '',
+    full_name_ar: '',
+    full_name_en: '',
     age: '',
     major: '',
     study_year: '',

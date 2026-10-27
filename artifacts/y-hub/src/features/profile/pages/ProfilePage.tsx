@@ -1,3 +1,5 @@
+import { ProfileNamesForm } from '../components/ProfileNamesForm';
+import { useAuth } from '@/contexts/AuthContext';
 import { ShieldCheck, UserRound } from 'lucide-react';
 import { ProfileAccountInfo } from '../components/ProfileAccountInfo';
 import { ProfileEditableForm } from '../components/ProfileEditableForm';
@@ -6,6 +8,7 @@ import { ProfileSidebar } from '../components/ProfileSidebar';
 import { useProfileController } from '../hooks/useProfileController';
 
 export default function ProfilePage() {
+  const { user } = useAuth();
   const {
     status,
     profile,
@@ -107,6 +110,8 @@ export default function ProfilePage() {
             roleLabel={roleLabel}
             majorLabel={majorLabel}
           />
+
+          <ProfileNamesForm key={user?.id} />
 
           <ProfileEditableForm
             copy={copy}
