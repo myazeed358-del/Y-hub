@@ -12,6 +12,9 @@ export function resolvePageTitle(
   language: Language,
   t: PageTitleTranslator
 ): string {
+  location = location.split(/[?#]/, 1)[0].replace(/\/$/, '') || '/';
+  if (/^\/course\/[^/]+\/ai-tutor$/.test(location)) return language === 'ar' ? 'المعلم الذكي' : 'AI Tutor';
+  if (/^\/exam\/[^/]+$/.test(location)) return language === 'ar' ? 'الامتحان' : 'Exam';
   const route = moduleRegistry.routes.find(item => item.path === location);
   if (route) {
     return route.navigation?.labelKey

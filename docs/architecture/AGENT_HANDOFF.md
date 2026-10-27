@@ -1,3 +1,15 @@
+# Approved decision32 — contextual navigation verified (2026-10-26)
+
+Current branch `feature/approved-context-breadcrumbs` from latest verified main `06cabec3b1fee1b5cfe6a9457d9dd914a3398155`. Implementation commit `03674bd`; previous remote-verified documentation checkpoint `1c354d9a43827fa7716ab3747ce69c28121b108e`. The following delivery note records it; Git/ls-remote establishes the final SHA. Draft PR creation returned `Post "https://api.github.com/graphql": Forbidden`; no PR number confirmed. Read `docs/approved-specifications/CONTEXT_BREADCRUMBS.md` and `PROGRESS.md`. Decision32 complete;19complete/20partial/31missing/1repair cumulatively across main and three independent review branches. Do not restart completed attendance/grant work or claim all71 complete.72–80 remain excluded.
+
+Preserved and remote-verified:attendance reports `4456949caaf346f2b43e35c5da5e5555f308def0`, engine grants `6ffa7961eac416d3efc8c9281fa2a2d8e25a8c5c`. Their implementation is not included here, only their reports/table evidence. Main externally merged PR37/38; no agent merge.
+
+This package: contextual guarded APIv2 ancestor discovery, known core parent links, roots hidden, bilingual responsive accessible breadcrumb and retained page title. No SQL or backend changes.2049Vitest/236files,36Python,8guard tests,workspaceTS/audits/build,4fixture browser scenarios PASS.291focused tests are a subset. Hosted Staging remains PENDING; no production writes/migration/deploy/main merge. Vercel issue deferred.
+
+Next priority1:decisions25 (Arabic/English profile names, signup and old-profile completion with SQL enforcement) and24 (scoped actor/affected-person audit search and9digitnumbers). Their current full_name-only implementation has been inspected but NOT changed. Reserve new SQL numbering after independent0042/0043; do not edit historical migrations. Then follow the cumulative table dependencies. GitHub GraphQL API is policy-restricted; create Draft PR using the committed description when access permits, never invent a PR number.
+
+## Preserved earlier checkpoint
+
 # Approved specifications — engine grant workflows (2026-10-25)
 
 Current branch: `feature/approved-engine-grants`, from main `06cabec3b1fee1b5cfe6a9457d9dd914a3398155`. Read `docs/approved-specifications/ENGINE_GRANTS.md` and `PROGRESS.md` before resuming. Decisions11–14/34 implemented; do not recreate the old grants page or repeat completed attendance work.

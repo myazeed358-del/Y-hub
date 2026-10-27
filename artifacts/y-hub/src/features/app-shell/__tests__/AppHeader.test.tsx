@@ -178,14 +178,11 @@ describe('AppHeader', () => {
       .toBeTruthy();
   });
 
-  it('preserves the academy breadcrumb', () => {
-    render(<AppHeader {...makeProps()} />);
-
-    expect(screen.getByText('academy'))
-      .toBeTruthy();
-
-    expect(screen.getByText('Y HUB'))
-      .toBeTruthy();
+  it('forwards contextual breadcrumbs and retains the page title', () => {
+    render(<AppHeader {...makeProps({ breadcrumbs: [{ label: 'Home', href: '/dashboard' }, { label: 'Overview' }] })} />);
+    expect(screen.getByRole('navigation', { name: 'Breadcrumb' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Home' }).getAttribute('href')).toBe('/dashboard');
+    expect(screen.getByTestId('header-page-title').textContent).toBe('Overview');
   });
 
   it('shows the English welcome message', () => {
