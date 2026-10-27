@@ -33,3 +33,13 @@ it('does not publish a QR response after unmount',async()=>{
  let resolve!:(x:unknown)=>void;mock.qr.mockReturnValue(new Promise(r=>resolve=r));const view=render(<QrPanel session="session" ar={false}/>);view.unmount();
  await act(async()=>{resolve({token:'old',serverTime:new Date(Date.now()).toISOString(),expiresAt:new Date(Date.now()+10000).toISOString()});});expect(screen.queryByRole('img')).toBeNull();
 });
+it('keeps the student workspace personal and hides the manager roster tab',async()=>{
+ render(<AttendancePage/>);await waitFor(()=>expect(mock.sections).toHaveBeenCalled());
+ expect(screen.queryByRole('tab',{name:'Students'})).toBeNull();
+ expect(screen.getByRole('tab',{name:'Reports'})).toBeTruthy();expect(mock.roster).not.toHaveBeenCalled();
+});
+it('shows the six approved workspace destinations to instructors',async()=>{
+ mock.role='instructor';render(<AttendancePage/>);await waitFor(()=>expect(mock.sections).toHaveBeenCalled());
+ expect(screen.getAllByRole('tab').map(e=>e.textContent)).toEqual(['Sessions','QR','Students','History','Analytics','Reports']);
+ expect(screen.queryByText('Confirm attendance')).toBeNull();
+});

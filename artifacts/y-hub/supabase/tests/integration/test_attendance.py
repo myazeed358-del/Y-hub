@@ -11,8 +11,7 @@ class AttendanceHTTP(unittest.TestCase):
  enroll=base.SupabaseHTTP.enroll
  def setup_session(self):
   c=str(uuid.uuid4())
-  # Provision only the fixture section locally. Main's unrelated academic-creation
-  # RPCs 0031/0032 are absent; this suite tests attendance, not that missing flow.
+  # Provision only the fixture section locally; this suite exercises attendance RPCs.
   self.stack.sql(f"INSERT INTO public.courses(id,instructor_id,title,is_published,enrollment_open) VALUES('{c}','{self.accounts['instructor']['id']}','Attendance section',true,true)")
   self.enroll(c)
   now=datetime.now(timezone.utc)
@@ -58,3 +57,29 @@ class AttendanceHTTP(unittest.TestCase):
    self.denied('instructor','/rpc/extend_attendance',{'p_session':s,'p_minutes':5})
    self.denied('instructor','/rpc/attendance_session_roster_v2',{'p_session':s})
   finally:self.stack.sql(f"UPDATE public.users SET role='instructor' WHERE id='{actor}'")
+ def test_06_filtered_report_cannot_expand_student_scope(self):
+  c,l,s=self.setup_session();student_id=self.accounts['student']['id']
+  self.ok('instructor','/rpc/close_attendance',{'p_session':s})
+  for actor in ['student','instructor','admin','super']:
+   report=self.ok(actor,'/rpc/attendance_report_v2',{'p_course':c,'p_lecture':l,'p_status':'absent','p_state':'closed','p_limit':1})
+   self.assertEqual(report['total'],1);self.assertEqual(report['stats']['absent'],1)
+   self.assertEqual(report['rows'][0]['student_id'],student_id)
+   self.assertNotIn('reason',report['rows'][0]);self.assertRegex(report['revision'],r'^[a-f0-9]{32}$')
+  self.assertEqual(self.ok('student2','/rpc/attendance_report_v2',{'p_course':c})['total'],0)
+  self.denied('student2','/rpc/attendance_report_v2',{'p_course':c,'p_student':student_id})
+  self.denied('other','/rpc/attendance_report_v2',{'p_course':c})
+ def test_07_report_revision_and_actor_access_are_revalidated(self):
+  c,l,s=self.setup_session();u=self.accounts['student']['id']
+  before=self.ok('instructor','/rpc/attendance_report_v2',{'p_course':c})
+  self.ok('instructor','/rpc/correct_attendance',{'p_session':s,'p_student':u,'p_status':'present'})
+  after=self.ok('instructor','/rpc/attendance_report_v2',{'p_course':c})
+  self.assertNotEqual(before['revision'],after['revision'])
+  self.ok('admin','/rpc/assign_academic_section',{'p_section':c,'p_expected_instructor':self.accounts['instructor']['id'],'p_instructor':self.accounts['other']['id']})
+  self.denied('instructor','/rpc/attendance_report_v2',{'p_course':c})
+  self.assertEqual(self.ok('other','/rpc/attendance_report_v2',{'p_course':c})['total'],1)
+ def test_08_filter_validation_and_historical_self_access(self):
+  c,l,s=self.setup_session();u=self.accounts['student']['id']
+  for args in [{'p_limit':201},{'p_offset':-1},{'p_status':'late'},{'p_search':'x'*101}]:
+   self.denied('instructor','/rpc/attendance_report_v2',{'p_course':c,**args})
+  self.stack.sql(f"UPDATE public.course_enrollments SET status='dropped' WHERE course_id='{c}' AND student_id='{u}'")
+  self.assertEqual(self.ok('student','/rpc/attendance_report_v2',{'p_course':c})['total'],1)

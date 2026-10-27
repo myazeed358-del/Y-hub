@@ -1,8 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { authorizedSectionSelection } from "@/shared/academic/SectionActivityLinks";
 import { useLanguage } from "@/i18n/LanguageContext";
+import { authorizedSectionSelection } from "@/shared/academic/SectionActivityLinks";
 import { Button } from "@workspace/y-hub-ds/components/ui/button";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@workspace/y-hub-ds/components/ui/tabs";
 import {
   type AcademicLecture,
   academicLectures as lectures,
@@ -10,21 +16,18 @@ import {
 import { attendanceRepository as repo } from "./repository";
 import { AttendanceSessionPanel } from "./AttendanceSessionPanel";
 import { AttendanceReport } from "./AttendanceReport";
-export default function AttendancePage() {
-  const { user, role } = useAuth();
-  const { language } = useLanguage();
-  const ar = language === "ar",
-    manager = role === "instructor" || role === "admin" ||
-      role === "super_admin";
+import { AttendanceStudents } from "./AttendanceStudents";
+import { LectureScheduler } from "./LectureScheduler";
+function Workspace(
+  { userId, role, ar }: { userId: string; role: string; ar: boolean },
+) {
+  const manager = ["instructor", "admin", "super_admin"].includes(role);
   const [sections, setSections] = useState<
-      Awaited<ReturnType<typeof lectures.sections>>
+      Awaited<ReturnType<typeof repo.sections>>
     >([]),
     [course, setCourse] = useState(""),
     [items, setItems] = useState<AcademicLecture[]>([]),
     [lecture, setLecture] = useState("");
-  const [title, setTitle] = useState(""),
-    [start, setStart] = useState(""),
-    [end, setEnd] = useState("");
   const [token, setToken] = useState(() => window.location.hash.slice(1)),
     [version, setVersion] = useState(0),
     [offset, setOffset] = useState(0),
@@ -32,6 +35,8 @@ export default function AttendancePage() {
     [error, setError] = useState(false),
     [loading, setLoading] = useState(true),
     [success, setSuccess] = useState(false);
+  const [tab, setTab] = useState(manager ? "sessions" : "qr");
+  const inFlight = useRef(false);
   useEffect(() => {
     if (window.location.hash) {
       window.history.replaceState(
@@ -42,20 +47,19 @@ export default function AttendancePage() {
     }
   }, []);
   useEffect(() => {
-    setCourse("");
-    setSections([]);
-    setLecture("");
-  }, [user?.id]);
-  useEffect(() => {
     let active = true;
     repo.sections().then((s) => {
       if (active) {
         setSections(s);
-        setCourse((current) => authorizedSectionSelection(window.location.search, s, current));
+        setCourse((c) =>
+          authorizedSectionSelection(window.location.search, s, c)
+        );
         setLoading(false);
       }
     }, () => {
       if (active) {
+        setSections([]);
+        setCourse("");
         setError(true);
         setLoading(false);
       }
@@ -63,15 +67,21 @@ export default function AttendancePage() {
     return () => {
       active = false;
     };
-  }, [user?.id, version]);
+  }, [version]);
+  useEffect(() => {
+    setLecture("");
+  }, [course, offset]);
   useEffect(() => {
     let active = true;
     setItems([]);
-    if (!course) return;
+    if (!course) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
-    lectures.list(course, offset).then((l) => {
+    lectures.list(course, offset).then((rows) => {
       if (active) {
-        setItems(l);
+        setItems(rows);
         setLoading(false);
       }
     }, () => {
@@ -83,9 +93,10 @@ export default function AttendancePage() {
     return () => {
       active = false;
     };
-  }, [course, user?.id, offset, version]);
+  }, [course, offset, version]);
   async function mutate(fn: () => Promise<unknown>) {
-    if (busy) return;
+    if (inFlight.current) return;
+    inFlight.current = true;
     setBusy(true);
     setError(false);
     setSuccess(false);
@@ -96,53 +107,40 @@ export default function AttendancePage() {
     } catch {
       setError(true);
     } finally {
+      inFlight.current = false;
       setBusy(false);
     }
   }
   const field = "w-full rounded-md border border-border bg-background p-2";
+  const labels = [
+    ["sessions", ar ? "الجلسات" : "Sessions"],
+    ["qr", "QR"],
+    ...(manager ? [["students", ar ? "الطلاب" : "Students"]] : []),
+    ["history", ar ? "السجل" : "History"],
+    ["analytics", ar ? "التحليلات" : "Analytics"],
+    ["reports", ar ? "التقارير" : "Reports"],
+  ];
+  const choose = (
+    <p>
+      {ar
+        ? "اختر الشعبة والمحاضرة أولًا."
+        : "Choose a section and lecture first."}
+    </p>
+  );
   return (
     <section dir={ar ? "rtl" : "ltr"} className="max-w-5xl mx-auto space-y-5">
       <h1 className="text-2xl font-bold">Y-Attendance</h1>
       {error && (
         <p role="alert">
           {ar
-            ? "لم تتأكد العملية. تحقق من الاتصال والصلاحيات وحالة الجلسة ثم حدّث."
-            : "Operation not confirmed. Check connection, permissions and session status, then refresh."}
+            ? "لم تتأكد العملية. تحقق من الاتصال والصلاحيات ثم حدّث."
+            : "Operation not confirmed. Check connection and permissions, then refresh."}
         </p>
       )}
       {success && (
         <p role="status">
           {ar ? "أكد الخادم إتمام الطلب." : "The server confirmed the request."}
         </p>
-      )}
-      {role === "student" && (
-        <form
-          className="space-y-2 border border-border rounded-xl p-4"
-          onSubmit={(e) => {
-            e.preventDefault();
-            void mutate(() => repo.checkIn(token.trim()));
-          }}
-        >
-          <label>
-            {ar ? "رمز QR من المحاضرة" : "Lecture QR token"}
-            <input
-              className={field}
-              value={token}
-              onChange={(e) =>
-                setToken(e.target.value)}
-              required
-              autoComplete="off"
-            />
-          </label>
-          <Button disabled={busy}>
-            {ar ? "تأكيد الحضور" : "Confirm attendance"}
-          </Button>
-          <p className="text-sm">
-            {ar
-              ? "افتح الرمز بكاميرا الهاتف وأكد خلال صلاحيته؛ عند انتهائه امسح الرمز الجديد."
-              : "Open the QR with your phone camera and confirm before expiry; scan the new code if it expires."}
-          </p>
-        </form>
       )}
       <label>
         {ar ? "الشعبة" : "Section"}
@@ -162,57 +160,8 @@ export default function AttendancePage() {
         </select>
       </label>
       {loading && <p role="status">{ar ? "جارٍ التحميل…" : "Loading…"}</p>}
-      {course && manager && (
-        <form
-          className="space-y-3 bg-card border border-border rounded-xl p-4"
-          onSubmit={(e) => {
-            e.preventDefault();
-            void mutate(() =>
-              lectures.schedule(
-                course,
-                title,
-                new Date(start).toISOString(),
-                new Date(end).toISOString(),
-              )
-            );
-          }}
-        >
-          <h2>{ar ? "جدولة محاضرة للشعبة" : "Schedule a section lecture"}</h2>
-          <input
-            aria-label={ar ? "العنوان" : "Title"}
-            placeholder={ar ? "العنوان" : "Title"}
-            required
-            maxLength={200}
-            className={field}
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-          <label>
-            {ar ? "البداية" : "Start"}
-            <input
-              type="datetime-local"
-              required
-              className={field}
-              value={start}
-              onChange={(e) =>
-                setStart(e.target.value)}
-            />
-          </label>
-          <label>
-            {ar ? "النهاية" : "End"}
-            <input
-              type="datetime-local"
-              required
-              className={field}
-              value={end}
-              onChange={(e) => setEnd(e.target.value)}
-            />
-          </label>
-          <Button disabled={busy}>{ar ? "جدولة" : "Schedule"}</Button>
-        </form>
-      )}
       {course && (
-        <>
+        <div className="space-y-2">
           <label>
             {ar ? "المحاضرة" : "Lecture"}
             <select
@@ -223,7 +172,8 @@ export default function AttendancePage() {
               <option value="">—</option>
               {items.map((l) => (
                 <option key={l.id} value={l.id}>
-                  {l.title} · {new Date(l.starts_at).toLocaleString(language)}
+                  {l.title} ·{" "}
+                  {new Date(l.starts_at).toLocaleString(ar ? "ar" : "en")}
                   {l.cancelled ? " ×" : ""}
                 </option>
               ))}
@@ -232,45 +182,153 @@ export default function AttendancePage() {
           <div className="flex gap-2">
             <Button
               variant="outline"
-              disabled={offset === 0}
-              onClick={() => setOffset((x) => Math.max(0, x - 50))}
+              disabled={!offset || busy}
+              onClick={() =>
+                setOffset(Math.max(0, offset - 50))}
             >
-              {ar ? "السابق" : "Previous"}
+              {ar ? "المحاضرات السابقة" : "Previous lectures"}
             </Button>
             <Button
               variant="outline"
-              disabled={items.length < 50}
-              onClick={() => setOffset((x) => x + 50)}
+              disabled={items.length < 50 || busy}
+              onClick={() =>
+                setOffset(offset + 50)}
             >
-              {ar ? "التالي" : "Next"}
+              {ar ? "المحاضرات التالية" : "Next lectures"}
             </Button>
           </div>
-        </>
+        </div>
       )}
-      {manager && lecture && (
-        <AttendanceSessionPanel
-          key={`${user?.id}:${lecture}`}
-          lecture={lecture}
-          ar={ar}
-          version={version}
-          busy={busy}
-          mutate={mutate}
-        />
-      )}
-      {manager && lecture && (
-        <Button
-          variant="outline"
-          disabled={busy}
-          onClick={() => {
-            if (
-              window.confirm(ar ? "إلغاء المحاضرة؟" : "Cancel lecture?")
-            ) void mutate(() => lectures.cancel(lecture));
-          }}
-        >
-          {ar ? "إلغاء المحاضرة" : "Cancel lecture"}
-        </Button>
-      )}
-      {course && <AttendanceReport course={course} version={version} ar={ar} />}
+      <Tabs dir={ar ? "rtl" : "ltr"} value={tab} onValueChange={setTab}>
+        <TabsList className="h-auto w-full flex-wrap justify-start">
+          {labels.map(([value, label]) => (
+            <TabsTrigger key={value} value={value}>{label}</TabsTrigger>
+          ))}
+        </TabsList>
+        <TabsContent value="sessions" className="space-y-4">
+          {course && manager && (
+            <LectureScheduler
+              key={course}
+              course={course}
+              ar={ar}
+              busy={busy}
+              mutate={mutate}
+            />
+          )}
+          {manager && lecture
+            ? (
+              <>
+                <AttendanceSessionPanel
+                  key={`${userId}:${lecture}`}
+                  lecture={lecture}
+                  ar={ar}
+                  version={version}
+                  busy={busy}
+                  mutate={mutate}
+                  mode="session"
+                />
+                <Button
+                  variant="outline"
+                  disabled={busy}
+                  onClick={() => {
+                    if (
+                      window.confirm(ar ? "إلغاء المحاضرة؟" : "Cancel lecture?")
+                    ) void mutate(() => lectures.cancel(lecture));
+                  }}
+                >
+                  {ar ? "إلغاء المحاضرة" : "Cancel lecture"}
+                </Button>
+              </>
+            )
+            : choose}
+        </TabsContent>
+        <TabsContent value="qr">
+          {role === "student"
+            ? (
+              <form
+                className="space-y-3 rounded-xl border border-border p-4"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  void mutate(() => repo.checkIn(token.trim()));
+                }}
+              >
+                <label>
+                  {ar ? "رمز QR من المحاضرة" : "Lecture QR token"}
+                  <input
+                    className={field}
+                    required
+                    autoComplete="off"
+                    value={token}
+                    onChange={(e) =>
+                      setToken(e.target.value)}
+                  />
+                </label>
+                <Button disabled={busy}>
+                  {ar ? "تأكيد الحضور" : "Confirm attendance"}
+                </Button>
+                <p>
+                  {ar
+                    ? "افتح الرمز بكاميرا الهاتف وأكد قبل انتهاء صلاحيته."
+                    : "Open the QR with your phone camera and confirm before expiry."}
+                </p>
+              </form>
+            )
+            : lecture
+            ? (
+              <AttendanceSessionPanel
+                key={lecture}
+                lecture={lecture}
+                ar={ar}
+                version={version}
+                busy={busy}
+                mutate={mutate}
+                mode="qr"
+              />
+            )
+            : choose}
+        </TabsContent>
+        {manager && (
+          <TabsContent value="students" className="space-y-4">
+            {course
+              ? (
+                <AttendanceStudents
+                  key={course}
+                  course={course}
+                  ar={ar}
+                  version={version}
+                />
+              )
+              : choose}
+            {lecture && (
+              <AttendanceSessionPanel
+                key={lecture}
+                lecture={lecture}
+                ar={ar}
+                version={version}
+                busy={busy}
+                mutate={mutate}
+                mode="students"
+              />
+            )}
+          </TabsContent>
+        )}
+        {(["history", "analytics", "reports"] as const).map((mode) => (
+          <TabsContent key={mode} value={mode}>
+            {course
+              ? (
+                <AttendanceReport
+                  key={`${userId}:${course}:${mode}`}
+                  course={course}
+                  version={version}
+                  ar={ar}
+                  lectures={items}
+                  mode={mode}
+                />
+              )
+              : choose}
+          </TabsContent>
+        ))}
+      </Tabs>
       <Button
         variant="outline"
         disabled={busy}
@@ -282,5 +340,18 @@ export default function AttendancePage() {
         {ar ? "تحديث" : "Refresh"}
       </Button>
     </section>
+  );
+}
+export default function AttendancePage() {
+  const { user, role } = useAuth();
+  const { language } = useLanguage();
+  if (!user || !role) return null;
+  return (
+    <Workspace
+      key={`${user.id}:${role}`}
+      userId={user.id}
+      role={role}
+      ar={language === "ar"}
+    />
   );
 }

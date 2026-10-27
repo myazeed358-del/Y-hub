@@ -5,6 +5,7 @@ import { QrPanel } from "./QrPanel";
 
 type Props = {
   lecture: string;
+  mode?: "all" | "session" | "qr" | "students";
   ar: boolean;
   version: number;
   busy: boolean;
@@ -12,7 +13,7 @@ type Props = {
 };
 /** The parent keys this component by account/lecture; no stale roster crosses contexts. */
 export function AttendanceSessionPanel(
-  { lecture, ar, version, busy, mutate }: Props,
+  { lecture, ar, version, busy, mutate, mode = "all" }: Props,
 ) {
   const [session, setSession] = useState<
     Awaited<ReturnType<typeof repo.session>>
@@ -33,7 +34,9 @@ export function AttendanceSessionPanel(
     async function refresh() {
       try {
         const s = await repo.session(lecture);
-        const rows = s ? await repo.sessionRoster(s.id) : [];
+        const rows = s && (mode === "all" || mode === "students")
+          ? await repo.sessionRoster(s.id)
+          : [];
         if (!active) return;
         setSession(s);
         setRoster(rows);
@@ -54,7 +57,7 @@ export function AttendanceSessionPanel(
       active = false;
       clearTimeout(timer);
     };
-  }, [lecture, version]);
+  }, [lecture, version, mode]);
   const field = "w-full rounded-md border border-border bg-background p-2";
   const labels = {
     open: ar ? "مفتوحة" : "Open",
@@ -71,6 +74,31 @@ export function AttendanceSessionPanel(
           ? "تعذر التحقق من الجلسة. ستتم إعادة المحاولة."
           : "Could not verify session. Retrying."}
       </p>
+    );
+  }
+  if (!session && mode !== "session" && mode !== "all") {
+    return (
+      <p>
+        {ar
+          ? "افتح جلسة حضور من تبويب الجلسات أولًا."
+          : "Open attendance from Sessions first."}
+      </p>
+    );
+  }
+  if (session && mode === "qr") {
+    return (
+      <div className="space-y-3">
+        <p>{labels[session.state]}</p>
+        {session.state === "open"
+          ? <QrPanel session={session.id} ar={ar} />
+          : (
+            <p>
+              {ar
+                ? "لا يوجد رمز صالح لجلسة مغلقة أو ملغاة."
+                : "Closed or cancelled sessions have no valid QR."}
+            </p>
+          )}
+      </div>
     );
   }
   return (
@@ -156,9 +184,9 @@ export function AttendanceSessionPanel(
                 {new Date(session.expires_at).toLocaleString(ar ? "ar" : "en")}
               </time>
             </p>
-            {session.state === "open" && (
+            {session.state === "open" && mode !== "students" && (
               <>
-                <QrPanel session={session.id} ar={ar} />
+                {mode === "all" && <QrPanel session={session.id} ar={ar} />}
                 <form
                   className="flex flex-wrap items-end gap-2"
                   onSubmit={(e) => {
@@ -203,72 +231,78 @@ export function AttendanceSessionPanel(
             )}
             {session.state !== "cancelled" && (
               <>
-                <form
-                  className="space-y-2"
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    void mutate(() =>
-                      repo.correct(session.id, student, status)
-                    );
-                  }}
-                >
-                  <h2>
-                    {ar
-                      ? "تسجيل أو تصحيح يدوي"
-                      : "Manual attendance or correction"}
-                  </h2>
-                  <label className="block">
-                    {ar ? "الطالب" : "Student"}
-                    <select
-                      className={field}
-                      required
-                      value={student}
-                      onChange={(e) => setStudent(e.target.value)}
-                    >
-                      <option value="">—</option>
-                      {roster.map((s) => (
-                        <option key={s.student_id} value={s.student_id}>
-                          {s.full_name ?? "—"} · {s.user_number}
+                {mode !== "session" && (
+                  <form
+                    className="space-y-2"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      void mutate(() =>
+                        repo.correct(session.id, student, status)
+                      );
+                    }}
+                  >
+                    <h2>
+                      {ar
+                        ? "تسجيل أو تصحيح يدوي"
+                        : "Manual attendance or correction"}
+                    </h2>
+                    <label className="block">
+                      {ar ? "الطالب" : "Student"}
+                      <select
+                        className={field}
+                        required
+                        value={student}
+                        onChange={(e) => setStudent(e.target.value)}
+                      >
+                        <option value="">—</option>
+                        {roster.map((s) => (
+                          <option key={s.student_id} value={s.student_id}>
+                            {s.full_name ?? "—"} · {s.user_number}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="block">
+                      {ar ? "الحالة" : "Status"}
+                      <select
+                        className={field}
+                        value={status}
+                        onChange={(e) =>
+                          setStatus(e.target.value as "present" | "absent")}
+                      >
+                        <option value="present">
+                          {ar ? "حاضر" : "Present"}
                         </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="block">
-                    {ar ? "الحالة" : "Status"}
-                    <select
-                      className={field}
-                      value={status}
-                      onChange={(e) =>
-                        setStatus(e.target.value as "present" | "absent")}
-                    >
-                      <option value="present">{ar ? "حاضر" : "Present"}</option>
-                      <option value="absent">{ar ? "غائب" : "Absent"}</option>
-                    </select>
-                  </label>
-                  <p className="text-sm text-muted-foreground">
-                    {ar
-                      ? "لا يلزم سبب مكتوب. يُحفظ التعديل في سجل التدقيق دون إشعار الطالب."
-                      : "No written reason is required. Changes are audited without notifying the student."}
-                  </p>
-                  <Button disabled={busy}>
-                    {ar ? "حفظ التصحيح" : "Save correction"}
+                        <option value="absent">{ar ? "غائب" : "Absent"}</option>
+                      </select>
+                    </label>
+                    <p className="text-sm text-muted-foreground">
+                      {ar
+                        ? "لا يلزم سبب مكتوب. يُحفظ التعديل في سجل التدقيق دون إشعار الطالب."
+                        : "No written reason is required. Changes are audited without notifying the student."}
+                    </p>
+                    <Button disabled={busy}>
+                      {ar ? "حفظ التصحيح" : "Save correction"}
+                    </Button>
+                  </form>
+                )}
+                {mode !== "students" && (
+                  <Button
+                    variant="outline"
+                    disabled={busy}
+                    onClick={() => {
+                      if (
+                        window.confirm(
+                          ar
+                            ? "إلغاء جلسة الحضور واستبعادها من النسب مع حفظ سجلها؟"
+                            : "Cancel attendance and exclude it from statistics while preserving history?",
+                        )
+                      ) void mutate(() => repo.cancel(session.id));
+                    }}
+                  >
+                    {ar ? "إلغاء جلسة الحضور" : "Cancel attendance session"}
                   </Button>
-                </form>
-                <Button
-                  variant="outline"
-                  disabled={busy}
-                  onClick={() => {
-                    if (
-                      window.confirm(
-                        ar
-                          ? "إلغاء جلسة الحضور واستبعادها من النسب مع حفظ سجلها؟"
-                          : "Cancel attendance and exclude it from statistics while preserving history?",
-                      )
-                    ) void mutate(() => repo.cancel(session.id));
-                  }}
-                >
-                  {ar ? "إلغاء جلسة الحضور" : "Cancel attendance session"}
-                </Button>
+                )}
               </>
             )}
           </>
