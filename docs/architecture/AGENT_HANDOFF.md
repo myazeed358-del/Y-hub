@@ -1,3 +1,13 @@
+# Authorized consolidation checkpoint — 2026-10-27
+
+The user explicitly authorized merging completed work into main, then continuing development. Integration branch `integration/approved-work-20261027` is based on main `2bf1182d723c944562fce2ba93f813b1d8031ef8` (attendance reports already merged through PR40). It merges approved-engine-grants, approved-context-breadcrumbs, approved-bilingual-profiles, and the reviewed comment-only branch. No force push or production SQL/deployment is authorized. Read `docs/approved-specifications/MERGE_2026-10-27.md`.
+
+Combined verification:2101Vitest/241files,36Python,8architecture guards,workspaceTS/audits/build,178SQL tests +14legacyRLS assertions,65actual localAuth/HTTP tests,12fixture browser cases PASS. Staging remains pending. Old phase3/API branches with superseded contracts must not reintroduce historical0031/0032 migrations. Preserve them as history.
+
+Next: verify remote main contains this checkpoint, then implement decision24 on `feature/approved-audit-person-search` from that main. Completed decisions20/71; remaining priorities are unchanged. This merge authorization covers completed work; keep subsequent new features on independent review branches unless the user authorizes their merge. Do not repeat completed groups or apply SQL to production. Git/ls-remote establish final checkpoint SHA.
+
+## Preserved previous checkpoints
+
 # Approved decision25 — bilingual profiles verified (2026-10-26)
 
 Current branch `feature/approved-bilingual-profiles`, independent from latest verified main `06cabec3b1fee1b5cfe6a9457d9dd914a3398155`. Implementation commits `62dc27a` (SQL/tests) and `1ccca7a` (UI/tests). Previous remote-verified checkpoint `f3f31c253e2fae043c66dd2c41def87d8b9c8577`; this delivery-note commit follows it and Git/ls-remote establish the final SHA. Draft PR creation actually returned `Post "https://api.github.com/graphql": Forbidden`; no PR number confirmed. Read `docs/approved-specifications/BILINGUAL_PROFILES.md` and `PROGRESS.md`; do not restart the earlier completed groups. Decision25 complete locally; cumulative20complete/20partial/30missing/1repair across71.72–80excluded.
