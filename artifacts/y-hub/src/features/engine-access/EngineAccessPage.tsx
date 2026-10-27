@@ -1,43 +1,177 @@
-import { useEffect,useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { useLanguage } from '@/i18n/LanguageContext';
-import { ENGINE_CATALOG } from '@/config/majorEngineAccess';
-import { Button } from '@workspace/y-hub-ds/components/ui/button';
-import { engineAccessRepository as repo,type Grant } from './repository';
-export default function EngineAccessPage(){
- const {user,role}=useAuth();const {language}=useLanguage();const ar=language==='ar';
- const [sections,setSections]=useState<Awaited<ReturnType<typeof repo.sections>>>([]),[course,setCourse]=useState('');
- const [engines,setEngines]=useState<string[]>([]),[roster,setRoster]=useState<Awaited<ReturnType<typeof repo.roster>>>([]),[grants,setGrants]=useState<Grant[]>([]);
- const [student,setStudent]=useState(''),[engine,setEngine]=useState(''),[expires,setExpires]=useState('');
- const [directoryVersion,reloadDirectory]=useState(0),[directoryLoading,setDirectoryLoading]=useState(true),[directoryError,setDirectoryError]=useState(false),[offset,setOffset]=useState(0);
- const [version,refresh]=useState(0),[loading,setLoading]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(false);
- useEffect(()=>{setCourse('');setOffset(0);setSections([]);setEngines([]);setEngine('');setExpires('');},[user?.id]);
- useEffect(()=>{let active=true;setDirectoryError(false);setDirectoryLoading(true);
-  Promise.all([repo.sections(),repo.engines()]).then(([s,e])=>{if(active){setSections(s);setEngines(e);setDirectoryLoading(false);}},()=>{if(active){setDirectoryError(true);setDirectoryLoading(false);}});return()=>{active=false;};
- },[user?.id,directoryVersion]);
- useEffect(()=>{let active=true;setStudent('');setRoster([]);setGrants([]);if(!course){setLoading(false);return;}setLoading(true);setError(false);
-  Promise.all([repo.roster(course),repo.grants(course,offset)]).then(([r,g])=>{if(active){setRoster(r);setGrants(g);setLoading(false);}},()=>{if(active){setError(true);setLoading(false);}});return()=>{active=false;};
- },[course,user?.id,version,offset]);
- const title=(id:string)=>ENGINE_CATALOG.find(e=>e.id===id)?.title[language]??id;
- async function mutate(action:()=>Promise<unknown>){if(busy)return;setBusy(true);setError(false);try{await action();refresh(v=>v+1);}catch{setError(true);}finally{setBusy(false);}}
- const selectClass='rounded-lg border border-border bg-background p-2 w-full';
- return <section className="max-w-4xl mx-auto space-y-5" dir={ar?'rtl':'ltr'}>
-  <h1 className="text-2xl font-bold">{ar?'صلاحيات المحركات الاستثنائية':'Exceptional engine permissions'}</h1>
-  <p className="text-muted-foreground">{ar?'تنتهي المنحة بانتهاء مدتها أو التسجيل أو إسناد الشعبة. منح المحركات يقتصر على تخصص الدكتور.':'Grants end on expiry, withdrawal or section reassignment. Instructors delegate engines in their teaching major.'}</p>
-  {(error||directoryError)&&<p role="alert">{ar?'تعذر إتمام الطلب. لم نفترض نجاح التعديل؛ أعد تحميل القائمة قبل المحاولة.':'Request failed. Changes are not assumed successful; reload before retrying.'}</p>}
-  <label>{ar?'الشعبة':'Section'}<select aria-label="Section" className={selectClass} value={course} disabled={busy} onChange={e=>{setCourse(e.target.value);setOffset(0);}}><option value="">—</option>{sections.map(s=><option key={s.id} value={s.id}>{s.title} {s.section_label}</option>)}</select></label>
-  {(loading||directoryLoading)&&<p role="status">{ar?'جارٍ التحميل…':'Loading…'}</p>}
-  {course&&role==='instructor'&&<form className="rounded-xl border border-border bg-card p-4 space-y-3" onSubmit={e=>{e.preventDefault();void mutate(()=>repo.grant(course,student,engine,new Date(expires).toISOString()));}}>
-   <label>{ar?'الطالب':'Student'}<select aria-label="Student" required value={student} className={selectClass} onChange={e=>setStudent(e.target.value)}><option value="">—</option>{roster.map(r=><option key={r.student_id} value={r.student_id}>{r.full_name}</option>)}</select></label>
-   <label>{ar?'المحرك':'Engine'}<select aria-label="Engine" required value={engine} className={selectClass} onChange={e=>setEngine(e.target.value)}><option value="">—</option>{engines.map(id=><option key={id} value={id}>{title(id)}</option>)}</select></label>
-   <label>{ar?'انتهاء الصلاحية':'Expires'}<input aria-label="Expires" required type="datetime-local" value={expires} className={selectClass} onChange={e=>setExpires(e.target.value)}/></label>
-   <Button disabled={busy||loading||directoryLoading||directoryError||!student||!engine||!expires}>{ar?'منح الصلاحية':'Grant access'}</Button>
-  </form>}
-  {course&&!loading&&<div className="space-y-3">{grants.length===0&&<p>{ar?'لا توجد منح لهذه الشعبة.':'No grants for this section.'}</p>}{grants.map(g=><article key={g.id} className="flex flex-wrap items-center justify-between gap-3 border border-border bg-card p-4 rounded-xl">
-   <div><strong>{roster.find(r=>r.student_id===g.student_id)?.full_name??g.student_id}</strong><p>{title(g.engine_id)}</p><time dateTime={g.expires_at}>{new Date(g.expires_at).toLocaleString(language)}</time><p>{g.revoked_at?(ar?'ملغاة':'Revoked'):Date.parse(g.expires_at)<=Date.now()?(ar?'منتهية':'Expired'):(ar?'فعالة بحسب علاقة الشعبة':'Subject to current section access')}</p></div>
-   {!g.revoked_at&&<Button variant="outline" disabled={busy} onClick={()=>{if(window.confirm(ar?'إلغاء المنحة؟':'Revoke this grant?'))void mutate(()=>repo.revoke(g.id));}}>{ar?'إلغاء':'Revoke'}</Button>}
-  </article>)}</div>}
-  {course&&<nav aria-label={ar?'صفحات المنح':'Grant pages'} className="flex gap-2"><Button variant="outline" disabled={busy||loading||offset===0} onClick={()=>setOffset(n=>Math.max(0,n-100))}>{ar?'المنح السابقة':'Previous grants'}</Button><Button variant="outline" disabled={busy||loading||grants.length<100} onClick={()=>setOffset(n=>n+100)}>{ar?'المنح التالية':'Next grants'}</Button></nav>}
-  <Button variant="outline" disabled={busy||loading||directoryLoading} onClick={()=>{reloadDirectory(v=>v+1);refresh(v=>v+1);}}>{ar?'تحديث':'Refresh'}</Button>
- </section>;
+import { useEffect, useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
+import { ENGINE_CATALOG } from "@/config/majorEngineAccess";
+import { Button } from "@workspace/y-hub-ds/components/ui/button";
+import { engineAccessRepository as repo } from "./repository";
+import type { StudentMatch } from "./workflowRepository";
+import { StudentSearch } from "./components/StudentSearch";
+import { GrantForm } from "./components/GrantForm";
+import { GrantHistory } from "./components/GrantHistory";
+function Workspace(
+  { role, language }: { role: string; language: "ar" | "en" },
+) {
+  const ar = language === "ar";
+  const [sections, setSections] = useState<
+      Awaited<ReturnType<typeof repo.sections>>
+    >([]),
+    [engines, setEngines] = useState<string[]>([]),
+    [course, setCourse] = useState("");
+  const [draft, setDraft] = useState(""),
+    [search, setSearch] = useState(""),
+    [selected, setSelected] = useState<StudentMatch | null>(null),
+    [version, setVersion] = useState(0),
+    [loading, setLoading] = useState(true),
+    [error, setError] = useState(false);
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    setError(false);
+    Promise.all([repo.sections(), repo.engines()]).then(([s, e]) => {
+      if (active) {
+        setSections(s);
+        setEngines(e);
+        setLoading(false);
+        setSelected((current) =>
+          current && s.some((c) => c.id === current.course_id) ? current : null
+        );
+      }
+    }, () => {
+      if (active) {
+        setSections([]);
+        setEngines([]);
+        setSelected(null);
+        setLoading(false);
+        setError(true);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [version]);
+  const title = (id: string) =>
+    ENGINE_CATALOG.find((e) => e.id === id)?.title[language] ?? id;
+  const refresh = () => setVersion((v) => v + 1);
+  return (
+    <section className="mx-auto max-w-6xl space-y-5" dir={ar ? "rtl" : "ltr"}>
+      <h1 className="text-2xl font-bold">
+        {ar ? "صلاحيات المحركات الاستثنائية" : "Exceptional engine permissions"}
+      </h1>
+      <p className="text-muted-foreground">
+        {ar
+          ? "ابحث بالاسم أو رقم Y-Hub في شعبك المصرح بها، ثم اختر الطالب والشعبة."
+          : "Search authorized sections by name or Y-Hub number, then select a student and section."}
+      </p>
+      {error && (
+        <p role="alert">
+          {ar
+            ? "تعذر التحقق من الشعب والمحركات."
+            : "Unable to verify sections and engines."}
+        </p>
+      )}
+      <form
+        className="grid items-end gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,16rem)_auto]"
+        onSubmit={(e) => {
+          e.preventDefault();
+          setSelected(null);
+          setSearch(draft);
+        }}
+      >
+        <label className="min-w-0">
+          {ar ? "اسم الطالب أو رقمه الجامعي" : "Student name or number"}
+          <input
+            className="w-full rounded border border-border bg-background p-2"
+            maxLength={100}
+            value={draft}
+            onChange={(e) =>
+              setDraft(e.target.value)}
+          />
+        </label>
+        <label>
+          {ar ? "الشعبة" : "Section"}
+          <select
+            className="w-full rounded border border-border bg-background p-2"
+            value={course}
+            onChange={(e) => {
+              setCourse(e.target.value);
+              setSelected(null);
+            }}
+          >
+            <option value="">
+              {ar ? "كل الشعب المصرح بها" : "All authorized sections"}
+            </option>
+            {sections.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.title} {s.section_label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <Button>{ar ? "بحث" : "Search"}</Button>
+      </form>
+      {loading && <p role="status">{ar ? "جارٍ التحميل…" : "Loading…"}</p>}
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
+        <StudentSearch
+          key={`${course}:${search}`}
+          course={course}
+          search={search}
+          version={version}
+          ar={ar}
+          onSelect={setSelected}
+        />
+        <div className="min-w-0 space-y-4">
+          {selected && (
+            <>
+              <section className="space-y-2 rounded-xl border border-border bg-card p-4">
+                <h2 className="text-lg font-semibold">
+                  {ar ? "ملف الطالب" : "Student profile"}
+                </h2>
+                <p>{selected.full_name ?? "—"}</p>
+                <p dir="ltr" className="font-mono">{selected.user_number}</p>
+                <p>{selected.title} · {selected.section_label}</p>
+                <Button
+                  variant="outline"
+                  onClick={() => setSelected(null)}
+                >
+                  {ar ? "عرض كل التصاريح" : "Show all permissions"}
+                </Button>
+              </section>
+              {role === "instructor" && !loading && !error && (
+                <GrantForm
+                  key={`${selected.course_id}:${selected.student_id}`}
+                  student={selected}
+                  engines={engines}
+                  title={title}
+                  ar={ar}
+                  onSaved={refresh}
+                />
+              )}
+            </>
+          )}
+          <GrantHistory
+            key={`${selected?.course_id ?? course}:${
+              selected?.student_id ?? ""
+            }`}
+            course={selected?.course_id ?? course}
+            student={selected?.student_id ?? ""}
+            version={version}
+            ar={ar}
+            title={title}
+            onSaved={refresh}
+          />
+        </div>
+      </div>
+      <Button variant="outline" disabled={loading} onClick={refresh}>
+        {ar ? "تحديث" : "Refresh"}
+      </Button>
+    </section>
+  );
+}
+export default function EngineAccessPage() {
+  const { user, role } = useAuth();
+  const { language } = useLanguage();
+  if (!user || !role) return null;
+  return (
+    <Workspace key={`${user.id}:${role}`} role={role} language={language} />
+  );
 }

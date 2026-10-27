@@ -1,5 +1,5 @@
 import { supabase } from '@/utils/supabaseClient';
-export interface Grant {id:string;course_id:string;student_id:string;engine_id:string;expires_at:string;revoked_at:string|null}
+export interface Grant {id:string;course_id:string;student_id:string;engine_id:string;expires_at:string|null;revoked_at:string|null}
 export const engineAccessRepository={
  async sections(){
   const rows:{id:string;title:string;section_label:string|null;instructor_id:string|null}[]=[];
