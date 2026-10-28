@@ -73,3 +73,9 @@ One new UI test initially selected the test harness's `<output>` implicit status
 5. Next approved package: repair legacy syllabus display26, then lesson completion27/41, with independent branches and real enrollment enforcement. Do not recreate earlier completed attendance/grant/name/navigation packages.
 
 GitHub API returned `Post "https://api.github.com/graphql": Forbidden`; an attempted elevated retry did not execute (cancelled). Git transport remains available. PR creation is not confirmed; use `AUDIT_PERSON_SEARCH_PR.md` for review creation when API access is available. Do not infer a PR number from a compare URL. Git history and `git ls-remote` establish the final pushed checkpoint.
+
+## Git delivery evidence
+
+Remote implementation checkpoint verified with `git ls-remote`: `5f69031c33163307a70076a47b1e00531c345ac5` (SQL commit `dab015a`, UI/docs commit `5f69031`). Draft PR creation was actually attempted with the committed body and returned `Post "https://api.github.com/graphql": Forbidden`; no PR was created or confirmed. This documentation commit records the previous verified SHA; Git/ls-remote establish the final one. Main remains `79f0bdf3ee928db0055c52e8e4be7b304cf2458d`.
+
+Review creation link (not an existing PR): https://github.com/myazeed358-del/Y-hub/pull/new/feature/approved-audit-person-search

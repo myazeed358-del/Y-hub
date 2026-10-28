@@ -1,5 +1,7 @@
 # Decision24 checkpoint — 2026-10-28
 
+Remote implementation checkpoint verified with `git ls-remote`: `5f69031c33163307a70076a47b1e00531c345ac5` (SQL commit `dab015a`, UI/docs commit `5f69031`). Draft PR creation was actually attempted with the committed body and returned `Post "https://api.github.com/graphql": Forbidden`; no PR was created or confirmed. This documentation commit records the previous verified SHA; Git/ls-remote establish the final one. Main remains `79f0bdf3ee928db0055c52e8e4be7b304cf2458d`.
+
 Branch `feature/approved-audit-person-search` from verified remote main `79f0bdf3ee928db0055c52e8e4be7b304cf2458d`. Main already contains the completed groups authorized for consolidation; do not merge this subsequent package automatically. Read `docs/approved-specifications/AUDIT_PERSON_SEARCH.md` and PROGRESS before resuming.
 
 Decision24 implemented: scoped actor/affected/either search, suggestions, exact authorized count, localized names/nine-digit numbers and immutable companions in additive0045. Invoker RPCs inherit audit-event RLS; no widening to Student/Instructor (decision69 remains later). Required identity capture failure rolls back domain/event. Migration drains old trigger invocations with audited-table locks before replacement/backfill; real concurrent upgrade test passes. Legacy lookups are labelled and unavailable names/relationships are not invented. No historicalSQL/math/Sheets/Vercel modifications or production actions.
