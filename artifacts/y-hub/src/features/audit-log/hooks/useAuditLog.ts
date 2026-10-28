@@ -6,14 +6,14 @@ export function useAuditLog() {
   const [filters, setFilters] = useState<AuditFilters>(emptyFilters);
   const [cursors, setCursors] = useState<(AuditCursor | null)[]>([null]);
   const [revision, setRevision] = useState(0);
-  const [page, setPage] = useState<AuditPage>({ events: [], next: null });
+  const [page, setPage] = useState<AuditPage>({ events: [], next: null, total: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const cursor = cursors[cursors.length - 1];
   useEffect(() => {
     // Cancel the old request when the filters or page change.
     const controller = new AbortController();
-    setLoading(true); setError(false); setPage({ events: [], next: null });
+    setLoading(true); setError(false); setPage({ events: [], next: null, total: 0 });
     listAuditEvents(filters, cursor, controller.signal).then(result => {
       if (!controller.signal.aborted) setPage(result);
     }).catch(() => {

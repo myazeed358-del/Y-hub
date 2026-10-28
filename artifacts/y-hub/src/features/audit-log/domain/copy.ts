@@ -1,9 +1,10 @@
 export const auditCopy = {
   en: {
     title: 'Audit log', subtitle: 'Trusted records of administrative and sensitive changes. All times are UTC.',
+    person: 'Person name or nine-digit number', personScope: 'Search people as', actorScope: 'Actor', affectedScope: 'Affected person', eitherScope: 'Actor or affected person', suggestions: 'Matching people', suggestionError: 'Unable to load suggestions. You can still apply this search.', results: 'Results', affected: 'Affected people', unknown: 'Not recorded', legacy: 'Legacy lookup; not a historical name snapshot',
     search: 'Search actor name or event', actor: 'Actor ID (UUID)', action: 'Action', entity: 'Entity', from: 'From date', to: 'Through date',
     all: 'All', apply: 'Apply filters', refresh: 'Refresh', loading: 'Loading audit log…', empty: 'No events match these filters.',
-    error: 'Unable to load the audit log. Try again.', invalid: 'Check the actor ID and date range.',
+    error: 'Unable to load the audit log. Try again.', invalid: 'Check the person search and date range.',
     who: 'Actor', role: 'Role', time: 'Time (UTC)', sensitivity: 'Sensitivity', details: 'Details',
     previous: 'Previous', next: 'Next', page: 'Page', changes: 'Recorded changes', field: 'Field', before: 'Before', after: 'After',
     restricted: 'Restricted to Owner', redacted: 'Redacted', absent: 'Not present', context: 'Context', event: 'Event ID',
@@ -17,9 +18,10 @@ export const auditCopy = {
   },
   ar: {
     title: 'سجل التدقيق', subtitle: 'سجل موثوق للتغييرات الإدارية والحساسة. جميع الأوقات بالتوقيت العالمي UTC.',
+    person: 'اسم الشخص أو رقمه ذو التسعة أرقام', personScope: 'البحث عن الشخص بصفته', actorScope: 'منفذ العملية', affectedScope: 'الشخص المتأثر', eitherScope: 'المنفذ أو المتأثر', suggestions: 'أشخاص مطابقون', suggestionError: 'تعذر تحميل الاقتراحات. يمكنك تطبيق البحث المكتوب.', results: 'النتائج', affected: 'الأشخاص المتأثرون', unknown: 'غير مسجل', legacy: 'بيانات تاريخية مستكملة؛ ليست لقطة اسم وقت الحدث',
     search: 'بحث باسم المنفذ أو الحدث', actor: 'معرف المنفذ (UUID)', action: 'الإجراء', entity: 'الكيان', from: 'من تاريخ', to: 'حتى تاريخ',
     all: 'الكل', apply: 'تطبيق الفلاتر', refresh: 'تحديث', loading: 'جارٍ تحميل سجل التدقيق…', empty: 'لا توجد أحداث تطابق الفلاتر.',
-    error: 'تعذر تحميل سجل التدقيق. حاول مرة أخرى.', invalid: 'تحقق من معرف المنفذ والفترة الزمنية.',
+    error: 'تعذر تحميل سجل التدقيق. حاول مرة أخرى.', invalid: 'تحقق من البحث عن الشخص والفترة الزمنية.',
     who: 'المنفذ', role: 'الدور', time: 'الوقت (UTC)', sensitivity: 'الحساسية', details: 'التفاصيل',
     previous: 'السابق', next: 'التالي', page: 'الصفحة', changes: 'التغييرات المسجلة', field: 'الحقل', before: 'قبل', after: 'بعد',
     restricted: 'محجوز لـ Owner', redacted: 'محجوب', absent: 'غير موجود', context: 'السياق', event: 'معرف الحدث',

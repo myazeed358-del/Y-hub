@@ -1,3 +1,15 @@
+# Decision24 checkpoint — 2026-10-28
+
+Branch `feature/approved-audit-person-search` from verified remote main `79f0bdf3ee928db0055c52e8e4be7b304cf2458d`. Main already contains the completed groups authorized for consolidation; do not merge this subsequent package automatically. Read `docs/approved-specifications/AUDIT_PERSON_SEARCH.md` and PROGRESS before resuming.
+
+Decision24 implemented: scoped actor/affected/either search, suggestions, exact authorized count, localized names/nine-digit numbers and immutable companions in additive0045. Invoker RPCs inherit audit-event RLS; no widening to Student/Instructor (decision69 remains later). Required identity capture failure rolls back domain/event. Migration drains old trigger invocations with audited-table locks before replacement/backfill; real concurrent upgrade test passes. Legacy lookups are labelled and unavailable names/relationships are not invented. No historicalSQL/math/Sheets/Vercel modifications or production actions.
+
+Verified2111Vitest/242files,36Python,8architecture guards,workspaceTS/audits/build;192PostgreSQL tests plus14legacyRLS assertions/immutable-number checks;70real localAuth/JWT/PostgREST tests;2fixtureChromium scenarios. Focused27Vitest/5HTTP reruns are subsets. HostedStaging, representative-load/backfill time and production-ledger verification remain PENDING. ExistingPDF.js/Vitechunk/Starlette warnings remain; VercelPythonissue deferred.
+
+Progress:21complete,19partial,30missing,1repair across71;72–80excluded. Next independent group:26 legacy syllabus wiring, then27/41 server-enforced lesson completion, then the existing ordered plan. Do not restart the completed packages. PR API returned GraphQLForbidden; attempted elevated retry was cancelled, no PR number confirmed. Body is AUDIT_PERSON_SEARCH_PR.md; Git/ls-remote establish the final pushed checkpoint. Preserve all work and keep new features on independent review branches.
+
+## Preserved previous checkpoints
+
 # Authorized consolidation checkpoint — 2026-10-27
 
 The user explicitly authorized merging completed work into main, then continuing development. Integration branch `integration/approved-work-20261027` is based on main `2bf1182d723c944562fce2ba93f813b1d8031ef8` (attendance reports already merged through PR40). It merges approved-engine-grants, approved-context-breadcrumbs, approved-bilingual-profiles, and the reviewed comment-only branch. No force push or production SQL/deployment is authorized. Read `docs/approved-specifications/MERGE_2026-10-27.md`.
