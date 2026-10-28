@@ -1,5 +1,7 @@
 # Decision26 checkpoint — 2026-10-28
 
+Remote checkpoint verified with `git ls-remote`: `656d464f41664bd895c984c9c95825c1a28a1a60` (implementation `97e075f`). The actual Draft PR creation returned `Post "https://api.github.com/graphql": Forbidden`; no new PR number is confirmed. This follow-up documentation commit records the previous verified SHA. Git/ls-remote establish its final SHA. Review creation link (not an existing PR): https://github.com/myazeed358-del/Y-hub/pull/new/feature/approved-learning-path
+
 Branch `feature/approved-learning-path`, based on remote main `7e57e9abb2015a0ba20936770dc12fb0ee7c54ef`. Decision24 was externally merged through PR44, including prior verified `2bd325762c4e551c53df2d4b10cbbf27ccc54b83`; do not recreate its PR or redo it. Read `docs/approved-specifications/LEARNING_PATH.md` and PROGRESS.
 
 Decision26 implemented: existing legacy-home/legacy-course compose the public syllabus panel, bounded real section directory and current syllabus RPC. Student active enrollment/publishing and staff scope are enforced by existing database policies, verified over native local HTTP. Same-title sections remain separate by UUID. Opening topics writes no completion or grade. Fake37%, fixed learner/session, fabricated milestones and reference completion badges removed; independent fuzzy articles, routes, lab/quiz and mathematical algorithms preserved. No newSQL or production actions. Read-only reload denial hides stale syllabus; editor drafts are retained.

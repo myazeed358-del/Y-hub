@@ -55,3 +55,8 @@ Initial browser verification exposed an accessible-name issue: wrapping the sele
 Hosted Staging, deployment configuration and production migration ledger remain PENDING; local tests do not establish production readiness. No main merge or production deployment was performed. Next independent group:27/41 completion records and verifiable activity rules, then AI Practice15–23/38–40 and performance42 according to the approved dependency order.72–80 remain excluded.
 
 Git history and `git ls-remote` establish the final pushed SHA. A PR number must only be reported after a successful GitHub API result.
+
+## Remote delivery
+
+Remote checkpoint verified with `git ls-remote`: `656d464f41664bd895c984c9c95825c1a28a1a60` (implementation `97e075f`). The actual Draft PR creation returned `Post "https://api.github.com/graphql": Forbidden`; no new PR number is confirmed. This follow-up documentation commit records the previous verified SHA. Git/ls-remote establish its final SHA. Review creation link (not an existing PR): https://github.com/myazeed358-del/Y-hub/pull/new/feature/approved-learning-path
+
