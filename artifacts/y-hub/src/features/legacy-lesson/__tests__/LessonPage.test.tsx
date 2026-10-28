@@ -108,3 +108,11 @@ describe('LessonPage', () => {
     expect(html).toContain('In this path');
   });
 });
+
+it('keeps reference lessons without fabricated personal completion', () => {
+  const html=renderToStaticMarkup(<LessonPage />);
+  expect(html).toContain('لا يمثل إكمال سيلابس شعبتك');
+  expect(html).not.toContain('تقدم الدرس');
+  expect(html).not.toContain('lucide-check');
+  expect(html).not.toContain('width:100%');
+});

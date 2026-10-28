@@ -14,6 +14,7 @@ export default function LessonPage() {
   return (
     <div className="mx-auto max-w-5xl">
       <LessonHeader
+        language={lessonState.language}
         lesson={lessonState.lesson}
         t={lessonState.t}
         index={lessonState.index}

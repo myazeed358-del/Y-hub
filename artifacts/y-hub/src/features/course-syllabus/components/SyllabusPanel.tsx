@@ -18,7 +18,7 @@ export function SyllabusPanel({ courseId, editable = false }: { courseId: string
     <h2 className="text-xl font-bold">{t.title}</h2>
     {w.error && <p role="alert">{t[w.error as 'conflict' | 'denied' | 'unavailable' | 'invalid']}</p>}
     {w.busy && <p role="status">{t.loading}</p>}
-    {w.snapshot && <>
+    {w.snapshot && (editable || (!w.error && !w.busy)) && <>
       {!units.length && <p>{t.empty}</p>}
       {units.map((u,i) => <div key={u.id} className="rounded border p-3 space-y-2">
         {editable ? <>

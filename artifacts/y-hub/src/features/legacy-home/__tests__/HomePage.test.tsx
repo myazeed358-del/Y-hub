@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { courseLessons } from '@/content/course';
+
 
 const state = vi.hoisted(() => ({
   language: 'ar' as 'ar' | 'en',
@@ -35,30 +35,20 @@ beforeEach(() => {
 });
 
 describe('HomePage', () => {
-  it('renders the original hero and navigation', () => {
+  it('renders a bilingual academic hero without a fictitious student or session', () => {
     const html = renderToStaticMarkup(<HomePage />);
-
-    expect(html).toContain('اجعل الغموض');
-    expect(html).toContain(
-      'data-testid="link-continue-learning"'
-    );
-    expect(html).toContain(
-      'data-testid="link-open-lab"'
-    );
+    expect(html).toContain('تابع دروس شعبتك');
+    expect(html).toContain('href="#learning-path"');
+    expect(html).not.toContain('سارة');
+    expect(html).not.toContain('37%');
   });
 
-  it('renders exactly four featured lessons', () => {
-    const html = renderToStaticMarkup(<HomePage />);
-
-    const cards = html.match(
-      /data-testid="card-lesson-/g
-    ) ?? [];
-
-    expect(cards).toHaveLength(4);
-
-    expect(html).toContain(
-      `href="/lesson/${courseLessons[0].slug}"`
-    );
+  it('renders the supplied real learning path instead of static fuzzy lessons', () => {
+    const html = renderToStaticMarkup(<HomePage learningPath={<section id="learning-path">Actual section syllabus</section>} />);
+    expect(html).toContain('Actual section syllabus');
+    expect(html).not.toContain('card-lesson-');
+    expect(html).not.toContain('/lesson/membership-grade');
+    expect(html).not.toContain('٣٧٪');
   });
 
   it('preserves the lab and quiz tools', () => {
@@ -75,7 +65,7 @@ describe('HomePage', () => {
     const html = renderToStaticMarkup(<HomePage />);
 
     expect(html).toContain(
-      'Today we will turn membership grade'
+      'Choose your section and explore the syllabus'
     );
   });
 });
