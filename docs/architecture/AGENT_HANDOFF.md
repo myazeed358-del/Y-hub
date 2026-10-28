@@ -1,3 +1,15 @@
+# Decision26 checkpoint — 2026-10-28
+
+Branch `feature/approved-learning-path`, based on remote main `7e57e9abb2015a0ba20936770dc12fb0ee7c54ef`. Decision24 was externally merged through PR44, including prior verified `2bd325762c4e551c53df2d4b10cbbf27ccc54b83`; do not recreate its PR or redo it. Read `docs/approved-specifications/LEARNING_PATH.md` and PROGRESS.
+
+Decision26 implemented: existing legacy-home/legacy-course compose the public syllabus panel, bounded real section directory and current syllabus RPC. Student active enrollment/publishing and staff scope are enforced by existing database policies, verified over native local HTTP. Same-title sections remain separate by UUID. Opening topics writes no completion or grade. Fake37%, fixed learner/session, fabricated milestones and reference completion badges removed; independent fuzzy articles, routes, lab/quiz and mathematical algorithms preserved. No newSQL or production actions. Read-only reload denial hides stale syllabus; editor drafts are retained.
+
+Verified2127Vitest/244files,36Python,8architecture guards,workspaceTS/audits/build;55academicSQL/RLS tests;74real localAuth/JWT/PostgREST tests;4fixtureChromium scenarios.68focused tests are a subset. HostedStaging/production-ledger verification PENDING. VercelPythonbundle issue remains deferred; existingPDF.js/chunk/Starlette warnings unchanged.
+
+Progress22complete/19partial/30missing/0repair across71. This completes26 only, not27/41 or42. Next independent group: manual reversible completion and verified activities/instructor conditions27/41, thenAI Practice15–23/38–40 andperformance42. Start new migration numbering after0045 (check remote first). Never implement72–80 without separate authorization. Keep new work on independent review branches, no automatic main merge. Git/ls-remote establish final checkpoint; PR body LEARNING_PATH_PR.md.
+
+## Preserved previous checkpoints
+
 # Decision24 checkpoint — 2026-10-28
 
 Remote implementation checkpoint verified with `git ls-remote`: `5f69031c33163307a70076a47b1e00531c345ac5` (SQL commit `dab015a`, UI/docs commit `5f69031`). Draft PR creation was actually attempted with the committed body and returned `Post "https://api.github.com/graphql": Forbidden`; no PR was created or confirmed. This documentation commit records the previous verified SHA; Git/ls-remote establish the final one. Main remains `79f0bdf3ee928db0055c52e8e4be7b304cf2458d`.
