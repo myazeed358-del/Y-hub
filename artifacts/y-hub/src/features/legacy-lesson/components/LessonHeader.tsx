@@ -6,13 +6,14 @@ import type { LegacyLessonController } from '../hooks/useLegacyLesson';
 
 type Props = Pick<
   LegacyLessonController,
-  't' | 'index' | 'lessons'
+  't' | 'index' | 'lessons' | 'language'
 > & {
   lesson: CourseLesson;
 };
 
 export function LessonHeader({
   t,
+  language,
   index,
   lessons,
   lesson,
@@ -27,9 +28,8 @@ export function LessonHeader({
           <p className="mt-4 text-lg leading-8 text-[hsl(var(--muted-foreground))]">{lesson.subtitle}</p>
         </div>
         <div className="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5">
-          <div className="mb-3 flex items-center justify-between text-xs font-bold"><span>تقدم الدرس</span><span className="font-mono text-[hsl(var(--primary))]">{lesson.progress}٪</span></div>
-          <div className="mb-4 h-2 rounded-full bg-[hsl(var(--muted))]"><div className="h-full rounded-full bg-[hsl(var(--primary))]" style={{ width: `${lesson.progress}%` }} /></div>
-          <div className="flex items-center justify-between text-[11px] text-[hsl(var(--muted-foreground))]"><span>{index + 1} {t('from')} {lessons.length}</span><span>{lesson.progress === 100 ? t('completed') : t('learning')}</span></div>
+          <p className="text-sm text-muted-foreground">{language === 'ar' ? 'مرجع تعليمي مستقل؛ لا يمثل إكمال سيلابس شعبتك أو أداءك.' : 'Independent learning reference; this does not represent your section completion or performance.'}</p>
+          <p className="mt-3 text-xs text-muted-foreground">{index + 1} {t('from')} {lessons.length}</p>
         </div>
       </div>
     </>

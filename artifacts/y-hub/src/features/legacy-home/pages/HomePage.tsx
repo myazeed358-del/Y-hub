@@ -5,11 +5,10 @@ import { HomeHero } from '../components/HomeHero';
 import { HomeLearningProgress } from '../components/HomeLearningProgress';
 import { HomeToolGrid } from '../components/HomeToolGrid';
 
-export default function HomePage() {
+export default function HomePage({ learningPath }: { learningPath?: React.ReactNode }) {
   const {
     language,
     t,
-    featuredLessons,
   } = useLegacyHome();
 
   return (
@@ -19,10 +18,10 @@ export default function HomePage() {
       <HomeLearningProgress
         language={language}
         t={t}
-        featuredLessons={featuredLessons}
+        learningPath={learningPath}
       />
 
-      <HomeToolGrid t={t} />
+      <HomeToolGrid t={t} language={language} />
     </div>
   );
 }

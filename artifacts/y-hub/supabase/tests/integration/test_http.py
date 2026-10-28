@@ -292,3 +292,39 @@ class SupabaseHTTP(unittest.TestCase):
   for endpoint in ['my_attendance_sections','my_online_lecture_sections']:
    self.assertNotIn(c,[r['id'] for r in self.ok('instructor','/rpc/'+endpoint,{})])
    self.assertIn(c,[r['id'] for r in self.ok('other','/rpc/'+endpoint,{})])
+ def learning_directory(self,actor,claimed_student=None):
+  student=claimed_student or self.accounts[actor]['id']
+  return self.ok(actor,f'/courses?select=id,title,section_label,academic_term,course_enrollments!inner(student_id,status)&course_enrollments.student_id=eq.{student}&course_enrollments.status=eq.active&is_published=eq.true&order=title,id&offset=0&limit=26')
+ def test_24_learning_path_distinguishes_equal_titles_and_reads_actual_syllabus(self):
+  _,first=self.section();_,second=self.section();self.enroll(first);self.enroll(second)
+  for cid,title in [(first,'Topic first section'),(second,'Topic second section')]:
+   units=[{'id':uid(),'title':'Actual unit','sections':[{'id':uid(),'title':title}]}]
+   self.ok('instructor','/rpc/save_course_syllabus',{'p_course_id':cid,'p_expected_revision':0,'p_units':units})
+   snapshot=self.ok('student','/rpc/read_course_syllabus',{'p_course_id':cid})
+   self.assertEqual(snapshot['courseId'],cid);self.assertEqual(snapshot['units'],units)
+  directory=self.learning_directory('student');ids=[r['id'] for r in directory]
+  self.assertIn(first,ids);self.assertIn(second,ids)
+  self.assertEqual(next(r['title'] for r in directory if r['id']==first),next(r['title'] for r in directory if r['id']==second))
+  self.assertNotIn(first,[r['id'] for r in self.learning_directory('student2')])
+ def test_25_learning_path_rejects_foreign_identity_and_withdrawal(self):
+  _,cid=self.section();self.enroll(cid)
+  self.assertEqual(self.learning_directory('student2',self.accounts['student']['id']),[])
+  self.assertIsNone(self.ok('student2','/rpc/read_course_syllabus',{'p_course_id':cid}))
+  self.stack.sql(f"UPDATE public.course_enrollments SET status='dropped' WHERE course_id='{cid}'")
+  self.assertNotIn(cid,[r['id'] for r in self.learning_directory('student')])
+  self.assertIsNone(self.ok('student','/rpc/read_course_syllabus',{'p_course_id':cid}))
+ def test_26_learning_path_unpublished_section_and_unauthenticated_access(self):
+  _,cid=self.section();self.enroll(cid)
+  self.ok('instructor',f'/courses?id=eq.{cid}',{'is_published':False},'PATCH')
+  self.assertNotIn(cid,[r['id'] for r in self.learning_directory('student')])
+  self.assertIsNone(self.ok('student','/rpc/read_course_syllabus',{'p_course_id':cid}))
+  self.denied(None,'/rpc/read_course_syllabus',{'p_course_id':cid})
+ def test_27_learning_path_staff_scope_uses_live_roles_and_existing_rpc(self):
+  _,cid=self.section();instructor=self.accounts['instructor']['id']
+  path=f'/courses?select=id,title,section_label,academic_term&id=eq.{cid}&instructor_id=eq.{instructor}&order=title,id&offset=0&limit=26'
+  self.assertEqual(self.ok('instructor',path)[0]['id'],cid)
+  self.assertEqual(self.ok('other',path),[])
+  self.assertIsNone(self.ok('other','/rpc/read_course_syllabus',{'p_course_id':cid}))
+  for role in ['admin','super']:
+   self.assertEqual(self.ok(role,f'/courses?select=id,title,section_label,academic_term&id=eq.{cid}')[0]['id'],cid)
+   self.assertEqual(self.ok(role,'/rpc/read_course_syllabus',{'p_course_id':cid})['courseId'],cid)
