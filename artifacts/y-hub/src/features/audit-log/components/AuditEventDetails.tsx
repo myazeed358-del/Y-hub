@@ -1,3 +1,4 @@
+import { AuditPersonIdentity } from './AuditPersonIdentity';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@workspace/y-hub-ds/components/ui/dialog';
 import type { AuditEvent } from '../domain/auditLog';
 import type { AuditCopy } from '../domain/copy';
@@ -12,6 +13,10 @@ export function AuditEventDetails({ event, copy, onClose }: { event: AuditEvent 
         <p>{event.actor_name || copy.values[event.actor_role]} · {copy.values[event.actor_role]}</p>
         <p>{copy.values[event.entity_type] ?? event.entity_type} <span className="break-all font-mono text-xs">{event.entity_id}</span></p>
         {event.super_admin_only && <p className="text-sm font-semibold">{copy.restricted}</p>}
+        {event.people.map(person => <div key={person.relation + person.person_id} className="rounded border p-2">
+          <h3 className="text-sm font-semibold">{person.relation === 'actor' ? copy.who : copy.affected}</h3>
+          <AuditPersonIdentity person={person} copy={copy} />
+        </div>)}
         <h3 className="font-semibold">{copy.changes}</h3>
         <div className="overflow-x-auto"><table className="w-full text-sm">
           <thead><tr>{[copy.field, copy.before, copy.after].map(label => <th key={label} className="border-b p-2 text-start">{label}</th>)}</tr></thead>

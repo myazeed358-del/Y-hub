@@ -19,6 +19,11 @@ if ! (
   psql_file artifacts/y-hub/supabase/tests/audit/bootstrap.sql || exit 1
   for migration in artifacts/y-hub/supabase/migrations/*.sql; do
     if [[ $(basename "$migration") == 0022_* ]]; then psql_file artifacts/y-hub/supabase/tests/audit/seed.sql || exit 1; fi
+    if [[ $(basename "$migration") == 0045_* ]]; then
+      psql_file artifacts/y-hub/supabase/tests/audit/person_legacy_seed.sql || exit 1
+      YHUB_AUDIT_TEST_CONTAINER="$container" python3 -B artifacts/y-hub/supabase/tests/audit-migration/test_upgrade.py || exit 1
+      continue
+    fi
     psql_file "$migration" || exit 1
   done
 ) >"$log" 2>&1; then cat "$log"; exit 1; fi
