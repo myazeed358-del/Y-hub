@@ -77,3 +77,7 @@ Local logs: `/workspace/completion-full-final.log`, `completion-focused-final.lo
 - This report/PR body, the 71-decision progress table and architecture handoff/progress.
 
 Next independent group: AI Practice decisions 15–23/38–40, then performance 42. Reuse existing RAG and math ports; do not re-create the Tutor or implement recommendations 72–80.
+
+## Remote delivery
+
+Remote delivery verified: `072f49311c4ae08e3ad497117a155398af7b0d8e` on `feature/approved-lesson-completion` (SQL `e30f896`, UI `012d655`). Actual Draft PR creation returned `Post "https://api.github.com/graphql": Forbidden`; no PR number was created/confirmed. The destination is absent from the enforced environment network allowlist. The committed PR body is ready; restore approved API access before creating it. Review-creation link (not an existing PR): https://github.com/myazeed358-del/Y-hub/pull/new/feature/approved-lesson-completion . This documentation-only follow-up records the previous verified SHA; Git/ls-remote establish the final delivery SHA. Main was independently rechecked at `00ff09f0d0fe47b89d3ea532716add0829a42454`.
