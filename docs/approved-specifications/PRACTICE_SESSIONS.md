@@ -97,3 +97,7 @@ A code review also caught an initial StrictMode cleanup race: an aborted initial
 - This report, PR body, 71-decision progress table and architecture handoff/progress
 
 No mathematical engine algorithm, Sheets code, historical SQL, theme, Vercel configuration or unrelated feature was modified.
+
+## Remote checkpoint
+
+Remote delivery checkpoint verified with `git ls-remote`: `e2a1aa0b9016230931e72e77462d5d525fd118b0` on `feature/approved-practice-sessions` (server commit7434e3c, UI583deff). Main remains16bca9a. No PR was created: the running API network policy remains unchanged/blocked; this is a **creation link**, not an existing PR: https://github.com/myazeed358-del/Y-hub/pull/new/feature/approved-practice-sessions . This documentation-only follow-up records the previous verified SHA; Git/ls-remote establish the final commit.
