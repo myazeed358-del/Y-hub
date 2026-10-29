@@ -15,11 +15,13 @@ class Stack:
   return p.stdout.strip()
  def sql(self,sql):
   return self.docker('exec','-i',self.names['db'],'psql','-h','127.0.0.1','-X','-qAt','-U','postgres','-v','ON_ERROR_STOP=1',input='SET search_path=public;'+sql)
- def request(self,service,path,data=None,token=None,method=None):
+ def request(self,service,path,data=None,token=None,method=None,profile=None):
   assert service in ('auth','rest')
   assert path.startswith('/') and '\r' not in path and '\n' not in path
+  if profile is not None:assert profile.replace('_','').isalnum()
   body=json.dumps(data).encode() if data is not None else b''
   headers=f'Authorization: Bearer {token}\r\n' if token else ''
+  if profile is not None:headers+=f'Accept-Profile: {profile}\r\n'
   req=(f'{method or ("POST" if data is not None else "GET")} {path} HTTP/1.1\r\nHost: local\r\nConnection: close\r\nContent-Type: application/json\r\nPrefer: return=representation\r\n{headers}Content-Length: {len(body)}\r\n\r\n').encode()+body
   # HTTP stays on the isolated Docker network; no published ports or proxy bypass.
   # Keep stdin open until the response completes: early EOF cancels GoTrue requests.

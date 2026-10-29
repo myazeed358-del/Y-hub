@@ -421,3 +421,7 @@ verify_jwt = true
 # Same signed-in boundary for instructor-managed source indexing.
 [functions.ai-tutor-index]
 verify_jwt = true
+
+# Incremental private practice generation uses the same authenticated Tutor runtime.
+[functions.ai-practice-generate]
+verify_jwt = true

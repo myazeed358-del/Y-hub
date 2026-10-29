@@ -1,0 +1,9 @@
+## Saved AI Practice sessions with trusted incremental generation
+
+The source-selection workflow previously ended at a passage preview. It now creates persistent private practice/self-test sessions, generates one evidence-backed multiple-choice question per request, and saves choices with revision conflicts and local recovery. Suggested answers and citations are withheld until confirmation in practice or final self-test submission. Existing chat, math engines and source-classification controls are preserved.
+
+Additive migration **0048** provides owner/current-enrollment RLS, protected question/key storage, strict client RPCs and service-only publication. The new `ai-practice-generate` handler reuses Tutor authentication, quotas and post-provider checks. It reconstructs citations from server evidence and never returns a model key directly. AI suggestions are labelled unverified; hybrid grading/adaptation/review/performance remain future work.
+
+Validation: **2185 Vitest/252 files, 36 Python, 8 architecture guard cases, 98 academic SQL + 39 audit + 1 concurrent upgrade, 88 native local Auth/JWT/PostgREST, 13 browser scenarios**, workspace and portable-worker TypeScript, strict boundaries and production build all pass. No final failures. See [PRACTICE_SESSIONS.md](docs/approved-specifications/PRACTICE_SESSIONS.md) for exact final results and failure evidence. Local native Auth/JWT/PostgREST tests are distinguished from intercepted browser/provider responses. Production migration and Edge deployment were not performed; administrative SQL access, hosted role checks and provider smoke tests remain pending. Vercel Python bundle-size issue is known/deferred.
+
+Decisions: completes the current multiple-choice saving/delayed-reference/count/reference-selection slice of **19/22/38/40** locally; advances **15/16/17/20/21** without claiming the whole AI Practice plan is finished. Do not merge this new group or deploy it automatically.
