@@ -1,4 +1,5 @@
 import { KnowledgeSources } from "../knowledge/KnowledgeSources";
+import { PracticeSourcesPanel } from "../practice/PracticeSourcesPanel";
 import { Link } from "wouter";
 import { Button } from "@workspace/y-hub-ds/components/ui/button";
 import { Loader2 } from "lucide-react";
@@ -101,6 +102,7 @@ export default function AITutorPage() {
       {errorState && (
         <p role="alert" className="text-destructive">{errorState}</p>
       )}
+      <PracticeSourcesPanel courseId={course.id} />
       <div className="flex-1 flex flex-col md:flex-row gap-4 overflow-hidden">
         {/* Chat Area */}
         <AITutorChatPanel

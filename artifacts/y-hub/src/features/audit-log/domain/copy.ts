@@ -14,7 +14,7 @@ export const auditCopy = {
       role_changed: 'Role changed', access_changed: 'Access changed', normal: 'Normal', high: 'High', critical: 'Critical',
       system: 'System', student: 'Student', instructor: 'Instructor', admin: 'Admin', super_admin: 'Owner',
       course_definitions: 'Course definitions', courses: 'Courses', course_materials: 'Learning materials', exams: 'Exams', questions: 'Questions', course_enrollments: 'Enrollments',
-      syllabus_units: 'Syllabus units', syllabus_sections: 'Syllabus sections', users: 'Accounts', lesson_completion_rules: 'Lesson completion conditions', lesson_completion_overrides: 'Manual lesson completion' } as Record<string, string>,
+      syllabus_units: 'Syllabus units', syllabus_sections: 'Syllabus sections', users: 'Accounts', lesson_completion_rules: 'Lesson completion conditions', lesson_completion_overrides: 'Manual lesson completion', ai_practice_references: 'Practice reference roles' } as Record<string, string>,
   },
   ar: {
     title: 'سجل التدقيق', subtitle: 'سجل موثوق للتغييرات الإدارية والحساسة. جميع الأوقات بالتوقيت العالمي UTC.',
@@ -31,7 +31,7 @@ export const auditCopy = {
       role_changed: 'تغيير الدور', access_changed: 'تغيير الوصول', normal: 'عادية', high: 'مرتفعة', critical: 'حرجة',
       system: 'النظام', student: 'طالب', instructor: 'دكتور', admin: 'أدمن', super_admin: 'Owner',
       course_definitions: 'تعريفات المواد', courses: 'المساقات', course_materials: 'المواد التعليمية', exams: 'الامتحانات', questions: 'الأسئلة', course_enrollments: 'التسجيلات',
-      syllabus_units: 'وحدات السيلابس', syllabus_sections: 'عناوين السيلابس', users: 'الحسابات', lesson_completion_rules: 'شروط إكمال الدروس', lesson_completion_overrides: 'إكمال الدروس اليدوي' } as Record<string, string>,
+      syllabus_units: 'وحدات السيلابس', syllabus_sections: 'عناوين السيلابس', users: 'الحسابات', lesson_completion_rules: 'شروط إكمال الدروس', lesson_completion_overrides: 'إكمال الدروس اليدوي', ai_practice_references: 'أنواع مراجع التدريب' } as Record<string, string>,
   },
 };
 export type AuditCopy = typeof auditCopy.en;
