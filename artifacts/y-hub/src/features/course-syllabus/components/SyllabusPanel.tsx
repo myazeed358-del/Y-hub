@@ -1,3 +1,4 @@
+import { LessonProgressPanel } from './LessonProgressPanel';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { useSyllabus } from '../hooks/useSyllabus';
@@ -46,6 +47,7 @@ export function SyllabusPanel({ courseId, editable = false }: { courseId: string
         <button className={button} disabled={w.busy || !w.dirty} onClick={() => void w.save()}>{t.save}</button>
         <span role="status">{w.dirty?t.unsaved:t.saved}</span>
       </div>}
+      {!w.dirty && <LessonProgressPanel key={w.snapshot.revision} courseId={courseId} />}
     </>}
     <button className={button} disabled={w.busy} onClick={() => {if(!w.dirty || window.confirm(t.confirmReload)) void w.reload();}}>{t.reload}</button>
   </section>;
