@@ -1,3 +1,19 @@
+# Decisions 27/41 checkpoint — 2026-10-29
+
+Remote delivery verified: `072f49311c4ae08e3ad497117a155398af7b0d8e` on `feature/approved-lesson-completion` (SQL `e30f896`, UI `012d655`). Actual Draft PR creation returned `Post "https://api.github.com/graphql": Forbidden`; no PR number was created/confirmed. The destination is absent from the enforced environment network allowlist. The committed PR body is ready; restore approved API access before creating it. Review-creation link (not an existing PR): https://github.com/myazeed358-del/Y-hub/pull/new/feature/approved-lesson-completion . This documentation-only follow-up records the previous verified SHA; Git/ls-remote establish the final delivery SHA. Main was independently rechecked at `00ff09f0d0fe47b89d3ea532716add0829a42454`.
+
+Current branch `feature/approved-lesson-completion`, from verified remote main `00ff09f0d0fe47b89d3ea532716add0829a42454`. Read `docs/approved-specifications/LESSON_COMPLETION.md` and PROGRESS before resuming. Preserve this completed group; do not repeat earlier learning-path work.
+
+The user explicitly authorized merging the latest completed work and production Supabase migration work. Decision 26's verified `b30c0a9cc80bf5104d5cd00367e94d8feb63f232` was normally merged and pushed to main `00ff09f0d0fe47b89d3ea532716add0829a42454`, verified using ls-remote. No force push. Migration work remains blocked by missing administrative SQL access and ledger, not missing user authorization: runtime exposes only project URL and anonymous key. Pending secure SUPABASE_DB_URL/network setup was requested; never ask for secrets in chat, blindly replay old SQL, or claim a production migration occurred. The new 0046 group stays on its independent review branch.
+
+27/41 implemented: manual reversible per-topic student completion, all/any instructor-configured same-section submitted exam rules, reset to automatic, no inferred grades or opening-based completion. New additive0046 uses current role/enrollment/ownership, own-row RLS, guarded definer RPCs, CAS/advisory locking, idempotent lost-ack recovery and mandatory audit. UI reuses SyllabusPanel with bilingual responsive controls and LTR counts in RTL. No historicalSQL, math, Sheets or Vercel changes. Automatic activity support is real exam submissions; future AI Practice needs its own verified contract. Rule changes/publication affect current automatic evaluation; manual override remains explicit.
+
+Final checks:2139Vitest/246files,36Python,8architecture guards,workspaceTS/audits/build;71academicSQL (16new),39auditSQL+1concurrentupgrade;77real localAuth/JWT/PostgREST;4fixtureChromium PASS.51focusedVitest are a subset.0finalfailures. HostedStaging, productionledger/deployment/role smoke tests remain PENDING. ExistingPDF.js/Vitechunk/Starlette warnings; VercelPythonissue deferred. Full evidence and earlier corrected test failures are in LESSON_COMPLETION.md.
+
+Progress24complete/19partial/28missing/0repair across71 (local implementation, not production readiness). Next independent group:AI Practice15–23/38–40, thenperformance42. Recommendations72–80excluded. New migrations after0046 only after checking remote. Do not automatically merge new work. PR body:LESSON_COMPLETION_PR.md. GitHub API has been policy-restricted; report an actual creation result only. Git history/ls-remote establish the newest verified delivery SHA.
+
+## Preserved previous checkpoints
+
 # Decision26 checkpoint — 2026-10-28
 
 Remote checkpoint verified with `git ls-remote`: `656d464f41664bd895c984c9c95825c1a28a1a60` (implementation `97e075f`). The actual Draft PR creation returned `Post "https://api.github.com/graphql": Forbidden`; no new PR number is confirmed. This follow-up documentation commit records the previous verified SHA. Git/ls-remote establish its final SHA. Review creation link (not an existing PR): https://github.com/myazeed358-del/Y-hub/pull/new/feature/approved-learning-path

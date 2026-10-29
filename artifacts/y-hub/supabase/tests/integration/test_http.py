@@ -328,3 +328,35 @@ class SupabaseHTTP(unittest.TestCase):
   for role in ['admin','super']:
    self.assertEqual(self.ok(role,f'/courses?select=id,title,section_label,academic_term&id=eq.{cid}')[0]['id'],cid)
    self.assertEqual(self.ok(role,'/rpc/read_course_syllabus',{'p_course_id':cid})['courseId'],cid)
+ def learning_topic(self):
+  _,c=self.section();self.enroll(c);topic=uid();units=[{'id':uid(),'title':'Unit','sections':[{'id':topic,'title':'Lesson'}]}]
+  self.ok('instructor','/rpc/save_course_syllabus',{'p_course_id':c,'p_expected_revision':0,'p_units':units});return c,topic
+ def test_28_completion_roundtrip_retry_and_withdrawal_over_native_jwt(self):
+  c,t=self.learning_topic();payload={'p_topic':t,'p_expected_revision':0,'p_state':'completed'}
+  self.assertEqual(self.ok('student','/rpc/set_lesson_completion',payload),1)
+  self.assertEqual(self.ok('student','/rpc/set_lesson_completion',payload),1)
+  state=self.ok('student','/rpc/read_lesson_progress',{'p_course':c});self.assertTrue(state['topics'][0]['completed'])
+  self.denied('student2','/rpc/set_lesson_completion',payload)
+  self.denied('student','/rpc/set_lesson_completion',{**payload,'p_student':self.accounts['student2']['id']})
+  self.denied('student','/lesson_completion_overrides',{'topic_id':t,'student_id':self.accounts['student']['id'],'completed':True})
+  self.stack.sql(f"UPDATE public.course_enrollments SET status='dropped' WHERE course_id='{c}'")
+  self.denied('student','/rpc/read_lesson_progress',{'p_course':c})
+  self.denied('student','/rpc/set_lesson_completion',{**payload,'p_state':'incomplete','p_expected_revision':1})
+ def test_29_completion_rule_activity_submission_and_manual_override(self):
+  c,t=self.learning_topic();e,q=uid(),uid()
+  self.ok('instructor','/exams',{'id':e,'course_id':c,'title':'Completion activity','is_published':True})
+  self.ok('instructor','/questions',{'id':q,'exam_id':e,'course_id':c,'type':'math','content':'Local','correct_answer':'42','points':1})
+  rule={'p_topic':t,'p_expected_revision':0,'p_mode':'all','p_exam_ids':[e]}
+  self.denied('other','/rpc/set_lesson_completion_rule',rule);self.denied('student','/rpc/set_lesson_completion_rule',rule)
+  self.assertEqual(self.ok('instructor','/rpc/set_lesson_completion_rule',rule),1)
+  before=self.ok('student','/rpc/read_lesson_progress',{'p_course':c});self.assertFalse(before['topics'][0]['completed']);self.assertNotIn('correct_answer',json.dumps(before))
+  self.ok('student','/rpc/start_exam_attempt',{'p_exam_id':e});self.ok('student','/rpc/submit_exam',{'p_exam_id':e,'p_answers':{q:'42'}})
+  self.assertTrue(self.ok('student','/rpc/read_lesson_progress',{'p_course':c})['topics'][0]['completed'])
+  self.ok('student','/rpc/set_lesson_completion',{'p_topic':t,'p_expected_revision':0,'p_state':'incomplete'})
+  self.assertFalse(self.ok('student','/rpc/read_lesson_progress',{'p_course':c})['topics'][0]['completed'])
+ def test_30_completion_conflicts_use_terminal_409_and_no_fake_actor(self):
+  c,t=self.learning_topic();self.ok('student','/rpc/set_lesson_completion',{'p_topic':t,'p_expected_revision':0,'p_state':'completed'})
+  self.conflict('student','/rpc/set_lesson_completion',{'p_topic':t,'p_expected_revision':0,'p_state':'incomplete'})
+  for actor in ['admin','super']:
+   data=self.ok(actor,'/rpc/read_lesson_progress',{'p_course':c});self.assertFalse(data['student']);self.assertFalse(data['canManage']);self.assertEqual(data['topics'][0]['revision'],0)
+  self.denied(None,'/rpc/read_lesson_progress',{'p_course':c})

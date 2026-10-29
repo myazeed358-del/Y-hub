@@ -1,3 +1,4 @@
+vi.mock('../components/LessonProgressPanel',()=>({LessonProgressPanel:()=>null}));
 import { act,cleanup,fireEvent,render,screen,waitFor } from '@testing-library/react';
 import { afterEach,beforeEach,expect,it,vi } from 'vitest';
 const state=vi.hoisted(()=>({language:'en' as 'en'|'ar',read:vi.fn(),save:vi.fn()}));

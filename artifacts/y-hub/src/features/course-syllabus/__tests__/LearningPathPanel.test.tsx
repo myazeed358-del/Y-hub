@@ -1,3 +1,4 @@
+vi.mock('../components/LessonProgressPanel',()=>({LessonProgressPanel:()=>null}));
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 const state = vi.hoisted(() => ({ language:'en' as 'en'|'ar', role:'student', id:'viewer', list:vi.fn(), read:vi.fn(), save:vi.fn() }));
@@ -16,7 +17,7 @@ it('requires an explicit section and reads its real topics by ID despite identic
  expect(screen.getByText('Open section materials').getAttribute('href')).toBe('/course/section-one/view');
  fireEvent.change(screen.getByLabelText('Section', { exact: true }),{target:{value:two.id}});await screen.findByText('Topic section-two');
  expect(screen.queryByText('Topic section-one')).toBeNull();expect(state.save).not.toHaveBeenCalled();
- expect(screen.queryByRole('progressbar')).toBeNull();expect(screen.getByText(/no completion percentage/)).toBeTruthy();
+ expect(screen.queryByRole('progressbar')).toBeNull();expect(screen.getByText(/counted from your saved choices/)).toBeTruthy();
 });
 it('clears selection on page changes and does not fetch every directory page',async()=>{
  state.list.mockResolvedValueOnce({sections:[one],hasNext:true});render(<LearningPathPanel />);
