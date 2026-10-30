@@ -2,6 +2,8 @@
 import assert from "node:assert/strict";
 import { mkdir } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
+import { verifyDerivative } from "../artifacts/y-hub/supabase/functions/_shared/tutor/polynomialVerifier.mjs";
+const mathRun = process.env.YHUB_PRACTICE_MATH === "1";
 const { chromium } = await import(
   pathToFileURL(
     process.env.YHUB_PLAYWRIGHT_MODULE ||
@@ -13,7 +15,10 @@ const base = new URL(
 );
 assert(["127.0.0.1", "localhost"].includes(base.hostname));
 const output =
-  process.env.YHUB_SCREENSHOTS || "/workspace/practice-session-screenshots";
+  process.env.YHUB_SCREENSHOTS ||
+  (mathRun
+    ? "/workspace/practice-math-screenshots"
+    : "/workspace/practice-session-screenshots");
 await mkdir(output, { recursive: true });
 const browser = await chromium.launch({
   executablePath: "/usr/bin/chromium",
@@ -51,6 +56,17 @@ try {
       allowed = true,
       offline = false;
     const ar = language === "ar";
+    const computed = mathRun
+      ? verifyDerivative(
+          {
+            kind: "polynomial_derivative",
+            variable: "x",
+            coefficients: [1, -5, 2, 1],
+            options: [[-5, 4, 3], [0], [1], [2]],
+          },
+          language,
+        )
+      : null;
     const evidence = {
       id,
       source_id: source,
@@ -63,8 +79,11 @@ try {
     const feedback = {
       suggestedChoice: 0,
       matchesSuggestion: true,
-      explanation: String.raw`قاعدة القوة: \[\frac{d}{dx}x^2=2x\]`,
+      explanation:
+        computed?.question.explanation ??
+        String.raw`قاعدة القوة: \[\frac{d}{dx}x^2=2x\]`,
       citations: [evidence],
+      verification: computed?.verification.method ?? null,
     };
     const item = {
       id: source,
@@ -150,17 +169,17 @@ try {
             (state.submittedAt || (state.mode === "practice" && q.answered)),
         );
         return json({
-          earned: 0,
-          graded: 0,
-          pending: released.length,
+          earned: mathRun ? released.filter((q) => q.choice === 0).length : 0,
+          graded: mathRun ? released.length : 0,
+          pending: mathRun ? 0 : released.length,
           excluded: 0,
           items: released.map((q) => ({
             position: q.position,
             id: null,
-            state: "unverified",
+            state: mathRun ? "math_verified" : "unverified",
             revision: null,
             outcome: null,
-            score: null,
+            score: mathRun ? Number(q.choice === 0) : null,
           })),
         });
       }
@@ -172,8 +191,15 @@ try {
         state.questions = [
           {
             position: 1,
-            prompt: String.raw`احسب المشتقة \[f(x)=x^2\]`,
-            options: ["$2x$", "$3x$", "$4x$", "$5x$"],
+            prompt:
+              computed?.question.prompt ??
+              String.raw`احسب المشتقة \[f(x)=x^2\]`,
+            options: computed?.question.options ?? [
+              "$2x$",
+              "$3x$",
+              "$4x$",
+              "$5x$",
+            ],
             choice: null,
             answered: false,
             feedback: null,
@@ -326,7 +352,13 @@ try {
       );
     await page
       .getByText(
-        ar ? "يطابق اقتراح الذكاء الاصطناعي" : "Matches the AI suggestion",
+        mathRun
+          ? ar
+            ? "يطابق الإجابة المحققة بالمحرك"
+            : "Matches the engine-verified answer"
+          : ar
+            ? "يطابق اقتراح الذكاء الاصطناعي"
+            : "Matches the AI suggestion",
         { exact: true },
       )
       .waitFor();
@@ -335,6 +367,16 @@ try {
       .waitFor();
     assert((await page.locator(".katex").count()) > 2);
     assert.equal(await page.locator(".katex-error").count(), 0);
+    if (mathRun)
+      await page
+        .getByRole("region", {
+          name: ar
+            ? "مراجعة الإجابات والنتائج المحسومة"
+            : "Answer review and confirmed results",
+          exact: true,
+        })
+        .getByText("1/1", { exact: true })
+        .waitFor();
     assert(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= innerWidth + 1,
@@ -353,7 +395,7 @@ try {
     assert.equal(await page.getByLabel("1: 1", { exact: true }).count(), 0);
     assert.deepEqual(errors, []);
     console.log(
-      `PASS ${width}/${language}/${theme}/${mode}: scope, generation, lost connection/reload recovery, delayed feedback, KaTeX, revocation.`,
+      `PASS ${width}/${language}/${theme}/${mode}/${mathRun ? "engine" : "suggestion"}: scope, generation, lost connection/reload recovery, delayed feedback, KaTeX, revocation.`,
     );
     await context.close();
   }

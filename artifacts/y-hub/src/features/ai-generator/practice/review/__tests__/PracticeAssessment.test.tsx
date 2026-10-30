@@ -54,6 +54,20 @@ it("does not display pending answers as a zero grade", async () => {
     "Not yet resolved: 1",
   );
 });
+it("displays a server-verified score and permits requesting review without claiming a human resolved it", async () => {
+  calls.assessment.mockResolvedValue({
+    ...data,
+    earned: 1,
+    graded: 1,
+    pending: 0,
+    items: [{ ...row, state: "math_verified", score: 1 }],
+  });
+  render(<PracticeAssessment sessionId="session" revision={3} />);
+  await screen.findByText(/Engine-verified polynomial derivative/);
+  expect(screen.getByText("1/1")).toBeTruthy();
+  fireEvent.click(screen.getByText("Recheck this answer"));
+  await waitFor(() => expect(calls.begin).toHaveBeenCalledWith("session", 1));
+});
 it("runs the server-owned recheck before offering a human request", async () => {
   await open();
   expect(screen.queryByText("Request instructor review")).toBeNull();

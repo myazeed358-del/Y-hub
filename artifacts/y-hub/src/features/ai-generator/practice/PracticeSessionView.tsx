@@ -271,11 +271,15 @@ export function PracticeSessionView({
                     {q.feedback.matchesSuggestion === null
                       ? t.unanswered
                       : q.feedback.matchesSuggestion
-                        ? t.match
-                        : t.different}
+                        ? q.feedback.verification
+                          ? t.verifiedMatch
+                          : t.match
+                        : q.feedback.verification
+                          ? t.verifiedDifferent
+                          : t.different}
                   </p>
                   <p>
-                    {t.suggestion}:{" "}
+                    {q.feedback.verification ? t.verified : t.suggestion}:{" "}
                     <bdi dir="ltr">{q.feedback.suggestedChoice + 1}</bdi>
                   </p>
                   <ChatMessageContent content={q.feedback.explanation} />

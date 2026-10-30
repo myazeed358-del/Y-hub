@@ -130,13 +130,15 @@ export function PracticeAssessment({
               </p>
               {item.outcome && <p>{t[item.outcome]}</p>}
               <div className="flex flex-wrap gap-2">
-                {["unverified", "automatic_pending"].includes(item.state) && (
+                {["unverified", "math_verified", "automatic_pending"].includes(
+                  item.state,
+                ) && (
                   <button
                     className={reviewButton}
                     disabled={busy}
                     onClick={() => void action(item)}
                   >
-                    {item.state === "unverified" ? t.start : t.retry}
+                    {item.state === "automatic_pending" ? t.retry : t.start}
                   </button>
                 )}
                 {item.state === "needs_review" && (
