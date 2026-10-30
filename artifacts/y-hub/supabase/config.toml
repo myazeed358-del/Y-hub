@@ -425,3 +425,7 @@ verify_jwt = true
 # Incremental private practice generation uses the same authenticated Tutor runtime.
 [functions.ai-practice-generate]
 verify_jwt = true
+
+# Rechecking never bypasses source access, Tutor quotas or review permissions.
+[functions.ai-practice-recheck]
+verify_jwt = true
