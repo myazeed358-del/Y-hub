@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const PAGE_SIZE = 25;
 export const AUDIT_ACTIONS = ['created', 'updated', 'deleted', 'published', 'unpublished', 'enrollment_opened', 'enrollment_closed', 'enrollment_changed', 'role_changed', 'access_changed'] as const;
-export const AUDIT_ENTITIES = ['courses', 'course_definitions', 'course_materials', 'exams', 'questions', 'course_enrollments', 'syllabus_units', 'syllabus_sections', 'users', 'lesson_completion_rules', 'lesson_completion_overrides', 'ai_practice_references'] as const;
+export const AUDIT_ENTITIES = ['courses', 'course_definitions', 'course_materials', 'exams', 'questions', 'course_enrollments', 'syllabus_units', 'syllabus_sections', 'users', 'lesson_completion_rules', 'lesson_completion_overrides', 'ai_practice_references', 'ai_practice_reviews'] as const;
 export const auditPersonSchema = z.object({
   person_id: z.string().uuid(), relation: z.enum(['actor', 'affected']),
   full_name: z.string(), full_name_ar: z.string().nullable(), full_name_en: z.string().nullable(),

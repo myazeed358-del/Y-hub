@@ -30,6 +30,9 @@ vi.mock("../../knowledge/SourceEvidence", () => ({
     <div data-testid="citations">{sources.length}</div>
   ),
 }));
+vi.mock("../review/PracticeAssessment", () => ({
+  PracticeAssessment: () => null,
+}));
 import { PracticeSessionView } from "../PracticeSessionView";
 import { PracticeSessionError } from "../sessionsRepository";
 import { answerRecovery } from "../answerRecovery";
