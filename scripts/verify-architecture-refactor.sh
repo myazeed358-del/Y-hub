@@ -14,6 +14,7 @@ python3 -B tools/audit_architecture.py --strict
 python3 -B tools/check_math_boundaries.py
 node --test tools/check_module_boundaries.test.mjs
 node tools/check_module_boundaries.mjs
+node tools/build-practice-verifier.mjs --check
 
 echo '===== TYPESCRIPT TYPECHECK ====='
 # Call tsc directly to avoid the design-system pretypecheck token generator.

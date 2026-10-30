@@ -23,6 +23,21 @@ const proposal = {
   explanation: "قاعدة القوة",
   evidenceIds: ["evidence"],
 };
+const mathProposal = {
+  insufficient: false,
+  task: {
+    kind: "polynomial_derivative",
+    variable: "x",
+    coefficients: [0, 0, 1],
+    options: [
+      [0, 2],
+      [0, 3],
+      [0, 4],
+      [0, 5],
+    ],
+  },
+  evidenceIds: ["evidence"],
+};
 let ctx: Context;
 let rpc: ReturnType<typeof vi.fn>;
 let fetcher: ReturnType<typeof vi.fn>;
@@ -86,6 +101,53 @@ it("persists server-validated evidence IDs but never returns the key to the clie
   );
   expect(practiceInstructions("ar", "hard")).toContain("fluent Arabic");
   expect(practiceInstructions("en", "easy")).toContain("English");
+});
+it("computes the mathematical key on the server and publishes only through the guarded math RPC", async () => {
+  const base = rpc.getMockImplementation()!;
+  rpc.mockImplementation((name, ...args) =>
+    name === "authorize_engine_compute"
+      ? Promise.resolve({ data: true, error: null })
+      : base(name, ...args),
+  );
+  fetcher.mockResolvedValue(
+    Response.json({
+      choices: [{ message: { content: JSON.stringify(mathProposal) } }],
+    }),
+  );
+  expect(await generatePractice(request(), ctx)).toEqual({ stored: true });
+  const call = rpc.mock.calls.find(
+    (c) => c[0] === "publish_ai_practice_math_question",
+  )!;
+  expect(call[1]).toMatchObject({
+    p_question: { correct: 0, prompt: expect.stringContaining("اختر مشتقة") },
+    p_verification: { method: "polynomial-derivative-v1" },
+  });
+  expect(
+    rpc.mock.calls.some((c) => c[0] === "publish_ai_practice_question"),
+  ).toBe(false);
+});
+it("rejects a model attempting to use an engine not authorized for the user", async () => {
+  fetcher.mockResolvedValue(
+    Response.json({
+      choices: [{ message: { content: JSON.stringify(mathProposal) } }],
+    }),
+  );
+  await expect(generatePractice(request(), ctx)).rejects.toMatchObject({
+    status: 403,
+  });
+  expect(
+    rpc.mock.calls.some((c) => c[0] === "publish_ai_practice_math_question"),
+  ).toBe(false);
+});
+it.each([
+  { ...mathProposal, correct: 0 },
+  { ...mathProposal, evidenceIds: ["forged"] },
+  {
+    ...mathProposal,
+    task: { ...mathProposal.task, options: [[0], [1], [2], [3]] },
+  },
+])("cannot attach a fake key, evidence or unsupported proof %#", (p) => {
+  expect(() => parsePracticeProposal(p, [evidence], "ar")).toThrow();
 });
 it.each(["actor", "evidence", "correct", "courseId"])(
   "rejects forged %s before any work",
