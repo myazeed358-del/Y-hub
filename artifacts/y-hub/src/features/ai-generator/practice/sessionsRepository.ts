@@ -3,7 +3,7 @@ import { supabase } from "@/utils/supabaseClient";
 import type { SourceSelection } from "./sourcesRepository";
 const uuid = z.string().uuid(),
   choice = z.number().int().min(0).max(3);
-const citation = z.object({
+export const practiceCitationSchema = z.object({
   id: uuid,
   source_id: uuid,
   revision: uuid,
@@ -34,7 +34,7 @@ export const sessionSchema = z.object({
             suggestedChoice: choice,
             matchesSuggestion: z.boolean().nullable(),
             explanation: z.string().max(6000),
-            citations: z.array(citation).min(1).max(6),
+            citations: z.array(practiceCitationSchema).min(1).max(6),
           })
           .nullable(),
       }),

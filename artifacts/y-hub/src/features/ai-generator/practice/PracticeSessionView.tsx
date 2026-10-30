@@ -9,6 +9,7 @@ import {
   PracticeSessionError,
   type PracticeSession,
 } from "./sessionsRepository";
+import { PracticeAssessment } from "./review/PracticeAssessment";
 import { sessionCopy } from "./sessionCopy";
 const button = "rounded border px-3 py-2 text-sm disabled:opacity-50";
 export function PracticeSessionView({
@@ -283,6 +284,11 @@ export function PracticeSessionView({
               )}
             </article>
           ))}
+          <PracticeAssessment
+            sessionId={session.id}
+            revision={session.revision}
+            onBlocked={(kind) => report(new PracticeSessionError(kind))}
+          />
           {!session.submittedAt &&
             session.questions.length < session.target && (
               <button

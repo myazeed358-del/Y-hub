@@ -143,6 +143,27 @@ try {
         };
         return json(state.id);
       }
+      if (url.pathname === "/rest/v1/rpc/get_ai_practice_assessment") {
+        const released = state.questions.filter(
+          (q) =>
+            q.choice !== null &&
+            (state.submittedAt || (state.mode === "practice" && q.answered)),
+        );
+        return json({
+          earned: 0,
+          graded: 0,
+          pending: released.length,
+          excluded: 0,
+          items: released.map((q) => ({
+            position: q.position,
+            id: null,
+            state: "unverified",
+            revision: null,
+            outcome: null,
+            score: null,
+          })),
+        });
+      }
       if (url.pathname === "/rest/v1/rpc/read_ai_practice_session")
         return allowed ? json(state) : json({ code: "42501" }, 403);
       if (url.pathname === "/functions/v1/ai-practice-generate") {
