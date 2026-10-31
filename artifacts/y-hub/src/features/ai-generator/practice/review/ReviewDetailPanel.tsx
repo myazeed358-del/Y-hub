@@ -132,7 +132,7 @@ export function ReviewDetailPanel({
           ))}
           <p>
             {t.student}: <bdi dir="ltr">{data.question.choice + 1}</bdi> ·{" "}
-            {t.initial}:{" "}
+            {data.question.verification ? t.math_verified : t.initial}:{" "}
             <bdi dir="ltr">{data.question.suggestedChoice + 1}</bdi>
           </p>
           <ChatMessageContent content={data.question.explanation} />

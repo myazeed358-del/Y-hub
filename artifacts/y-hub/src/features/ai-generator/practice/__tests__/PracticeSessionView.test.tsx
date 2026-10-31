@@ -81,6 +81,38 @@ it("renders actual math and hides solutions and evidence until server releases t
     (screen.getByText("Confirm answer") as HTMLButtonElement).disabled,
   ).toBe(true);
 });
+it.each(["en", "ar"] as const)(
+  "distinguishes a server-verified derivative from an AI suggestion in %s",
+  async (language) => {
+    calls.language = language;
+    calls.read.mockResolvedValue({
+      ...state,
+      questions: [
+        {
+          ...state.questions[0],
+          choice: 0,
+          answered: true,
+          feedback: {
+            suggestedChoice: 0,
+            matchesSuggestion: true,
+            explanation: "\\[2x\\]",
+            citations: [],
+            verification: "polynomial-derivative-v1",
+          },
+        },
+      ],
+    });
+    await open();
+    expect(
+      screen.getByText(
+        language === "ar"
+          ? "يطابق الإجابة المحققة بالمحرك"
+          : "Matches the engine-verified answer",
+      ),
+    ).toBeTruthy();
+    expect(screen.queryByText("Matches the AI suggestion")).toBeNull();
+  },
+);
 it("autosaves after debounce and retains the pending choice during network failure", async () => {
   const dirty = await open();
   calls.save.mockRejectedValue(new PracticeSessionError("unavailable"));

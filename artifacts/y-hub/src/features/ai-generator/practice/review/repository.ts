@@ -25,6 +25,7 @@ export const assessmentSchema = z.object({
         id: uuid.nullable(),
         state: z.enum([
           "unverified",
+          "math_verified",
           "automatic_pending",
           "needs_review",
           "requested",
@@ -58,6 +59,7 @@ export const detailSchema = z.object({
     suggestedChoice: choice,
     explanation: z.string().max(6000),
     citations: z.array(practiceCitationSchema).max(6),
+    verification: z.literal("polynomial-derivative-v1").nullable().optional(),
   }),
   automatic: z.object({
     choice: choice.nullable(),

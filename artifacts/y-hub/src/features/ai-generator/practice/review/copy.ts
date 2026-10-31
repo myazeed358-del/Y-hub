@@ -2,7 +2,8 @@ export const reviewCopy = {
   en: {
     title: "Answer review and confirmed results",
     queue: "Section answer reviews",
-    note: "Only human-resolved answers enter this review score. Unverified, pending and excluded answers are not wrong answers. This is not an official university grade.",
+    note: "Only engine-verified or human-resolved answers enter this score. Requesting a review suspends that answer's score until resolution. Unverified, pending and excluded answers are not wrong answers. This is not an official university grade.",
+    math_verified: "Engine-verified polynomial derivative",
     score: "Confirmed review score",
     pending: "Not yet resolved",
     excluded: "Excluded questions",
@@ -48,7 +49,8 @@ export const reviewCopy = {
   ar: {
     title: "مراجعة الإجابات والنتائج المحسومة",
     queue: "مراجعات إجابات الشعبة",
-    note: "تدخل الإجابات المحسومة بشريًا فقط في هذا الحساب. الإجابات غير المتحقق منها والمعلقة والمستبعدة ليست إجابات خاطئة. هذه ليست علامة جامعية رسمية.",
+    note: "تدخل الإجابات المحققة بالمحرك أو المحسومة بشريًا فقط في هذا الحساب. طلب المراجعة يعلّق نتيجة الإجابة حتى حسمها. الإجابات غير المتحقق منها والمعلقة والمستبعدة ليست خاطئة. هذه ليست علامة جامعية رسمية.",
+    math_verified: "مشتقة كثيرة حدود محققة بالمحرك",
     score: "نتيجة المراجعة المحسومة",
     pending: "لم تُحسم بعد",
     excluded: "أسئلة مستبعدة",
