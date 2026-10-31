@@ -17,7 +17,7 @@ export interface Database {
   rpc(
     name: string,
     args: Record<string, unknown>,
-  ): PromiseLike<{ data: any; error: { code?: string } | null }>;
+  ): PromiseLike<{ data: any; error: { code?: string; message?: string } | null }>;
   from(name: string): any;
 }
 export interface Context {
