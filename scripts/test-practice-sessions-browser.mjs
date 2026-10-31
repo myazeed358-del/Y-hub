@@ -54,7 +54,9 @@ try {
       writes = [];
     let state = null,
       allowed = true,
-      offline = false;
+      offline = false,
+      rejectRepeated = mathRun,
+      generations = 0;
     const ar = language === "ar";
     const computed = mathRun
       ? verifyDerivative(
@@ -188,6 +190,14 @@ try {
       if (url.pathname === "/functions/v1/ai-practice-generate") {
         const args = route.request().postDataJSON();
         assert.deepEqual(args, { sessionId: state.id, position: 1 });
+        generations++;
+        if (rejectRepeated) {
+          rejectRepeated = false;
+          return json(
+            { error: "Repeated or equivalent practice question" },
+            409,
+          );
+        }
         state.questions = [
           {
             position: 1,
@@ -302,6 +312,20 @@ try {
       .fill("1");
     await click("Create session", "إنشاء جلسة");
     await click("Generate next question", "توليد السؤال التالي");
+    if (mathRun) {
+      await page
+        .getByRole("alert")
+        .filter({
+          hasText: ar
+            ? "السؤال المقترح يكرر تمرينًا سابقًا"
+            : "The proposed question repeats an earlier exercise",
+        })
+        .waitFor();
+      assert.equal(generations, 1); // No automatic provider retry/cost.
+      assert.equal(state.revision, 1);
+      assert.deepEqual(state.questions, []);
+      await click("Generate next question", "توليد السؤال التالي");
+    }
     await page.getByLabel("1: 1", { exact: true }).waitFor();
     assert.equal(
       await page
@@ -395,7 +419,7 @@ try {
     assert.equal(await page.getByLabel("1: 1", { exact: true }).count(), 0);
     assert.deepEqual(errors, []);
     console.log(
-      `PASS ${width}/${language}/${theme}/${mode}/${mathRun ? "engine" : "suggestion"}: scope, generation, lost connection/reload recovery, delayed feedback, KaTeX, revocation.`,
+      `PASS ${width}/${language}/${theme}/${mode}/${mathRun ? "engine/repeated-proposal" : "suggestion"}: scope, generation, lost connection/reload recovery, delayed feedback, KaTeX, revocation.`,
     );
     await context.close();
   }

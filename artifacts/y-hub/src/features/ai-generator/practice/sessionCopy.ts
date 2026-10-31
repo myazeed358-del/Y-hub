@@ -11,6 +11,8 @@ export const sessionCopy = {
     count: "Questions (1–100)",
     language: "Explanation language",
     repeats: "Allow deliberate repeats from older sessions",
+    repeated:
+      "The proposed question repeats an earlier exercise. Your session is unchanged. Try generating again, broaden the sources, or start a new session with deliberate repeats enabled.",
     create: "Create session",
     history: "Reload sessions",
     next: "Older sessions",
@@ -52,6 +54,8 @@ export const sessionCopy = {
     leave: "A choice is not saved. Save it or explicitly discard it first.",
   },
   ar: {
+    repeated:
+      "السؤال المقترح يكرر تمرينًا سابقًا. بقيت جلستك كما هي. جرّب التوليد مجددًا، أو وسّع المصادر، أو ابدأ جلسة جديدة مع تفعيل التكرار المقصود.",
     title: "جلسات التدريب المحفوظة",
     new: "بدء جلسة من المصادر المختارة",
     practice: "تدريب",

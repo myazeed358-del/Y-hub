@@ -26,7 +26,9 @@ export function PracticeAssessment({
   const report = (e: unknown) => {
     const kind = e instanceof PracticeSessionError ? e.kind : "unavailable";
     setError(
-      kind === "unavailable" || kind === "insufficient" ? t.error : t[kind],
+      kind === "denied" || kind === "conflict" || kind === "quota"
+        ? t[kind]
+        : t.error,
     );
     if (kind === "denied" || kind === "conflict") {
       setData(null);

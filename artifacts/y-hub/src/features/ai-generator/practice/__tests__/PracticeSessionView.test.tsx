@@ -36,6 +36,7 @@ vi.mock("../review/PracticeAssessment", () => ({
 import { PracticeSessionView } from "../PracticeSessionView";
 import { PracticeSessionError } from "../sessionsRepository";
 import { answerRecovery } from "../answerRecovery";
+import { sessionCopy } from "../sessionCopy";
 const state = {
   id: "session",
   courseId: "course",
@@ -73,6 +74,24 @@ const open = async () => {
   await screen.findByLabelText("1: 1");
   return dirty;
 };
+it.each(["en", "ar"] as const)(
+  "keeps the saved session visible after a repeated proposal in %s",
+  async (language) => {
+    calls.language = language;
+    calls.generate.mockRejectedValueOnce(new PracticeSessionError("repeated"));
+    await open();
+    fireEvent.click(screen.getByText(sessionCopy[language].generate));
+    await screen.findByText(sessionCopy[language].repeated);
+    expect(screen.getByLabelText("1: 1")).toBeTruthy();
+    expect(
+      (screen.getByText(sessionCopy[language].generate) as HTMLButtonElement)
+        .disabled,
+    ).toBe(false);
+    expect(calls.generate).toHaveBeenCalledTimes(1);
+    expect(calls.read).toHaveBeenCalledTimes(1);
+    expect(screen.queryByTestId("citations")).toBeNull();
+  },
+);
 it("renders actual math and hides solutions and evidence until server releases them", async () => {
   await open();
   expect(document.querySelector(".katex")).toBeTruthy();
