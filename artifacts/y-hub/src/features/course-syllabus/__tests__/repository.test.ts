@@ -31,4 +31,6 @@ it('validates titles before sending a mutation',async()=>{
 it.each(['PT409','40001'])('preserves the conflict workflow for %s',async code=>{
  rpc.mockResolvedValue({data:null,error:{code}});
  await expect(syllabusRepository.save(snapshot)).rejects.toMatchObject({kind:'conflict'});
+ expect(snapshot.units[0].title).toBe(' Unit ');
+ expect(rpc).toHaveBeenCalledTimes(1);
 });

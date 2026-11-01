@@ -140,3 +140,8 @@ class SyllabusPermissions(unittest.TestCase):
    self.assertEqual(observed,('0','0'),'Historical ownership must not retain answer keys or other students results after demotion')
    self.assertEqual(value(f"SELECT count(*) FROM public.student_results WHERE exam_id='{e}'",U),'1','Students retain their own historical results')
   finally:run(f"UPDATE public.users SET role='instructor' WHERE id='{O}'")
+
+ def test_stale_revision_uses_nonretryable_http_conflict_and_preserves_data(self):
+  c=course();u=unit();save(c,0,[u]);before=read(c)
+  run(f"DO $$ BEGIN PERFORM public.save_course_syllabus('{c}',0,'[]'); RAISE EXCEPTION 'stale save accepted'; EXCEPTION WHEN SQLSTATE 'PT409' THEN NULL; END $$",I)
+  self.assertEqual(read(c),before)

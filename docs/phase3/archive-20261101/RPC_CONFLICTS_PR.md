@@ -1,0 +1,5 @@
+> Historical report from `fa9c7e3d5d8cd38f0644a207f78703f24a9f3b3c`, preserved2026-11-01. Do not apply its superseded0032 migration. Current implementations are0037 (Y-Sheets) and0041 (syllabus); see the merge report.
+
+Stale syllabus and workbook saves currently raise a serialization SQLSTATE. Real local PostgREST repeatedly retries that permanent application conflict until the response is lost. Return explicit HTTP 409 via PT409 instead, retaining CAS, RLS, locks and idempotency receipts. Frontend adapters accept both old and new error codes and preserve edits.
+
+New migration 0032 only; no historical migration edits or production operations. Before/after evidence and verification scope: docs/phase3/RPC_CONFLICTS.md. Review alongside the independent Phase 3 HTTP integration branch. Keep Draft; staging release verification is pending. No automatic merge.
