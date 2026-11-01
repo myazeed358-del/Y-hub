@@ -76,7 +76,12 @@ export type SessionSettings = {
 export class PracticeSessionError extends Error {
   constructor(
     readonly kind:
-      "denied" | "conflict" | "insufficient" | "quota" | "unavailable",
+      | "denied"
+      | "conflict"
+      | "repeated"
+      | "insufficient"
+      | "quota"
+      | "unavailable",
   ) {
     super(kind);
   }
@@ -165,6 +170,17 @@ export const sessionsRepository = {
     if (error) {
       const status = (error as { context?: { status?: number } }).context
         ?.status;
+      // A repeated proposal is not a stale draft/source conflict. Preserve the
+      // current session and offer an explicit retry; never silently charge again.
+      const response = (error as { context?: unknown }).context;
+      if (status === 409 && response instanceof Response) {
+        const body = await response
+          .clone()
+          .json()
+          .catch(() => null);
+        if (body?.error === "Repeated or equivalent practice question")
+          throw new PracticeSessionError("repeated");
+      }
       throw new PracticeSessionError(
         status === 401 || status === 403
           ? "denied"

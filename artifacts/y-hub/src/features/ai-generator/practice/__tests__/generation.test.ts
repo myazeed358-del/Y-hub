@@ -236,3 +236,43 @@ it("source conflict on final publication is not reported as stored", async () =>
     status: 409,
   });
 });
+it.each([
+  "Repeated mathematical question; retry generation",
+  "Repeated question; retry generation",
+])(
+  "reports a duplicate without retrying the provider or exposing question history: %s",
+  async (message) => {
+    const base = rpc.getMockImplementation()!;
+    rpc.mockImplementation((name, ...args) =>
+      name === "publish_ai_practice_question"
+        ? Promise.resolve({ data: null, error: { code: "PT409", message } })
+        : base(name, ...args),
+    );
+    await expect(generatePractice(request(), ctx)).rejects.toMatchObject({
+      status: 409,
+      message: "Repeated or equivalent practice question",
+    });
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    expect(rpc.mock.calls.at(-1)?.[0]).toBe("end_ai_tutor_request");
+  },
+);
+it("passes only server-owned bounded math history as untrusted guidance", async () => {
+  const base = rpc.getMockImplementation()!;
+  rpc.mockImplementation(async (name, ...args) => {
+    const result = await base(name, ...args);
+    return name === "ai_practice_generation_context"
+      ? {
+          ...result,
+          data: { ...result.data, previousDerivativeInputs: [[1, -5, 2, 1]] },
+        }
+      : result;
+  });
+  await generatePractice(request(), ctx);
+  const messages = JSON.parse(fetcher.mock.calls[0][1].body).messages;
+  expect(JSON.parse(messages[1].content).previousDerivativeInputs).toEqual([
+    [1, -5, 2, 1],
+  ]);
+  expect(practiceInstructions("en", "medium", true)).toContain(
+    "additive constant",
+  );
+});

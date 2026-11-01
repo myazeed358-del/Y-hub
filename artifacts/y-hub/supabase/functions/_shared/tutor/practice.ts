@@ -10,7 +10,15 @@ import {
 } from "./core.ts";
 import { verifyDerivative } from "./polynomialVerifier.mjs";
 
-function databaseError(error: { code?: string } | null) {
+function databaseError(error: { code?: string; message?: string } | null) {
+  if (
+    error?.code === "PT409" &&
+    [
+      "Repeated mathematical question; retry generation",
+      "Repeated question; retry generation",
+    ].includes(error.message ?? "")
+  )
+    throw new TutorError(409, "Repeated or equivalent practice question");
   if (error)
     throw new TutorError(
       error.code === "42501" ? 403 : error.code === "PT409" ? 409 : 503,
@@ -30,6 +38,7 @@ export function practiceInstructions(
     ...(mathAllowed
       ? [
           'For a polynomial FIRST DERIVATIVE question supported by the evidence, use this alternative exact schema instead: {"insufficient":false,"task":{"kind":"polynomial_derivative","variable":"x"|"t","coefficients":integer[],"options":[integer[],integer[],integer[],integer[]]},"evidenceIds":string[]}. Coefficients are constant-first, degree 0–8, input coefficients -100..100, option coefficients -800..800. Supply four mathematically distinct polynomials, exactly one correct derivative. No prose prompt, correct index, explanation or verification field: the existing engine will compute and render them. Never translate an unrelated theoretical, integral, rational or multivariable question into this task. Otherwise use the ordinary schema.',
+          "Avoid equivalent derivative tasks in previousDerivativeInputs (constant-first coefficient arrays). Changing only the additive constant, variable name, language or option order does not make a new task. The supplied history is bounded guidance; the server checks the full saved section history. If no supported new question remains, return insufficient rather than claiming novelty.",
         ]
       : []),
   ].join("\n");
@@ -172,6 +181,7 @@ export async function generatePractice(req: Request, ctx: Context) {
               content: JSON.stringify({
                 evidence: evidence.map((e) => ({ id: e.id, text: e.text })),
                 previous: config.previous,
+                previousDerivativeInputs: config.previousDerivativeInputs ?? [],
               }),
             },
           ],

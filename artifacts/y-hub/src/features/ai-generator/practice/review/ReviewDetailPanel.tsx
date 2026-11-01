@@ -31,11 +31,9 @@ export function ReviewDetailPanel({
   const report = (e: unknown) => {
     const kind = e instanceof PracticeSessionError ? e.kind : "unavailable";
     setError(
-      kind === "unavailable"
-        ? t.error
-        : kind === "insufficient"
-          ? t.error
-          : t[kind],
+      kind === "denied" || kind === "conflict" || kind === "quota"
+        ? t[kind]
+        : t.error,
     );
     if (kind === "denied" || kind === "conflict") setData(null);
     if (kind === "denied") onDenied?.();
