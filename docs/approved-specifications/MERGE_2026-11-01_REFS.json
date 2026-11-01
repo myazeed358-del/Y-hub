@@ -1,0 +1,684 @@
+{
+  "base": "ed784c012a01a4522dc2cf59602545c07c615126",
+  "captured_at": "2026-11-01",
+  "local_and_tracking_refs": [
+    {
+      "ref": "refs/heads/feature/academic-course-sections",
+      "sha": "99852b5f006a94b0f021619bc6ad2c622f96f56b"
+    },
+    {
+      "ref": "refs/heads/feature/ai-tutor-rag",
+      "sha": "710957f93b5d3ebfe812867e0747a57ca1a6ed4a"
+    },
+    {
+      "ref": "refs/heads/feature/approved-academic-integration",
+      "sha": "b02d32016d6943153db470fd89fb2126cf8964c0"
+    },
+    {
+      "ref": "refs/heads/feature/approved-attendance-lifecycle",
+      "sha": "3c718931810ce8dbbcb4504e08001a1b967610c8"
+    },
+    {
+      "ref": "refs/heads/feature/approved-attendance-reports",
+      "sha": "4456949caaf346f2b43e35c5da5e5555f308def0"
+    },
+    {
+      "ref": "refs/heads/feature/approved-audit-person-search",
+      "sha": "2bd325762c4e551c53df2d4b10cbbf27ccc54b83"
+    },
+    {
+      "ref": "refs/heads/feature/approved-bilingual-profiles",
+      "sha": "1f416459e70515126538e5590ceb2292782fd0b4"
+    },
+    {
+      "ref": "refs/heads/feature/approved-context-breadcrumbs",
+      "sha": "a47474ad27d5f96d44dea820b590fcbea407922b"
+    },
+    {
+      "ref": "refs/heads/feature/approved-engine-grants",
+      "sha": "6ffa7961eac416d3efc8c9281fa2a2d8e25a8c5c"
+    },
+    {
+      "ref": "refs/heads/feature/approved-learning-path",
+      "sha": "b30c0a9cc80bf5104d5cd00367e94d8feb63f232"
+    },
+    {
+      "ref": "refs/heads/feature/approved-lesson-completion",
+      "sha": "221cda3e38482911d92170139330a25f77485c06"
+    },
+    {
+      "ref": "refs/heads/feature/approved-practice-equivalence",
+      "sha": "b40067df32a69e3f65ffe39829cfbac0f20e09e1"
+    },
+    {
+      "ref": "refs/heads/feature/approved-practice-math-verification",
+      "sha": "b8333e9596362d4d03ac9c9ad5f9dd5d2fc12a06"
+    },
+    {
+      "ref": "refs/heads/feature/approved-practice-review",
+      "sha": "90484439552a37de8cc2b7e007e03a214a5468fd"
+    },
+    {
+      "ref": "refs/heads/feature/approved-practice-sessions",
+      "sha": "5c07883e5b0c2a37f5b75e1166a4bf9c8b4fd84f"
+    },
+    {
+      "ref": "refs/heads/feature/approved-practice-sources",
+      "sha": "dfcbc2ed54921f951ffabb9382aae88f072d6714"
+    },
+    {
+      "ref": "refs/heads/feature/central-audit-log",
+      "sha": "842466582a72e13a6d9c8efa4f8308c9890ca264"
+    },
+    {
+      "ref": "refs/heads/feature/course-deletion-integrity",
+      "sha": "8f32d6eb20f60a0581617e56119f760b186a63fd"
+    },
+    {
+      "ref": "refs/heads/feature/exam-attempt-integrity",
+      "sha": "e6a41004e899da4e1321cc9c10448cbfb63b4bd6"
+    },
+    {
+      "ref": "refs/heads/feature/exceptional-engine-access",
+      "sha": "62a0565c75319e46881a473b1c6bcbc0bf8096f7"
+    },
+    {
+      "ref": "refs/heads/feature/fullscreen-application-shell",
+      "sha": "39dd464dc67b29ccf5b03eca5651213cd93ca13e"
+    },
+    {
+      "ref": "refs/heads/feature/online-lectures",
+      "sha": "09168c2f0229e27952180be33a0d5cf47a0789e9"
+    },
+    {
+      "ref": "refs/heads/feature/owner-display-name",
+      "sha": "b150fddc6cae053e9aa765ac5f3905b5d7156ffe"
+    },
+    {
+      "ref": "refs/heads/feature/phase3-academic-management",
+      "sha": "caec7a29a11455b2ca2a242aa7dcde0dae865b92"
+    },
+    {
+      "ref": "refs/heads/feature/phase3-exam-reliability",
+      "sha": "a9a814ef1e4b2a427d0357d18cdf79cfa83b9274"
+    },
+    {
+      "ref": "refs/heads/feature/student-quick-access",
+      "sha": "f862ae29b547940dfe1790a9d9f14f63b35d6b3f"
+    },
+    {
+      "ref": "refs/heads/feature/syllabus-academic-permissions",
+      "sha": "dc5cdf077bc6d06675eae49e80a94a317dd7b349"
+    },
+    {
+      "ref": "refs/heads/feature/y-attendance",
+      "sha": "c1a4bd2dc286386230f2fe14103ff7f81da06e64"
+    },
+    {
+      "ref": "refs/heads/feature/y-sheets-hardening",
+      "sha": "1c0bc5cca3174ebab6d698475410c706768e90e4"
+    },
+    {
+      "ref": "refs/heads/feature/y-sheets-ui-refresh",
+      "sha": "f1165962d16b6c2f14fad19447b73ebc18d2a003"
+    },
+    {
+      "ref": "refs/heads/fix/mathjs-parser-security",
+      "sha": "ac778eec4b1671a74b3e3f49e1ce9be811a4fef3"
+    },
+    {
+      "ref": "refs/heads/fix/phase3-rpc-conflicts",
+      "sha": "fa9c7e3d5d8cd38f0644a207f78703f24a9f3b3c"
+    },
+    {
+      "ref": "refs/heads/fix/phase3-supabase-security",
+      "sha": "56e5e3303e66a759336ec9a6ad2f474ea1ee4941"
+    },
+    {
+      "ref": "refs/heads/integration/approved-work-20261027",
+      "sha": "79f0bdf3ee928db0055c52e8e4be7b304cf2458d"
+    },
+    {
+      "ref": "refs/heads/integration/learning-path-20261028",
+      "sha": "00ff09f0d0fe47b89d3ea532716add0829a42454"
+    },
+    {
+      "ref": "refs/heads/integration/lesson-completion-20261029",
+      "sha": "17fc2912d36b967191c28eda29aa13e070c46ba9"
+    },
+    {
+      "ref": "refs/heads/integration/practice-math-20261031",
+      "sha": "ed784c012a01a4522dc2cf59602545c07c615126"
+    },
+    {
+      "ref": "refs/heads/integration/practice-review-20261030",
+      "sha": "902779e7d3f3fad1a22d341ff623a5fa1f22261a"
+    },
+    {
+      "ref": "refs/heads/integration/practice-sessions-20261029",
+      "sha": "cc62fd4f9e247f5f221cf3b8c0b3a2f84892f12f"
+    },
+    {
+      "ref": "refs/heads/integration/practice-sources-20261029",
+      "sha": "16bca9af290fcd3c8c446996b2de5e5964b15cf7"
+    },
+    {
+      "ref": "refs/heads/refactor/architecture-plug-and-play",
+      "sha": "b634813113fb50541e4e9809cd2f2cc8fb8b321c"
+    },
+    {
+      "ref": "refs/heads/test/phase3-real-integration",
+      "sha": "0ebcbdd4b6f744a18eb7eddd7f3cd0228ae07a30"
+    },
+    {
+      "ref": "refs/heads/test/university-integration",
+      "sha": "5d69ee2186359a890556d5110b08f00dae95ddcd"
+    },
+    {
+      "ref": "refs/heads/verify/y-sheets-release-gates",
+      "sha": "4e03d485359219ccec6e075d793440bfa54acc9a"
+    },
+    {
+      "ref": "refs/heads/work",
+      "sha": "cca4f313097cbcf72488234a8df601dd00a8df48"
+    },
+    {
+      "ref": "refs/remotes/origin/codespace-potential-space-adventure-qv4jx66jvrx4c9qv9",
+      "sha": "6540b5273937fa8f95db7e434442c654d86c6b34"
+    },
+    {
+      "ref": "refs/remotes/origin/docs/light-code-comments-20261026",
+      "sha": "69c101d7e2b9ee400ac8c0470ca051053ba4e398"
+    },
+    {
+      "ref": "refs/remotes/origin/feat/yhub-product-polish",
+      "sha": "93d8d4ad35456ac9a9f5ea131ab6dd8440eb02d6"
+    },
+    {
+      "ref": "refs/remotes/origin/feature/academic-course-sections",
+      "sha": "573952f18f0de2caf771ffeef9d1c934fb321fb1"
+    },
+    {
+      "ref": "refs/remotes/origin/feature/ai-tutor-rag",
+      "sha": "710957f93b5d3ebfe812867e0747a57ca1a6ed4a"
+    },
+    {
+      "ref": "refs/remotes/origin/feature/approved-academic-integration",
+      "sha": "fc6d64f68d0695f21bc167ac4803f4338e948527"
+    },
+    {
+      "ref": "refs/remotes/origin/feature/approved-attendance-lifecycle",
+      "sha": "3c718931810ce8dbbcb4504e08001a1b967610c8"
+    },
+    {
+      "ref": "refs/remotes/origin/feature/approved-attendance-reports",
+      "sha": "4456949caaf346f2b43e35c5da5e5555f308def0"
+    },
+    {
+      "ref": "refs/remotes/origin/feature/approved-audit-person-search",
+      "sha": "2bd325762c4e551c53df2d4b10cbbf27ccc54b83"
+    },
+    {
+      "ref": "refs/remotes/origin/feature/approved-bilingual-profiles",
+      "sha": "1f416459e70515126538e5590ceb2292782fd0b4"
+    },
+    {
+      "ref": "refs/remotes/origin/feature/approved-context-breadcrumbs",
+      "sha": "a47474ad27d5f96d44dea820b590fcbea407922b"
+    },
+    {
+      "ref": "refs/remotes/origin/feature/approved-engine-grants",
+      "sha": "6ffa7961eac416d3efc8c9281fa2a2d8e25a8c5c"
+    },
+    {
+      "ref": "refs/remotes/origin/feature/approved-learning-path",
+      "sha": "b30c0a9cc80bf5104d5cd00367e94d8feb63f232"
+    },
+    {
+      "ref": "refs/remotes/origin/feature/approved-lesson-completion",
+      "sha": "221cda3e38482911d92170139330a25f77485c06"
+    },
+    {
+      "ref": "refs/remotes/origin/feature/approved-practice-equivalence",
+      "sha": "b40067df32a69e3f65ffe39829cfbac0f20e09e1"
+    },
+    {
+      "ref": "refs/remotes/origin/feature/approved-practice-math-verification",
+      "sha": "b8333e9596362d4d03ac9c9ad5f9dd5d2fc12a06"
+    },
+    {
+      "ref": "refs/remotes/origin/feature/approved-practice-review",
+      "sha": "90484439552a37de8cc2b7e007e03a214a5468fd"
+    },
+    {
+      "ref": "refs/remotes/origin/feature/approved-practice-sessions",
+      "sha": "5c07883e5b0c2a37f5b75e1166a4bf9c8b4fd84f"
+    },
+    {
+      "ref": "refs/remotes/origin/feature/approved-practice-sources",
+      "sha": "dfcbc2ed54921f951ffabb9382aae88f072d6714"
+    },
+    {
+      "ref": "refs/remotes/origin/feature/calculus-1-cubic-proof",
+      "sha": "b0f563cddad1acd2dafd564d068f72b32b1b9957"
+    },
+    {
+      "ref": "refs/remotes/origin/feature/calculus-1-ui",
+      "sha": "07e81d9cc379e5df86b71232e266d2d70c570c2d"
+    },
+    {
+      "ref": "refs/remotes/origin/feature/central-audit-log",
+      "sha": "842466582a72e13a6d9c8efa4f8308c9890ca264"
+    },
+    {
+      "ref": "refs/remotes/origin/feature/course-deletion-integrity",
+      "sha": "8f32d6eb20f60a0581617e56119f760b186a63fd"
+    },
+    {
+      "ref": "refs/remotes/origin/feature/course-enrollment-roster",
+      "sha": "69ad3ae5641bdb2a9d2c89119e9de7e160a8b67f"
+    },
+    {
+      "ref": "refs/remotes/origin/feature/exam-attempt-integrity",
+      "sha": "e6a41004e899da4e1321cc9c10448cbfb63b4bd6"
+    },
+    {
+      "ref": "refs/remotes/origin/feature/exceptional-engine-access",
+      "sha": "49b23ee813664c0c28005520e8f62373aa4902ba"
+    },
+    {
+      "ref": "refs/remotes/origin/feature/fullscreen-application-shell",
+      "sha": "39dd464dc67b29ccf5b03eca5651213cd93ca13e"
+    },
+    {
+      "ref": "refs/remotes/origin/feature/linear-algebra-ui",
+      "sha": "c6e3ffe01bb7fe77a13e8610ad1385fb2d9d2807"
+    },
+    {
+      "ref": "refs/remotes/origin/feature/ode-display",
+      "sha": "961487f30104b86c56aecfe4e7b108e1bbe7895c"
+    },
+    {
+      "ref": "refs/remotes/origin/feature/online-lectures",
+      "sha": "5ea97f0fad6ee8a2df4dfb3edd658258b8e7aa75"
+    },
+    {
+      "ref": "refs/remotes/origin/feature/owner-display-name",
+      "sha": "b150fddc6cae053e9aa765ac5f3905b5d7156ffe"
+    },
+    {
+      "ref": "refs/remotes/origin/feature/phase3-academic-management",
+      "sha": "caec7a29a11455b2ca2a242aa7dcde0dae865b92"
+    },
+    {
+      "ref": "refs/remotes/origin/feature/phase3-exam-reliability",
+      "sha": "a9a814ef1e4b2a427d0357d18cdf79cfa83b9274"
+    },
+    {
+      "ref": "refs/remotes/origin/feature/roster-yhub-numbers",
+      "sha": "40794c3ec03e4185b4df17aeaabde1dbc5fdb23c"
+    },
+    {
+      "ref": "refs/remotes/origin/feature/section-enrollment-control",
+      "sha": "da0d85e2f34060d282b53234c01c015da070caac"
+    },
+    {
+      "ref": "refs/remotes/origin/feature/student-quick-access",
+      "sha": "f8078c2ce445e7fe2b5c7991265d1b7279b92034"
+    },
+    {
+      "ref": "refs/remotes/origin/feature/syllabus-academic-permissions",
+      "sha": "465bee330a574ed65794f181f6b13986498d7eb2"
+    },
+    {
+      "ref": "refs/remotes/origin/feature/theme-hardening",
+      "sha": "c5616a6798b2b8c3b987e721ee94e937162a51dd"
+    },
+    {
+      "ref": "refs/remotes/origin/feature/user-number-ids",
+      "sha": "8db8742b8a12d355c589210548a34c075c24523f"
+    },
+    {
+      "ref": "refs/remotes/origin/feature/y-attendance",
+      "sha": "d5d20582dc2076316d256ce0d9500f16f016d163"
+    },
+    {
+      "ref": "refs/remotes/origin/feature/y-sheets-hardening",
+      "sha": "1c0bc5cca3174ebab6d698475410c706768e90e4"
+    },
+    {
+      "ref": "refs/remotes/origin/feature/y-sheets-integration",
+      "sha": "b83d2c4a142cecbaf7c52abe06636fccd3b3d185"
+    },
+    {
+      "ref": "refs/remotes/origin/feature/y-sheets-ui-refresh",
+      "sha": "f1165962d16b6c2f14fad19447b73ebc18d2a003"
+    },
+    {
+      "ref": "refs/remotes/origin/fix/course-enrollment-permissions",
+      "sha": "04497b9aad3ecba28c8bc6a52c0a4898a7fdfe6a"
+    },
+    {
+      "ref": "refs/remotes/origin/fix/mathjs-parser-security",
+      "sha": "ac778eec4b1671a74b3e3f49e1ce9be811a4fef3"
+    },
+    {
+      "ref": "refs/remotes/origin/fix/phase3-rpc-conflicts",
+      "sha": "fa9c7e3d5d8cd38f0644a207f78703f24a9f3b3c"
+    },
+    {
+      "ref": "refs/remotes/origin/fix/phase3-supabase-security",
+      "sha": "56e5e3303e66a759336ec9a6ad2f474ea1ee4941"
+    },
+    {
+      "ref": "refs/remotes/origin/fix/python-engine-recovery",
+      "sha": "5f535eeddc6189a1310e01115d0db16055adc6da"
+    },
+    {
+      "ref": "refs/remotes/origin/fix/responsive-course-cards",
+      "sha": "6f2b7ed6ae2301c676cc4d4abd230de450a54539"
+    },
+    {
+      "ref": "refs/remotes/origin/integration/approved-work-20261027",
+      "sha": "79f0bdf3ee928db0055c52e8e4be7b304cf2458d"
+    },
+    {
+      "ref": "refs/remotes/origin/main",
+      "sha": "ed784c012a01a4522dc2cf59602545c07c615126"
+    },
+    {
+      "ref": "refs/remotes/origin/pr-27",
+      "sha": "163590856ef5fad3a1536c12e613bd7a10726099"
+    },
+    {
+      "ref": "refs/remotes/origin/pr-35",
+      "sha": "ba5c4a3fe5dbda867996fc0653f53dbd76e76bd9"
+    },
+    {
+      "ref": "refs/remotes/origin/refactor/architecture-plug-and-play",
+      "sha": "b634813113fb50541e4e9809cd2f2cc8fb8b321c"
+    },
+    {
+      "ref": "refs/remotes/origin/refactor/engine-navigation-catalog",
+      "sha": "d10ecb26a4816af25bd4ab2a160e5197c658f5e5"
+    },
+    {
+      "ref": "refs/remotes/origin/refactor/yhub-architecture",
+      "sha": "4ef4234b7ae352f6f556967890f158f7230e483c"
+    },
+    {
+      "ref": "refs/remotes/origin/refactor/yhub-architecture-phase3",
+      "sha": "5150b6e26106d72bea8ef653259bba3973455a4e"
+    },
+    {
+      "ref": "refs/remotes/origin/refactor/yhub-full-architecture",
+      "sha": "c52b39a1cb664b8ce7a2fea503a5e422b037e664"
+    },
+    {
+      "ref": "refs/remotes/origin/refactor/yhub-legacy-pages",
+      "sha": "f49e152fb4333b8ea9d3f1b197705cec36dd2072"
+    },
+    {
+      "ref": "refs/remotes/origin/release/yhub-unified-features",
+      "sha": "47c484fe571b54c864b9c038a76572dd34d41106"
+    },
+    {
+      "ref": "refs/remotes/origin/test/phase3-real-integration",
+      "sha": "0ebcbdd4b6f744a18eb7eddd7f3cd0228ae07a30"
+    },
+    {
+      "ref": "refs/remotes/origin/test/university-integration",
+      "sha": "4c8a112c8b49aaed0d291acfa0fdb7c7110a5bb3"
+    },
+    {
+      "ref": "refs/remotes/origin/verify/y-sheets-release-gates",
+      "sha": "4e03d485359219ccec6e075d793440bfa54acc9a"
+    }
+  ],
+  "remote_heads": [
+    {
+      "ref": "refs/heads/codespace-potential-space-adventure-qv4jx66jvrx4c9qv9",
+      "sha": "6540b5273937fa8f95db7e434442c654d86c6b34"
+    },
+    {
+      "ref": "refs/heads/docs/light-code-comments-20261026",
+      "sha": "69c101d7e2b9ee400ac8c0470ca051053ba4e398"
+    },
+    {
+      "ref": "refs/heads/feat/yhub-product-polish",
+      "sha": "93d8d4ad35456ac9a9f5ea131ab6dd8440eb02d6"
+    },
+    {
+      "ref": "refs/heads/feature/academic-course-sections",
+      "sha": "573952f18f0de2caf771ffeef9d1c934fb321fb1"
+    },
+    {
+      "ref": "refs/heads/feature/ai-tutor-rag",
+      "sha": "710957f93b5d3ebfe812867e0747a57ca1a6ed4a"
+    },
+    {
+      "ref": "refs/heads/feature/approved-academic-integration",
+      "sha": "fc6d64f68d0695f21bc167ac4803f4338e948527"
+    },
+    {
+      "ref": "refs/heads/feature/approved-attendance-lifecycle",
+      "sha": "3c718931810ce8dbbcb4504e08001a1b967610c8"
+    },
+    {
+      "ref": "refs/heads/feature/approved-attendance-reports",
+      "sha": "4456949caaf346f2b43e35c5da5e5555f308def0"
+    },
+    {
+      "ref": "refs/heads/feature/approved-audit-person-search",
+      "sha": "2bd325762c4e551c53df2d4b10cbbf27ccc54b83"
+    },
+    {
+      "ref": "refs/heads/feature/approved-bilingual-profiles",
+      "sha": "1f416459e70515126538e5590ceb2292782fd0b4"
+    },
+    {
+      "ref": "refs/heads/feature/approved-context-breadcrumbs",
+      "sha": "a47474ad27d5f96d44dea820b590fcbea407922b"
+    },
+    {
+      "ref": "refs/heads/feature/approved-engine-grants",
+      "sha": "6ffa7961eac416d3efc8c9281fa2a2d8e25a8c5c"
+    },
+    {
+      "ref": "refs/heads/feature/approved-learning-path",
+      "sha": "b30c0a9cc80bf5104d5cd00367e94d8feb63f232"
+    },
+    {
+      "ref": "refs/heads/feature/approved-lesson-completion",
+      "sha": "221cda3e38482911d92170139330a25f77485c06"
+    },
+    {
+      "ref": "refs/heads/feature/approved-practice-equivalence",
+      "sha": "b40067df32a69e3f65ffe39829cfbac0f20e09e1"
+    },
+    {
+      "ref": "refs/heads/feature/approved-practice-math-verification",
+      "sha": "b8333e9596362d4d03ac9c9ad5f9dd5d2fc12a06"
+    },
+    {
+      "ref": "refs/heads/feature/approved-practice-review",
+      "sha": "90484439552a37de8cc2b7e007e03a214a5468fd"
+    },
+    {
+      "ref": "refs/heads/feature/approved-practice-sessions",
+      "sha": "5c07883e5b0c2a37f5b75e1166a4bf9c8b4fd84f"
+    },
+    {
+      "ref": "refs/heads/feature/approved-practice-sources",
+      "sha": "dfcbc2ed54921f951ffabb9382aae88f072d6714"
+    },
+    {
+      "ref": "refs/heads/feature/calculus-1-cubic-proof",
+      "sha": "b0f563cddad1acd2dafd564d068f72b32b1b9957"
+    },
+    {
+      "ref": "refs/heads/feature/calculus-1-ui",
+      "sha": "07e81d9cc379e5df86b71232e266d2d70c570c2d"
+    },
+    {
+      "ref": "refs/heads/feature/central-audit-log",
+      "sha": "842466582a72e13a6d9c8efa4f8308c9890ca264"
+    },
+    {
+      "ref": "refs/heads/feature/course-deletion-integrity",
+      "sha": "8f32d6eb20f60a0581617e56119f760b186a63fd"
+    },
+    {
+      "ref": "refs/heads/feature/course-enrollment-roster",
+      "sha": "69ad3ae5641bdb2a9d2c89119e9de7e160a8b67f"
+    },
+    {
+      "ref": "refs/heads/feature/exam-attempt-integrity",
+      "sha": "e6a41004e899da4e1321cc9c10448cbfb63b4bd6"
+    },
+    {
+      "ref": "refs/heads/feature/exceptional-engine-access",
+      "sha": "49b23ee813664c0c28005520e8f62373aa4902ba"
+    },
+    {
+      "ref": "refs/heads/feature/fullscreen-application-shell",
+      "sha": "39dd464dc67b29ccf5b03eca5651213cd93ca13e"
+    },
+    {
+      "ref": "refs/heads/feature/linear-algebra-ui",
+      "sha": "c6e3ffe01bb7fe77a13e8610ad1385fb2d9d2807"
+    },
+    {
+      "ref": "refs/heads/feature/ode-display",
+      "sha": "961487f30104b86c56aecfe4e7b108e1bbe7895c"
+    },
+    {
+      "ref": "refs/heads/feature/online-lectures",
+      "sha": "5ea97f0fad6ee8a2df4dfb3edd658258b8e7aa75"
+    },
+    {
+      "ref": "refs/heads/feature/owner-display-name",
+      "sha": "b150fddc6cae053e9aa765ac5f3905b5d7156ffe"
+    },
+    {
+      "ref": "refs/heads/feature/phase3-academic-management",
+      "sha": "caec7a29a11455b2ca2a242aa7dcde0dae865b92"
+    },
+    {
+      "ref": "refs/heads/feature/phase3-exam-reliability",
+      "sha": "a9a814ef1e4b2a427d0357d18cdf79cfa83b9274"
+    },
+    {
+      "ref": "refs/heads/feature/roster-yhub-numbers",
+      "sha": "40794c3ec03e4185b4df17aeaabde1dbc5fdb23c"
+    },
+    {
+      "ref": "refs/heads/feature/section-enrollment-control",
+      "sha": "da0d85e2f34060d282b53234c01c015da070caac"
+    },
+    {
+      "ref": "refs/heads/feature/student-quick-access",
+      "sha": "f8078c2ce445e7fe2b5c7991265d1b7279b92034"
+    },
+    {
+      "ref": "refs/heads/feature/syllabus-academic-permissions",
+      "sha": "465bee330a574ed65794f181f6b13986498d7eb2"
+    },
+    {
+      "ref": "refs/heads/feature/theme-hardening",
+      "sha": "c5616a6798b2b8c3b987e721ee94e937162a51dd"
+    },
+    {
+      "ref": "refs/heads/feature/user-number-ids",
+      "sha": "8db8742b8a12d355c589210548a34c075c24523f"
+    },
+    {
+      "ref": "refs/heads/feature/y-attendance",
+      "sha": "d5d20582dc2076316d256ce0d9500f16f016d163"
+    },
+    {
+      "ref": "refs/heads/feature/y-sheets-hardening",
+      "sha": "1c0bc5cca3174ebab6d698475410c706768e90e4"
+    },
+    {
+      "ref": "refs/heads/feature/y-sheets-integration",
+      "sha": "b83d2c4a142cecbaf7c52abe06636fccd3b3d185"
+    },
+    {
+      "ref": "refs/heads/feature/y-sheets-ui-refresh",
+      "sha": "f1165962d16b6c2f14fad19447b73ebc18d2a003"
+    },
+    {
+      "ref": "refs/heads/fix/course-enrollment-permissions",
+      "sha": "04497b9aad3ecba28c8bc6a52c0a4898a7fdfe6a"
+    },
+    {
+      "ref": "refs/heads/fix/mathjs-parser-security",
+      "sha": "ac778eec4b1671a74b3e3f49e1ce9be811a4fef3"
+    },
+    {
+      "ref": "refs/heads/fix/phase3-rpc-conflicts",
+      "sha": "fa9c7e3d5d8cd38f0644a207f78703f24a9f3b3c"
+    },
+    {
+      "ref": "refs/heads/fix/phase3-supabase-security",
+      "sha": "56e5e3303e66a759336ec9a6ad2f474ea1ee4941"
+    },
+    {
+      "ref": "refs/heads/fix/python-engine-recovery",
+      "sha": "5f535eeddc6189a1310e01115d0db16055adc6da"
+    },
+    {
+      "ref": "refs/heads/fix/responsive-course-cards",
+      "sha": "6f2b7ed6ae2301c676cc4d4abd230de450a54539"
+    },
+    {
+      "ref": "refs/heads/integration/approved-work-20261027",
+      "sha": "79f0bdf3ee928db0055c52e8e4be7b304cf2458d"
+    },
+    {
+      "ref": "refs/heads/main",
+      "sha": "ed784c012a01a4522dc2cf59602545c07c615126"
+    },
+    {
+      "ref": "refs/heads/refactor/architecture-plug-and-play",
+      "sha": "b634813113fb50541e4e9809cd2f2cc8fb8b321c"
+    },
+    {
+      "ref": "refs/heads/refactor/engine-navigation-catalog",
+      "sha": "d10ecb26a4816af25bd4ab2a160e5197c658f5e5"
+    },
+    {
+      "ref": "refs/heads/refactor/yhub-architecture",
+      "sha": "4ef4234b7ae352f6f556967890f158f7230e483c"
+    },
+    {
+      "ref": "refs/heads/refactor/yhub-architecture-phase3",
+      "sha": "5150b6e26106d72bea8ef653259bba3973455a4e"
+    },
+    {
+      "ref": "refs/heads/refactor/yhub-full-architecture",
+      "sha": "c52b39a1cb664b8ce7a2fea503a5e422b037e664"
+    },
+    {
+      "ref": "refs/heads/refactor/yhub-legacy-pages",
+      "sha": "f49e152fb4333b8ea9d3f1b197705cec36dd2072"
+    },
+    {
+      "ref": "refs/heads/release/yhub-unified-features",
+      "sha": "47c484fe571b54c864b9c038a76572dd34d41106"
+    },
+    {
+      "ref": "refs/heads/test/phase3-real-integration",
+      "sha": "0ebcbdd4b6f744a18eb7eddd7f3cd0228ae07a30"
+    },
+    {
+      "ref": "refs/heads/test/university-integration",
+      "sha": "4c8a112c8b49aaed0d291acfa0fdb7c7110a5bb3"
+    },
+    {
+      "ref": "refs/heads/verify/y-sheets-release-gates",
+      "sha": "4e03d485359219ccec6e075d793440bfa54acc9a"
+    }
+  ]
+}
