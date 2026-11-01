@@ -1,0 +1,11 @@
+> Historical report from `0ebcbdd4b6f744a18eb7eddd7f3cd0228ae07a30`, preserved2026-11-01. Its branch status, test counts and deployment prerequisites describe that earlier checkpoint only. Current verification is in `docs/approved-specifications/MERGE_2026-11-01.md`.
+
+# Phase 3 local service integration
+
+This independent verification branch adds a reproducible GoTrue + PostgREST + PostgreSQL test stack. Implementation comes from the four separate Phase 3 branches; `verify-phase3-snapshot.sh` overlays pinned commits into a temporary source export without any Git merge. Final combined execution passed: 14 native HTTP integration tests, 1886 Vitest in 216 files, 29 Python, 112 PostgreSQL, eight architecture guard tests, all workspace TypeScript/audits and production build. See FINAL_REPORT.md for evidence and limitations.
+
+Containers share a newly created internal-only Docker network. No ports are published. HTTP requests use a local Docker exec/nc stream to the named local services. There is no production URL input. Auth users are created through real GoTrue signup; passwords/refresh and access tokens are synthetic and never printed. Roles are provisioned in the disposable DB. PostgREST connects as a non-superuser authenticator without BYPASSRLS. GoTrue supplies its native auth.users/auth.uid/auth.role definitions. Only Storage tables are fixtures; Storage service integration is not claimed.
+
+Versions: PostgreSQL 16 alpine, GoTrue v2.177.0, PostgREST v12.2.3. Images use normal registry trust verification. This local platform combination is not a claim of matching the hosted project's exact service versions/configuration. Local mail autoconfirm avoids external email, not production authentication policy.
+
+Run `bash scripts/test-supabase-http.sh` after the implementation branches are present, or `bash scripts/verify-phase3-snapshot.sh --http-only` to test the separate pinned branches. Omit --http-only for all checks. The runner cleans only its own containers/network/export. No migrations run on production. Known deferred issue: Vercel Python deployment bundle size; no investigation/configuration change here.
