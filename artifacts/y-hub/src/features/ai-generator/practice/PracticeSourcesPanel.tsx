@@ -6,6 +6,8 @@ import { SourceEvidence } from '../knowledge/SourceEvidence';
 import { parsePages,PracticeSourceError,sourcesRepository,type SourceCatalog,type SourcePreview,type PracticeSource } from './sourcesRepository';
 import { PracticeReviewQueue } from './review/PracticeReviewQueue';
 import { PracticePerformance } from './performance/PracticePerformance';
+import { SourceOutline } from './outline/SourceOutline';
+import type { OutlineChoice } from './outline/contracts';
 import { PracticeSessions } from './PracticeSessions';
 import { sourcesCopy } from './sourcesCopy';
 
@@ -21,6 +23,7 @@ function SourceWorkspace({courseId}:{courseId:string}){
  const {language}=useLanguage(),t=sourcesCopy[language];
  const [catalog,setCatalog]=useState<SourceCatalog|null>(null),[load,setLoad]=useState(0),[loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const [selected,setSelected]=useState<string[]>([]),[pages,setPages]=useState<Record<string,string>>({}),[units,setUnits]=useState<string[]>([]),[query,setQuery]=useState(''),[preview,setPreview]=useState<SourcePreview|null>(null);
+ const [outlines,setOutlines]=useState<Record<string,OutlineChoice>>({});
  const request=useRef<AbortController|null>(null),alive=useRef(true),pending=useRef(false);
  const invalidate=()=>{request.current?.abort();setPreview(null);setError('');};
  const report=(e:unknown)=>{
@@ -29,7 +32,7 @@ function SourceWorkspace({courseId}:{courseId:string}){
  };
  useEffect(()=>{alive.current=true;return()=>{alive.current=false;request.current?.abort();};},[]);
  useEffect(()=>{
-  const controller=new AbortController();setLoading(true);setCatalog(null);setPreview(null);setError('');setSelected([]);setPages({});setUnits([]);
+  const controller=new AbortController();setLoading(true);setCatalog(null);setPreview(null);setError('');setSelected([]);setPages({});setUnits([]);setOutlines({});
   sourcesRepository.read(courseId,controller.signal).then(data=>{if(!controller.signal.aborted)setCatalog(data);}).catch(e=>{if(!controller.signal.aborted)report(e);}).finally(()=>{if(!controller.signal.aborted)setLoading(false);});
   return()=>controller.abort();
  // Language changes do not discard source choices; messages update on the next operation.
@@ -38,7 +41,7 @@ function SourceWorkspace({courseId}:{courseId:string}){
  async function showPreview(){
   if(!catalog||pending.current)return;
   invalidate();let picks;
-  try{picks=selected.map(id=>{const s=catalog.sources.find(s=>s.id===id)!;return {sourceId:s.id,revision:s.revision,pages:parsePages(pages[id]??'',s.pages)};});}
+  try{picks=selected.map(id=>{const s=catalog.sources.find(s=>s.id===id)!;return {sourceId:s.id,revision:s.revision,pages:parsePages(pages[id]??'',s.pages),...(outlines[id]?{outline:outlines[id]}:{})};});}
   catch{setError(t.invalidPages);return;}
   const controller=new AbortController();request.current=controller;pending.current=true;setBusy(true);
   try{const result=await sourcesRepository.preview(courseId,picks,units,query,controller.signal);if(!controller.signal.aborted)setPreview(result);}
@@ -59,13 +62,14 @@ function SourceWorkspace({courseId}:{courseId:string}){
   {catalog&&<>
    {!catalog.sources.length&&<p>{t.empty}</p>}{catalog.limited&&<p>{t.limited}</p>}
    <p>{t.selectionLimit}</p>
-   <button className={button} disabled={busy||!catalog.sources.some(s=>s.id===catalog.primaryId&&s.status==='ready')} onClick={()=>{invalidate();setSelected([catalog.primaryId!]);setPages({});setUnits([]);}}>{t.choosePrimary}</button>
+   <button className={button} disabled={busy||!catalog.sources.some(s=>s.id===catalog.primaryId&&s.status==='ready')} onClick={()=>{invalidate();setSelected([catalog.primaryId!]);setPages({});setUnits([]);setOutlines({});}}>{t.choosePrimary}</button>
    {catalog.sources.map(s=><div key={s.id} className="rounded border p-3 space-y-2 break-words">
     <label className="flex gap-2"><input type="checkbox" disabled={busy||s.status!=='ready'||(!selected.includes(s.id)&&selected.length>=10)} checked={selected.includes(s.id)} onChange={e=>{invalidate();setSelected(old=>e.target.checked?[...old,s.id]:old.filter(id=>id!==s.id));}}/><span>{s.title} — {t[s.role]} · {t[s.status]}</span></label>
     {selected.includes(s.id)&&s.kind==='pdf'&&<>
-     <label className="block">{t.pages}: {s.title}<input aria-label={`${t.pages}: ${s.title}`} dir="ltr" maxLength={1500} className="mt-1 w-full rounded border bg-background p-2" disabled={busy} value={pages[s.id]??''} onChange={e=>{invalidate();setPages(old=>({...old,[s.id]:e.target.value}));}}/></label>
+     <label className="block">{t.pages}: {s.title}<input aria-label={`${t.pages}: ${s.title}`} dir="ltr" maxLength={1500} className="mt-1 w-full rounded border bg-background p-2" disabled={busy} value={pages[s.id]??''} onChange={e=>{invalidate();setPages(old=>({...old,[s.id]:e.target.value}));setOutlines(old=>{const next={...old};delete next[s.id];return next;});}}/></label>
      <p className="text-xs text-muted-foreground">{t.pageHelp}</p><p className="text-xs">{t.available}: <bdi dir="ltr">{s.pages.join(', ')||'—'}</bdi></p>
     </>}
+    {selected.includes(s.id)&&s.kind==='pdf'&&s.status==='ready'&&<SourceOutline source={s} choice={outlines[s.id]} disabled={busy} onChoose={(choice,selectedPages)=>{invalidate();setPages(old=>({...old,[s.id]:selectedPages.join(',')}));setOutlines(old=>{const next={...old};if(choice)next[s.id]=choice;else delete next[s.id];return next;});}} onChanged={reload}/>}
     {catalog.canManage&&s.kind==='pdf'&&<ReferenceEditor key={`${s.id}:${s.policyRevision}`} source={s} busy={busy} save={role=>classify(s,role)}/>}
    </div>)}
    {catalog.units.length>0&&<fieldset disabled={busy} className="space-y-2"><legend>{t.units}</legend><p className="text-xs">{t.unitHelp}</p>
@@ -75,7 +79,7 @@ function SourceWorkspace({courseId}:{courseId:string}){
    <label className="block">{t.query}<input dir="auto" maxLength={1500} disabled={busy} className="mt-1 w-full rounded border bg-background p-2" value={query} onChange={e=>{invalidate();setQuery(e.target.value);}}/></label>
    <button className={button} disabled={busy||!selected.length} onClick={()=>void showPreview()}>{busy?t.loading:t.preview}</button>
   </>}
-  {catalog&&<PracticeSessions courseId={courseId} getScope={()=>({selection:selected.map(id=>{const s=catalog.sources.find(s=>s.id===id)!;return {sourceId:s.id,revision:s.revision,pages:parsePages(pages[id]??'',s.pages)};}),units,query})}/>}
+  {catalog&&<PracticeSessions courseId={courseId} getScope={()=>({selection:selected.map(id=>{const s=catalog.sources.find(s=>s.id===id)!;return {sourceId:s.id,revision:s.revision,pages:parsePages(pages[id]??'',s.pages),...(outlines[id]?{outline:outlines[id]}:{})};}),units,query})}/>}
   {catalog&&<PracticePerformance courseId={courseId}/>}
   {catalog?.canManage&&<PracticeReviewQueue courseId={courseId}/>}
   {preview&&<section aria-label={t.previewTitle} className="space-y-3">

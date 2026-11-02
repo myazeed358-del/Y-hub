@@ -1,3 +1,4 @@
+import { outlineCitationSchema } from "./outline/contracts";
 import { z } from "zod";
 import { supabase } from "@/utils/supabaseClient";
 import type { SourceSelection } from "./sourcesRepository";
@@ -9,6 +10,7 @@ export const practiceCitationSchema = z.object({
   revision: uuid,
   title: z.string(),
   text: z.string().max(1800),
+  outline: z.array(outlineCitationSchema).max(50).optional(),
   page: z.number().int().nullable(),
   unit_id: uuid.nullable(),
 });

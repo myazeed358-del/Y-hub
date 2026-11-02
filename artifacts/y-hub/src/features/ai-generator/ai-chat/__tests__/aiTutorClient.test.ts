@@ -59,3 +59,14 @@ describe("server-evidence tutor client", () => {
     await expect(askAiTutor(request)).rejects.toThrow("Cannot connect");
   });
 });
+
+it.each([{}, [null], [{id:"chapter",kind:"chapter",title:42}], [{id:"chapter",kind:"unknown",title:"Title"}]].map(outline=>({outline})))('rejects malformed optional citation metadata without crashing the renderer: $outline', async({outline})=>{
+ mocks.invoke.mockResolvedValue({data:{answer:"Answer",insufficient:false,citations:[{id:"chunk",source_id:"source",title:"Book",text:"Evidence",page:2,outline}]},error:null});
+ await expect(askAiTutor(request)).rejects.toThrow("Invalid AI");
+});
+
+it('accepts bounded valid chapter metadata without converting it into HTML',async()=>{
+ const outline=[{id:"chapter",kind:"chapter",title:"فصل <script>"}];
+ mocks.invoke.mockResolvedValue({data:{answer:"Answer",insufficient:false,citations:[{id:"chunk",source_id:"source",title:"Book",text:"Evidence",page:2,outline}]},error:null});
+ expect((await askAiTutor(request)).citations[0].outline).toEqual(outline);
+});

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { outlineChoiceSchema } from './outline/contracts';
 import { supabase } from '@/utils/supabaseClient';
 const uuid = z.string().uuid();
 const page = z.number().int().min(1).max(300);
@@ -7,7 +8,7 @@ export const catalogSchema = z.object({
  sources: z.array(z.object({id:uuid, revision:uuid, title:z.string(), kind:z.enum(['pdf','syllabus']), status:z.enum(['pending','ready','unreadable']), role:z.enum(['primary','reference','lecture','syllabus']), policyRevision:z.number().int().nonnegative(), pages:z.array(page).max(300)})).max(100),
  units: z.array(z.object({id:uuid,title:z.string()})).max(100),
 });
-const selectionSchema = z.array(z.object({sourceId:uuid,revision:uuid,pages:z.array(page).max(300)}).strict()).min(1).max(10);
+const selectionSchema = z.array(z.object({sourceId:uuid,revision:uuid,pages:z.array(page).max(300),outline:outlineChoiceSchema.optional()}).strict()).min(1).max(10);
 const evidenceSchema = z.object({id:uuid,source_id:uuid,revision:uuid,title:z.string(),page:page.nullable(),unit_id:uuid.nullable(),text:z.string().min(1).max(1800),score:z.number().finite()});
 export type SourceCatalog = z.infer<typeof catalogSchema>;
 export type PracticeSource = SourceCatalog['sources'][number];

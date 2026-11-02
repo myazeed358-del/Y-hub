@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Upgrade existing 0050/0051/0052 attempts in a disposable, network-isolated local database.
+# Upgrade existing 0050/0051/0052/0053 attempts in a disposable, network-isolated local database.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 unset DOCKER_HOST DOCKER_CONTEXT DOCKER_TLS DOCKER_TLS_VERIFY DOCKER_CERT_PATH
@@ -8,7 +8,8 @@ case "${1:-equivalence}" in
   equivalence) stop=0051; test_file=practice_equivalence.py ;;
   adaptive) stop=0052; test_file=practice_adaptive.py ;;
   performance) stop=0053; test_file=practice_performance.py ;;
-  *) echo 'Usage: test-practice-equivalence-upgrade.sh [equivalence|adaptive|performance]' >&2; exit 2 ;;
+  outline) stop=0054; test_file=practice_outline.py ;;
+  *) echo 'Usage: test-practice-equivalence-upgrade.sh [equivalence|adaptive|performance|outline]' >&2; exit 2 ;;
 esac
 container="yhub-academic-test-upgrade-$(date +%s)-$$"
 trap 'docker rm -f "$container" >/dev/null 2>&1 || true' EXIT
