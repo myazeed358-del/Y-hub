@@ -149,16 +149,56 @@ it.each([
 ])("cannot attach a fake key, evidence or unsupported proof %#", (p) => {
   expect(() => parsePracticeProposal(p, [evidence], "ar")).toThrow();
 });
-it.each(["actor", "evidence", "correct", "courseId"])(
-  "rejects forged %s before any work",
-  async (key) => {
-    await expect(
-      generatePractice(
-        request({ sessionId: id, position: 1, [key]: "forged" }),
-        ctx,
-      ),
-    ).rejects.toMatchObject({ status: 400 });
-    expect(rpc).not.toHaveBeenCalled();
+it.each([
+  "actor",
+  "evidence",
+  "correct",
+  "courseId",
+  "difficulty",
+  "performance",
+  "sampleCount",
+])("rejects forged %s before any work", async (key) => {
+  await expect(
+    generatePractice(
+      request({ sessionId: id, position: 1, [key]: "forged" }),
+      ctx,
+    ),
+  ).rejects.toMatchObject({ status: 400 });
+  expect(rpc).not.toHaveBeenCalled();
+});
+it.each(["easy", "medium", "hard"])(
+  "uses only the server-planned %s level in the provider instructions",
+  async (difficulty) => {
+    const base = rpc.getMockImplementation()!;
+    rpc.mockImplementation(async (name, ...args) => {
+      const result = await base(name, ...args);
+      return name === "ai_practice_generation_context"
+        ? { ...result, data: { ...result.data, difficulty } }
+        : result;
+    });
+    await generatePractice(request(), ctx);
+    expect(
+      JSON.parse(fetcher.mock.calls[0][1].body).messages[0].content,
+    ).toContain(`Difficulty: ${difficulty}.`);
+  },
+);
+it.each(["adaptive", "untrusted", null])(
+  "rejects a missing or invalid server plan %s before spending quota",
+  async (difficulty) => {
+    const base = rpc.getMockImplementation()!;
+    rpc.mockImplementation(async (name, ...args) => {
+      const result = await base(name, ...args);
+      return name === "ai_practice_generation_context"
+        ? { ...result, data: { ...result.data, difficulty } }
+        : result;
+    });
+    await expect(generatePractice(request(), ctx)).rejects.toMatchObject({
+      status: 503,
+    });
+    expect(fetcher).not.toHaveBeenCalled();
+    expect(rpc.mock.calls.some((c) => c[0] === "begin_ai_tutor_request")).toBe(
+      false,
+    );
   },
 );
 it("recovers a lost acknowledgement without charging or regenerating", async () => {

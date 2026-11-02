@@ -16,7 +16,7 @@ export const sessionSchema = z.object({
   id: uuid,
   courseId: uuid,
   mode: z.enum(["practice", "exam"]),
-  difficulty: z.enum(["easy", "medium", "hard"]),
+  difficulty: z.enum(["easy", "medium", "hard", "adaptive"]),
   language: z.enum(["ar", "en"]),
   target: z.number().int().min(1).max(100),
   revision: z.number().int().positive(),
@@ -29,6 +29,19 @@ export const sessionSchema = z.object({
         options: z.array(z.string().max(1000)).length(4),
         choice: choice.nullable(),
         answered: z.boolean(),
+        generation: z
+          .object({
+            difficulty: z.enum(["easy", "medium", "hard"]),
+            reason: z.enum([
+              "manual",
+              "insufficient",
+              "support",
+              "steady",
+              "stretch",
+            ]),
+            samples: z.number().int().min(0).max(20),
+          })
+          .optional(),
         feedback: z
           .object({
             suggestedChoice: choice,
@@ -68,7 +81,7 @@ export type PracticeScope = {
 };
 export type SessionSettings = {
   mode: "practice" | "exam";
-  difficulty: "easy" | "medium" | "hard";
+  difficulty: "easy" | "medium" | "hard" | "adaptive";
   language: "ar" | "en";
   target: number;
   allowRepeats: boolean;

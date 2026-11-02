@@ -69,6 +69,22 @@ it("validates the selected scope before writing", async () => {
   await screen.findByRole("alert");
   expect(calls.create).not.toHaveBeenCalled();
 });
+it("offers adaptive difficulty with its limits and sends no score or inferred level", async () => {
+  await open();
+  fireEvent.change(screen.getByLabelText("Difficulty"), {
+    target: { value: "adaptive" },
+  });
+  expect(screen.getByText(/up to 20 distinct/)).toBeTruthy();
+  fireEvent.click(screen.getByText("Create session"));
+  await screen.findByText("new-session");
+  expect(calls.create.mock.calls[0][3]).toEqual({
+    mode: "practice",
+    difficulty: "adaptive",
+    language: "en",
+    target: 5,
+    allowRepeats: false,
+  });
+});
 it("blocks unsafe switching/creation with a dirty choice", async () => {
   await open();
   fireEvent.click(screen.getByText("Create session"));
