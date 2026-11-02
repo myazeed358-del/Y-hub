@@ -103,3 +103,11 @@ it('clears Owner details and aborts requests when the viewer role changes', asyn
   state.role = 'student'; rerender(<AuditLogPage />);
   expect(screen.queryByText('Audit log')).toBeNull();
 });
+
+ it.each(['en','ar'] as const)('offers performance weight audit filtering in %s',async language=>{
+ state.language=language;render(<AuditLogPage/>);await screen.findByText('Test Instructor');
+ fireEvent.change(screen.getByLabelText(language==='ar'?'الكيان':'Entity'),{target:{value:'ai_practice_performance_weights'}});
+ fireEvent.click(screen.getByRole('button',{name:language==='ar'?'تطبيق الفلاتر':'Apply filters'}));
+ await waitFor(()=>expect(list).toHaveBeenLastCalledWith(expect.objectContaining({entity:'ai_practice_performance_weights'}),null,expect.any(AbortSignal)));
+ expect(screen.getByRole('option',{name:language==='ar'?'أوزان أداء التدريب':'Practice performance weights'})).toBeTruthy();
+ });

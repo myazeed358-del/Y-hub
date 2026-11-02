@@ -5,6 +5,7 @@ import { ChatMessageContent } from '../ai-chat/ChatMessageContent';
 import { SourceEvidence } from '../knowledge/SourceEvidence';
 import { parsePages,PracticeSourceError,sourcesRepository,type SourceCatalog,type SourcePreview,type PracticeSource } from './sourcesRepository';
 import { PracticeReviewQueue } from './review/PracticeReviewQueue';
+import { PracticePerformance } from './performance/PracticePerformance';
 import { PracticeSessions } from './PracticeSessions';
 import { sourcesCopy } from './sourcesCopy';
 
@@ -75,6 +76,7 @@ function SourceWorkspace({courseId}:{courseId:string}){
    <button className={button} disabled={busy||!selected.length} onClick={()=>void showPreview()}>{busy?t.loading:t.preview}</button>
   </>}
   {catalog&&<PracticeSessions courseId={courseId} getScope={()=>({selection:selected.map(id=>{const s=catalog.sources.find(s=>s.id===id)!;return {sourceId:s.id,revision:s.revision,pages:parsePages(pages[id]??'',s.pages)};}),units,query})}/>}
+  {catalog&&<PracticePerformance courseId={courseId}/>}
   {catalog?.canManage&&<PracticeReviewQueue courseId={courseId}/>}
   {preview&&<section aria-label={t.previewTitle} className="space-y-3">
    {!preview.evidence.length&&<p>{t.noMatches}</p>}{preview.hasMore&&<p>{t.more}</p>}
