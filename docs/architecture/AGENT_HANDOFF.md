@@ -1,3 +1,21 @@
+# Adaptive practice checkpoint — 2026-11-02
+
+Latest request continues approved decisions1–71. Previous all-branch integration is complete at verified remote main **a31429b51abd67e9a276d9cded42b8c3b5d8ff4d**. This separate package is on **feature/approved-adaptive-practice**; do not automatically merge this subsequent group. Existing work preserved, no reset/force/worktree. Read `docs/approved-specifications/ADAPTIVE_PRACTICE.md`, its PR body and PROGRESS before continuing.
+
+Decision16 is complete locally for supported practice scope. Manual levels remain; adaptive selection uses up to20 distinct released engine-verified/human-resolved exercises within the exact actor/section/source-generation/page/unit/query scope. Under5 samples requests medium; below50% easy,50% to below80% medium,80%+ hard. No inferred PDF chapter mapping or official-grade/difficulty-calibration claim. A private versioned per-position plan is reserved before provider work; retries reuse it despite provider failure, quota rejection or later performance changes. Subsequent positions recompute. Both publishers require a plan for adaptive sessions. Browser writes/worker RPC access are denied, current access/source checks and delayed feedback are preserved. Existing manual state and publishers remain compatible. No math algorithm, dependencies, other feature or global theme changes.
+
+New additive migration0052 only; old SQL untouched. Local populated0051 upgrade proves sessions/questions/answers/reviews/scores preserved except derived scope column. Stored column/index require production lock/volume planning; the20-sample limit does not bound the full history aggregation scan. Plan count is bounded by100positions/session. Policy is a requested difficulty heuristic; hosted provider calibration remains PENDING.
+
+Final verification:2272Vitest/258files (12new),36Python,153academicSQL/RLS (18new),2populated practice upgrades (0050→0051 and0051→0052),39audit+1audit upgrade,110native local Auth/JWT/PostgREST (5new),25Chromium cases (4adaptive+4manual+4math+4review+4sources+5Tutor). Workspace and portable worker TypeScript,strict architecture/math/module boundaries,8guard tests,artifact drift andproduction build PASS.0finalfailures.113focused practice cases are a subset. Browser harness initial exact-label/asynchronous-create assertions were corrected; production code was not changed to hide failures. Native HTTP runs actual Auth/RLS and math artifact; browser/provider fixtures are not hosted evidence. Existing warnings and Vercel Python size issue remain deferred.
+
+Production SQL remains authorized from earlier requests but NOT performed: runtime still only has URL/anon key, no administrative DB connection/connector or DB TCP grant. Secure runtime configuration and real migration-ledger/schema reconciliation are prerequisites. Do not ask for migration authorization again or request secrets in chat.0052 local-only; no Edge deployment. Hosted Staging/Deno/provider quality/cost,production timing and role smoke tests PENDING.
+
+Git push works. GitHub API returns Forbidden under the enforced allowlist; an escalated read request was cancelled. No actual PR was created and no number is claimed. Prepared body `ADAPTIVE_PRACTICE_PR.md`; creation link only: https://github.com/myazeed358-del/Y-hub/pull/new/feature/approved-adaptive-practice . Final branch SHA is established by Git/ls-remote, not a self-reference in this commit.
+
+Decision table:31complete locally/21partial/19missing/0repair,71total; not production readiness. Next independent work: free-form answers/additional verified operations18,remaining equivalence17,trusted PDF chapter metadata20,weighted performance42. Keep72–80 outside scope. Do not redo completed sources/sessions/reviews/math-equivalence/adaptive work.
+
+## Preserved previous checkpoints
+
 # All-branch integration checkpoint — 2026-11-01
 
 User explicitly requested merging every unmerged branch into main. Started from remote main `ed784c012a01a4522dc2cf59602545c07c615126` in the clean existing checkout, using `integration/all-branches-20261101`. Read `docs/approved-specifications/MERGE_2026-11-01.md` and its REFS.json inventory. Reviewed61remote heads and45local heads. Every captured SHA is an ancestor of the integrated tree; no branch deletion, reset, force push or additional worktree.

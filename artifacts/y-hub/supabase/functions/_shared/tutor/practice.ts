@@ -137,6 +137,8 @@ export async function generatePractice(req: Request, ctx: Context) {
     throw new TutorError(503, "Session unavailable");
   await access(ctx, config.courseId);
   if (config.exists) return { stored: true }; // lost server acknowledgement costs no additional provider request
+  if (!["easy", "medium", "hard"].includes(config.difficulty))
+    throw new TutorError(503, "Question difficulty plan unavailable");
   const engineAccess = await ctx.db.rpc("authorize_engine_compute", {
     p_protocol: "ast",
     p_scope: "derive",

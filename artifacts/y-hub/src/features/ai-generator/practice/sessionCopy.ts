@@ -8,6 +8,18 @@ export const sessionCopy = {
     medium: "Medium",
     hard: "Hard",
     difficulty: "Difficulty",
+    adaptive: "Adaptive",
+    adaptiveNote:
+      "The server chooses the requested level from up to 20 distinct, confirmed results in this section and selected source/page/unit scope. Pending answers and unsubmitted self-tests are excluded. Fewer than 5 results starts at medium; below 50% requests easy, 50–79% medium, and 80% or more hard. Each question keeps the level selected at its first generation request. This is not an official grade or a guarantee of the model's difficulty.",
+    requestedDifficulty: "Requested question level",
+    verifiedSamples: "Confirmed exercises used",
+    adaptiveReasons: {
+      manual: "Manual selection",
+      insufficient: "Not enough confirmed results yet",
+      support: "More foundation practice",
+      steady: "Continue at medium",
+      stretch: "More challenging practice",
+    },
     count: "Questions (1–100)",
     language: "Explanation language",
     repeats: "Allow deliberate repeats from older sessions",
@@ -54,6 +66,18 @@ export const sessionCopy = {
     leave: "A choice is not saved. Save it or explicitly discard it first.",
   },
   ar: {
+    adaptive: "تكيفي",
+    adaptiveNote:
+      "يختار الخادم المستوى المطلوب من آخر ٢٠ تمرينًا مختلفًا بنتائج محسومة في الشعبة ونطاق المصادر والصفحات والوحدات المختار. تُستبعد الإجابات المعلقة والاختبارات غير المسلّمة. يبدأ بالمتوسط عند وجود أقل من ٥ نتائج؛ أقل من ٥٠٪ يطلب السهل، ومن ٥٠٪ إلى أقل من ٨٠٪ المتوسط، و٨٠٪ فأكثر الصعب. يبقى مستوى السؤال ثابتًا منذ أول طلب لتوليده. هذا ليس علامة رسمية أو ضمانًا لصعوبة ما يولده النموذج.",
+    requestedDifficulty: "مستوى السؤال المطلوب",
+    verifiedSamples: "التمارين المحسومة المستخدمة",
+    adaptiveReasons: {
+      manual: "اختيار يدوي",
+      insufficient: "النتائج المحسومة غير كافية بعد",
+      support: "تدريب إضافي على الأساسيات",
+      steady: "الاستمرار بالمستوى المتوسط",
+      stretch: "تدريب أكثر تحديًا",
+    },
     repeated:
       "السؤال المقترح يكرر تمرينًا سابقًا. بقيت جلستك كما هي. جرّب التوليد مجددًا، أو وسّع المصادر، أو ابدأ جلسة جديدة مع تفعيل التكرار المقصود.",
     title: "جلسات التدريب المحفوظة",

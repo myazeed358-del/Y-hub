@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { mkdir } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 import { verifyDerivative } from "../artifacts/y-hub/supabase/functions/_shared/tutor/polynomialVerifier.mjs";
+const adaptiveRun = process.env.YHUB_PRACTICE_ADAPTIVE === "1";
 const mathRun = process.env.YHUB_PRACTICE_MATH === "1";
 const { chromium } = await import(
   pathToFileURL(
@@ -16,9 +17,11 @@ const base = new URL(
 assert(["127.0.0.1", "localhost"].includes(base.hostname));
 const output =
   process.env.YHUB_SCREENSHOTS ||
-  (mathRun
-    ? "/workspace/practice-math-screenshots"
-    : "/workspace/practice-session-screenshots");
+  (adaptiveRun
+    ? "/workspace/practice-adaptive-screenshots"
+    : mathRun
+      ? "/workspace/practice-math-screenshots"
+      : "/workspace/practice-session-screenshots");
 await mkdir(output, { recursive: true });
 const browser = await chromium.launch({
   executablePath: "/usr/bin/chromium",
@@ -138,7 +141,7 @@ try {
                 {
                   id: state.id,
                   mode: state.mode,
-                  difficulty: "medium",
+                  difficulty: state.difficulty,
                   language,
                   target: 1,
                   created_at: "2026-10-29T10:00:00Z",
@@ -213,6 +216,15 @@ try {
             choice: null,
             answered: false,
             feedback: null,
+            ...(adaptiveRun
+              ? {
+                  generation: {
+                    difficulty: "medium",
+                    reason: "insufficient",
+                    samples: 0,
+                  },
+                }
+              : {}),
           },
         ];
         state.revision++;
@@ -310,6 +322,19 @@ try {
     await page
       .getByLabel(ar ? "عدد الأسئلة (١–١٠٠)" : "Questions (1–100)")
       .fill("1");
+    if (adaptiveRun) {
+      await page
+        .getByLabel(ar ? /^الصعوبة/ : /^Difficulty/)
+        .selectOption("adaptive");
+      await page
+        .getByText(
+          ar
+            ? "يختار الخادم المستوى المطلوب"
+            : "The server chooses the requested level",
+          { exact: false },
+        )
+        .waitFor();
+    }
     await click("Create session", "إنشاء جلسة");
     await click("Generate next question", "توليد السؤال التالي");
     if (mathRun) {
@@ -327,6 +352,25 @@ try {
       await click("Generate next question", "توليد السؤال التالي");
     }
     await page.getByLabel("1: 1", { exact: true }).waitFor();
+    if (adaptiveRun) {
+      assert.equal(writes[0].p_difficulty, "adaptive");
+      await page
+        .getByText(
+          ar
+            ? "مستوى السؤال المطلوب: متوسط"
+            : "Requested question level: Medium",
+          { exact: false },
+        )
+        .waitFor();
+      await page
+        .getByText(
+          ar
+            ? "النتائج المحسومة غير كافية بعد"
+            : "Not enough confirmed results yet",
+          { exact: false },
+        )
+        .waitFor();
+    }
     assert.equal(
       await page
         .getByText("Approved book — p. 2 / ص. 2", { exact: true })
@@ -419,7 +463,7 @@ try {
     assert.equal(await page.getByLabel("1: 1", { exact: true }).count(), 0);
     assert.deepEqual(errors, []);
     console.log(
-      `PASS ${width}/${language}/${theme}/${mode}/${mathRun ? "engine/repeated-proposal" : "suggestion"}: scope, generation, lost connection/reload recovery, delayed feedback, KaTeX, revocation.`,
+      `PASS ${width}/${language}/${theme}/${mode}/${adaptiveRun ? "adaptive-level" : mathRun ? "engine/repeated-proposal" : "suggestion"}: scope, generation, lost connection/reload recovery, delayed feedback, KaTeX, revocation.`,
     );
     await context.close();
   }

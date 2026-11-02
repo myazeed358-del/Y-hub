@@ -207,6 +207,19 @@ export function PracticeSessionView({
               <h4>
                 <bdi dir="ltr">{q.position}.</bdi>
               </h4>
+              {q.generation && (
+                <p className="text-sm">
+                  {t.requestedDifficulty}: {t[q.generation.difficulty]}
+                  {session.difficulty === "adaptive" && (
+                    <>
+                      {" "}
+                      · {t.adaptiveReasons[q.generation.reason]} ·{" "}
+                      {t.verifiedSamples}:{" "}
+                      <bdi dir="ltr">{q.generation.samples}</bdi>
+                    </>
+                  )}
+                </p>
+              )}
               <ChatMessageContent content={q.prompt} />
               {pending?.value.position === q.position && (
                 <p className="text-xs">

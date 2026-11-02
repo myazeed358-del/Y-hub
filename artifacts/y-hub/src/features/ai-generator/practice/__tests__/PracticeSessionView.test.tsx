@@ -75,6 +75,32 @@ const open = async () => {
   return dirty;
 };
 it.each(["en", "ar"] as const)(
+  "renders server-planned level without revealing feedback in %s",
+  async (language) => {
+    calls.language = language;
+    calls.read.mockResolvedValue({
+      ...state,
+      difficulty: "adaptive",
+      questions: [
+        {
+          ...state.questions[0],
+          generation: { difficulty: "hard", reason: "stretch", samples: 6 },
+        },
+      ],
+    });
+    await open();
+    expect(
+      screen.getByText(new RegExp(sessionCopy[language].requestedDifficulty)),
+    ).toBeTruthy();
+    expect(
+      screen.getByText(
+        new RegExp(sessionCopy[language].adaptiveReasons.stretch),
+      ),
+    ).toBeTruthy();
+    expect(screen.queryByTestId("citations")).toBeNull();
+  },
+);
+it.each(["en", "ar"] as const)(
   "keeps the saved session visible after a repeated proposal in %s",
   async (language) => {
     calls.language = language;

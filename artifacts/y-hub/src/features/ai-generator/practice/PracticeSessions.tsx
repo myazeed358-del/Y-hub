@@ -162,11 +162,13 @@ export function PracticeSessions({
                     })
                   }
                 >
-                  {(["easy", "medium", "hard"] as const).map((d) => (
-                    <option key={d} value={d}>
-                      {t[d]}
-                    </option>
-                  ))}
+                  {(["easy", "medium", "hard", "adaptive"] as const).map(
+                    (d) => (
+                      <option key={d} value={d}>
+                        {t[d]}
+                      </option>
+                    ),
+                  )}
                 </select>
               </label>
               <label>
@@ -186,6 +188,9 @@ export function PracticeSessions({
                 </select>
               </label>
             </div>
+            {settings.difficulty === "adaptive" && (
+              <p className="text-sm">{t.adaptiveNote}</p>
+            )}
             <label className="block">
               {t.count}
               <input
