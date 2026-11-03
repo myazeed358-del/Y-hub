@@ -6,9 +6,11 @@ export function SourceEvidence({ sources }: { sources: TutorCitation[] }) {
   async function open(c: TutorCitation) {
     setError("");
     // Re-read the authorized source before each opening; never trust model URLs.
-    const source = await supabase.from("ai_tutor_sources").select(
-      "material_id,revision,course_id",
-    ).eq("id", c.source_id).maybeSingle();
+    const source = await supabase
+      .from("ai_tutor_sources")
+      .select("material_id,revision,course_id")
+      .eq("id", c.source_id)
+      .maybeSingle();
     if (source.error || !source.data || source.data.revision !== c.revision) {
       setError("Source unavailable / المصدر غير متاح");
       return;
@@ -17,10 +19,11 @@ export function SourceEvidence({ sources }: { sources: TutorCitation[] }) {
       window.location.assign(`/course/${source.data.course_id}/view`);
       return;
     }
-    const material = await supabase.from("course_materials").select("url").eq(
-      "id",
-      source.data.material_id,
-    ).single();
+    const material = await supabase
+      .from("course_materials")
+      .select("url")
+      .eq("id", source.data.material_id)
+      .single();
     try {
       if (material.error || !material.data) throw new Error();
       const url = new URL(material.data.url),
@@ -32,9 +35,11 @@ export function SourceEvidence({ sources }: { sources: TutorCitation[] }) {
       const path = decodeURIComponent(url.pathname.slice(prefix.length));
       const file = await supabase.storage.from("materials").download(path);
       if (file.error || !file.data) throw new Error();
-      const current = await supabase.from("ai_tutor_sources").select(
-        "material_id,revision,course_id",
-      ).eq("id", c.source_id).maybeSingle();
+      const current = await supabase
+        .from("ai_tutor_sources")
+        .select("material_id,revision,course_id")
+        .eq("id", c.source_id)
+        .maybeSingle();
       if (current.error || current.data?.revision !== c.revision) {
         throw new Error();
       }
@@ -56,13 +61,18 @@ export function SourceEvidence({ sources }: { sources: TutorCitation[] }) {
             {c.title}
             {c.page ? ` — p. ${c.page} / ص. ${c.page}` : ""}
           </summary>
+          {c.outline?.map((part) => (
+            <p key={part.id} dir="auto">
+              {part.kind === "chapter" ? "Chapter / فصل" : "Topic / موضوع"}:{" "}
+              {part.title}
+            </p>
+          ))}
           <blockquote dir="auto" className="whitespace-pre-wrap my-2">
             {c.text}
           </blockquote>
           <button
             className="text-primary underline"
-            onClick={() =>
-              void open(c)}
+            onClick={() => void open(c)}
           >
             View source / عرض المصدر
           </button>

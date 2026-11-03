@@ -1,10 +1,11 @@
 import { cleanup,fireEvent,render,screen,waitFor,act } from '@testing-library/react';
 import { afterEach,beforeEach,expect,it,vi } from 'vitest';
-const state=vi.hoisted(()=>({read:vi.fn(),preview:vi.fn(),classify:vi.fn(),role:'student',language:'en' as 'ar'|'en'}));
+const state=vi.hoisted(()=>({outline:vi.fn(),read:vi.fn(),preview:vi.fn(),classify:vi.fn(),role:'student',language:'en' as 'ar'|'en'}));
 vi.mock('@/contexts/AuthContext',()=>({useAuth:()=>({user:{id:'viewer'},role:state.role})}));
 vi.mock('@/i18n/LanguageContext',()=>({useLanguage:()=>({language:state.language})}));
 vi.mock('../sourcesRepository',async orig=>({...await orig<object>(),sourcesRepository:{read:state.read,preview:state.preview,classify:state.classify}}));
 vi.mock('../../knowledge/SourceEvidence',()=>({SourceEvidence:()=>null}));
+vi.mock('../outline/repository',()=>({outlineRepository:{read:state.outline}}));
 import {PracticeSourcesPanel} from '../PracticeSourcesPanel';
 import {PracticeSourceError} from '../sourcesRepository';
 const book={id:'source',revision:'generation',title:'Approved book',kind:'pdf',status:'ready',role:'primary',policyRevision:1,pages:[2,4]};
@@ -45,4 +46,13 @@ it('aborts previews when closed and ignores an in-flight response after account 
 it('supports Arabic direction and keeps page numbers LTR',async()=>{
  state.language='ar';render(<PracticeSourcesPanel courseId="course"/>);const details=screen.getByText('مراجع التدريب ونطاقه').closest('details')!;details.open=true;fireEvent(details,new Event('toggle'));
  fireEvent.click(await screen.findByText('اختيار الكتاب الأساسي'));expect(screen.getByRole('region').getAttribute('dir')).toBe('rtl');expect(screen.getByLabelText('صفحات PDF: Approved book').getAttribute('dir')).toBe('ltr');
+});
+
+it('passes trusted chapter scope through preview and drops it after a manual page edit',async()=>{
+ state.outline.mockResolvedValue({sourceId:'source',sourceRevision:'generation',revision:3,canManage:false,stale:false,sections:[{id:'chapter',kind:'chapter',title:'Algebra',parentId:null,pages:[4]}]});
+ await open();fireEvent.click(screen.getByText('Select primary book'));fireEvent.click(screen.getByText('Chapters and topics: Approved book'));
+ fireEvent.click(await screen.findByLabelText(/Chapter: Algebra/));fireEvent.click(screen.getByText('Preview passages'));
+ await waitFor(()=>expect(state.preview).toHaveBeenCalledWith('course',[{sourceId:'source',revision:'generation',pages:[4],outline:{revision:3,ids:['chapter']}}],[],'',expect.any(AbortSignal)));
+ await screen.findByText(/No indexed passages match/);fireEvent.change(screen.getByLabelText('PDF pages: Approved book'),{target:{value:'2'}});fireEvent.click(screen.getByText('Preview passages'));
+ await waitFor(()=>expect(state.preview).toHaveBeenLastCalledWith('course',[{sourceId:'source',revision:'generation',pages:[2]}],[],'',expect.any(AbortSignal)));
 });

@@ -7,6 +7,8 @@ export interface TutorCitation {
   page: number | null;
   unit_id: string | null;
   text: string;
+  /** Optional practice references reconstructed by the publication transaction. */
+  outline?: { id: string; kind: "chapter" | "topic"; title: string }[];
 }
 export type ExplanationLanguage = "auto" | "ar" | "en";
 export interface AiTutorRequest {
@@ -78,7 +80,13 @@ export async function askAiTutor(
     data.citations.some((c) =>
       !c || typeof c.id !== "string" || typeof c.source_id !== "string" ||
       typeof c.text !== "string" || typeof c.title !== "string" ||
-      (c.page !== null && (!Number.isInteger(c.page) || c.page < 1))
+      (c.page !== null && (!Number.isInteger(c.page) || c.page < 1)) ||
+      (c.outline !== undefined && (!Array.isArray(c.outline) || c.outline.length > 50 || c.outline.some((part: unknown) => {
+        if (!part || typeof part !== "object") return true;
+        const p = part as Record<string, unknown>;
+        return typeof p.id !== "string" || !["chapter", "topic"].includes(String(p.kind)) ||
+          typeof p.title !== "string" || !p.title.trim() || p.title.length > 160;
+      })))
     )
   ) throw new AiTutorClientError("Invalid AI Tutor response.");
   return { ...data, answer: data.answer.trim() };
