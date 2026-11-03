@@ -1,0 +1,26 @@
+export const topicCopy = {
+  en: {
+    dimension: "Group performance by",
+    unit: "Syllabus units",
+    chapter: "PDF chapters",
+    topic: "PDF topics",
+    note: "Every cited passage must identify the same single chapter or topic. Mixed or unmapped questions remain unclassified. Each question counts once in this view; chapter and topic totals must not be added together.",
+    unmapped: "Unclassified / mixed scope",
+    source: "Source",
+    previous: "Previous groups",
+    next: "Next groups",
+    refresh: "Refresh groups",
+  },
+  ar: {
+    dimension: "تجميع الأداء حسب",
+    unit: "وحدات السيلابس",
+    chapter: "فصول PDF",
+    topic: "موضوعات PDF",
+    note: "يجب أن تحدد جميع المقاطع المستشهد بها الفصل أو الموضوع نفسه دون التباس. تبقى الأسئلة المختلطة أو غير المربوطة غير مصنفة. يُحتسب السؤال مرة واحدة في هذا العرض؛ لا تجمع إجماليات الفصول والموضوعات معًا.",
+    unmapped: "غير مصنف / نطاق مختلط",
+    source: "المصدر",
+    previous: "المجموعات السابقة",
+    next: "المجموعات التالية",
+    refresh: "تحديث المجموعات",
+  },
+} as const;

@@ -3,7 +3,7 @@ export const performanceCopy = {
     title: "My course practice performance",
     note: "A learning indicator, not an official university grade. Practice and submitted self-tests use only engine-verified or human-resolved answers. Pending answers and drafts do not count as wrong. This does not include official course exams.",
     scope:
-      "Results are grouped by the syllabus unit cited by every source passage. Unmapped or mixed-unit questions stay unclassified. Deleted or changed source scopes are excluded. Each confirmed attempt counts, including deliberate repeats.",
+      "The unit view groups results by the syllabus unit cited by every source passage. Unmapped or mixed-unit questions stay unclassified. Deleted or changed source scopes are excluded. Each confirmed attempt counts, including deliberate repeats.",
     weights: "Course performance weights",
     practice: "Practice",
     exam: "Submitted self-tests",
@@ -38,7 +38,7 @@ export const performanceCopy = {
     title: "أدائي التدريبي في المساق",
     note: "مؤشر تعليمي وليس علامة جامعية رسمية. يحتسب التدريب والاختبارات الذاتية المسلّمة من الإجابات المحققة بالمحرك أو المحسومة بشريًا فقط. لا تُحتسب الإجابات المعلقة والمسودات أخطاء. لا يشمل امتحانات المساق الرسمية.",
     scope:
-      "تُجمع النتائج بحسب وحدة السيلابس التي تنتمي إليها جميع مقاطع المرجع. تبقى الأسئلة غير المربوطة أو متعددة الوحدات غير مصنّفة. تُستبعد نطاقات المصادر المحذوفة أو المتغيرة. تُحتسب كل محاولة محسومة، بما فيها التكرار المقصود.",
+      "في عرض الوحدات، تُجمع النتائج بحسب وحدة السيلابس التي تنتمي إليها جميع مقاطع المرجع. تبقى الأسئلة غير المربوطة أو متعددة الوحدات غير مصنّفة. تُستبعد نطاقات المصادر المحذوفة أو المتغيرة. تُحتسب كل محاولة محسومة، بما فيها التكرار المقصود.",
     weights: "أوزان أداء المساق",
     practice: "التدريب",
     exam: "الاختبارات الذاتية المسلّمة",

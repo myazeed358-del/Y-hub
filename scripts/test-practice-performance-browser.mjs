@@ -8,12 +8,13 @@ const { chromium } = await import(
       "/workspace/.yhub-browser/node_modules/playwright-core/index.mjs",
   ).href
 );
+const topicsRun = process.env.YHUB_PRACTICE_TOPICS === "1";
 const base = new URL(
   process.env.YHUB_BROWSER_BASE_URL || "http://127.0.0.1:5175",
 );
 assert(["localhost", "127.0.0.1"].includes(base.hostname));
 const output =
-  process.env.YHUB_SCREENSHOTS || "/workspace/practice-performance-screenshots";
+  process.env.YHUB_SCREENSHOTS || (topicsRun ? "/workspace/topic-performance-screenshots" : "/workspace/practice-performance-screenshots");
 await mkdir(output, { recursive: true });
 const browser = await chromium.launch({
   executablePath: "/usr/bin/chromium",
@@ -47,7 +48,7 @@ try {
       }),
       writes = [],
       errors = [],
-      reads = [];
+      reads = [], topicReads = [];
     let allowed = true,
       conflict = true,
       weights = { practice: 40, exam: 60, revision: 1 };
@@ -127,6 +128,14 @@ try {
           hasMore: args.p_offset === 0,
           unavailableSessions: 1,
         });
+      }
+      if (url.pathname === "/rest/v1/rpc/read_ai_practice_topic_performance") {
+        const args=route.request().postDataJSON();topicReads.push(args);
+        assert.deepEqual(Object.keys(args).sort(),["p_course","p_kind","p_offset"]);assert.equal(args.p_course,course);
+        if(!allowed)return json({code:"42501"},403);
+        return json({courseId:course,kind:args.p_kind,offset:args.p_offset,groupCount:21,hasMore:args.p_offset===0,weights,
+          groups:[{attribution:args.p_offset===0?{sourceId:source,sourceRevision:revision,outlineRevision:1,sectionId:source,
+            title:args.p_kind==="topic"?"المشتقات Derivatives":"التفاضل Calculus",sourceTitle:"Approved book"}:null,summary:summary()}]});
       }
       if (url.pathname === "/rest/v1/rpc/set_ai_practice_performance_weights") {
         assert.equal(role, "instructor");
@@ -247,6 +256,16 @@ try {
           .count(),
         0,
       );
+    if(topicsRun){
+      assert.equal(topicReads.length,0);
+      await click("PDF topics","موضوعات PDF");await panel.getByText("المشتقات Derivatives",{exact:true}).waitFor();
+      assert.equal(topicReads.at(-1).p_kind,"topic");assert.equal(topicReads.at(-1).p_offset,0);
+      await click("Next groups","المجموعات التالية");await panel.getByText(ar?"غير مصنف / نطاق مختلط":"Unclassified / mixed scope",{exact:true}).waitFor();
+      assert.equal(topicReads.at(-1).p_offset,20);assert.equal(await panel.getByText("المشتقات Derivatives",{exact:true}).count(),0);
+      await click("PDF chapters","فصول PDF");await panel.getByText("التفاضل Calculus",{exact:true}).waitFor();
+      assert.equal(topicReads.at(-1).p_kind,"chapter");assert.equal(topicReads.at(-1).p_offset,0);
+      await panel.getByText("التفاضل Calculus",{exact:true}).scrollIntoViewIfNeeded();
+    }
     assert(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= innerWidth + 1,
@@ -272,9 +291,10 @@ try {
         .count(),
       0,
     );
+    assert.equal(await panel.getByText("التفاضل Calculus",{exact:true}).count(),0);
     assert.deepEqual(errors, []);
     console.log(
-      `PASS ${width}/${language}/${theme}/${role}: weighted indicator, pending counts, own results, server pages, draft/CAS conflict, revocation and responsive layout.`,
+      `PASS ${width}/${language}/${theme}/${role}: weighted indicator, pending counts, own results, server pages, draft/CAS conflict, revocation and responsive layout${topicsRun ? ", topic/chapter dimensions and page isolation" : ""}.`,
     );
     await context.close();
   }
