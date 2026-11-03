@@ -63,7 +63,7 @@ it("displays a server-verified score and permits requesting review without claim
     items: [{ ...row, state: "math_verified", score: 1 }],
   });
   render(<PracticeAssessment sessionId="session" revision={3} />);
-  await screen.findByText(/Engine-verified polynomial derivative/);
+  await screen.findByText(/Engine-verified polynomial calculation/);
   expect(screen.getByText("1/1")).toBeTruthy();
   fireEvent.click(screen.getByText("Recheck this answer"));
   await waitFor(() => expect(calls.begin).toHaveBeenCalledWith("session", 1));

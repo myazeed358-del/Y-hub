@@ -51,7 +51,10 @@ export const sessionSchema = z.object({
             explanation: z.string().max(6000),
             citations: z.array(practiceCitationSchema).min(1).max(6),
             verification: z
-              .literal("polynomial-derivative-v1")
+              .enum([
+                "polynomial-derivative-v1",
+                "polynomial-antiderivative-v1",
+              ])
               .nullable()
               .optional(),
           })

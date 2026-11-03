@@ -15,7 +15,7 @@ export type DerivativeTask = {
   options: number[][];
 };
 const keys = (v: object) => Object.keys(v).sort().join(",");
-function vector(v: unknown, bound: number): number[] {
+export function vector(v: unknown, bound: number): number[] {
   if (
     !Array.isArray(v) ||
     v.length < 1 ||
@@ -63,7 +63,7 @@ const number = (n: number): CanonicalAST => ({
   type: "Number",
   value: String(n),
 });
-function ast(coefficients: number[], variable: string): CanonicalAST {
+export function ast(coefficients: number[], variable: string): CanonicalAST {
   const terms: CanonicalAST[] = coefficients.flatMap((c, power) =>
     c === 0
       ? []
@@ -95,7 +95,11 @@ function ast(coefficients: number[], variable: string): CanonicalAST {
       ? terms[0]
       : { type: "Operator", operator: "+", args: terms };
 }
-function coefficientsOf(node: CanonicalAST, variable: string): number[] {
+export function coefficientsOf(
+  node: CanonicalAST,
+  variable: string,
+  bound = 800,
+): number[] {
   const values = Array(9).fill(0) as number[],
     evaluator = new ASTEvaluator();
   for (const [degree, coefficients] of new PolynomialExtractor().extract(
@@ -109,10 +113,10 @@ function coefficientsOf(node: CanonicalAST, variable: string): number[] {
       0,
     );
   }
-  return vector(values, 800);
+  return vector(values, bound);
 }
 /** Rendering only: all numeric coefficients are bounded integers, variable is allowlisted. */
-function latex(coefficients: number[], variable: string): string {
+export function latex(coefficients: number[], variable: string): string {
   const terms = coefficients
     .map((c, power) => {
       if (!c) return "";

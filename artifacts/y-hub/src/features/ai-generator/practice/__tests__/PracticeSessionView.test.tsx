@@ -126,9 +126,14 @@ it("renders actual math and hides solutions and evidence until server releases t
     (screen.getByText("Confirm answer") as HTMLButtonElement).disabled,
   ).toBe(true);
 });
-it.each(["en", "ar"] as const)(
-  "distinguishes a server-verified derivative from an AI suggestion in %s",
-  async (language) => {
+it.each([
+  ["en", "polynomial-derivative-v1"],
+  ["ar", "polynomial-derivative-v1"],
+  ["en", "polynomial-antiderivative-v1"],
+  ["ar", "polynomial-antiderivative-v1"],
+] as const)(
+  "distinguishes a server-verified calculation from an AI suggestion in %s/%s",
+  async (language, verification) => {
     calls.language = language;
     calls.read.mockResolvedValue({
       ...state,
@@ -142,7 +147,7 @@ it.each(["en", "ar"] as const)(
             matchesSuggestion: true,
             explanation: "\\[2x\\]",
             citations: [],
-            verification: "polynomial-derivative-v1",
+            verification,
           },
         },
       ],

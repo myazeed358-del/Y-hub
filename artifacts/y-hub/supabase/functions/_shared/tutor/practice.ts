@@ -8,7 +8,7 @@ import {
   TutorError,
   uuid,
 } from "./core.ts";
-import { verifyDerivative } from "./polynomialVerifier.mjs";
+import { verifyPolynomial } from "./polynomialVerifier.mjs";
 
 function databaseError(error: { code?: string; message?: string } | null) {
   if (
@@ -37,7 +37,9 @@ export function practiceInstructions(
     'Avoid previous questions, including equivalent wording where possible. If the evidence cannot support a new question, return {"insufficient":true}. Otherwise return ONLY JSON {"insufficient":false,"prompt":string,"options":[string,string,string,string],"correct":integer,"explanation":string,"evidenceIds":string[]}. correct is an index 0–3. Each option must be distinct; exactly one should be correct. evidenceIds must be selected from the supplied IDs. No extra properties.',
     ...(mathAllowed
       ? [
-          'For a polynomial FIRST DERIVATIVE question supported by the evidence, use this alternative exact schema instead: {"insufficient":false,"task":{"kind":"polynomial_derivative","variable":"x"|"t","coefficients":integer[],"options":[integer[],integer[],integer[],integer[]]},"evidenceIds":string[]}. Coefficients are constant-first, degree 0–8, input coefficients -100..100, option coefficients -800..800. Supply four mathematically distinct polynomials, exactly one correct derivative. No prose prompt, correct index, explanation or verification field: the existing engine will compute and render them. Never translate an unrelated theoretical, integral, rational or multivariable question into this task. Otherwise use the ordinary schema.',
+          'For a polynomial FIRST DERIVATIVE question supported by the evidence, use this alternative exact schema instead: {"insufficient":false,"task":{"kind":"polynomial_derivative","variable":"x"|"t","coefficients":integer[],"options":[integer[],integer[],integer[],integer[]]},"evidenceIds":string[]}. Coefficients are constant-first, degree 0–8, input coefficients -100..100, option coefficients -800..800. Supply four mathematically distinct polynomials, exactly one correct derivative. No prose prompt, correct index, explanation or verification field: the existing engine will compute and render them. Never translate an unrelated theoretical, rational or multivariable question into this task. Otherwise use the ordinary schema.',
+          'For an indefinite polynomial INTEGRAL supported by the evidence, the same task schema may instead use kind="polynomial_antiderivative". Integrand coefficients are integers -100..100, degree 0–7; four options are integer-coefficient antiderivatives, degree 0–8, coefficients -800..800. Exactly one must differentiate to the integrand. All choices represent families +C: additive constants do NOT make distinct choices. Only use examples with an integer-coefficient antiderivative. The server verifies using the existing derivative engine and renders the integral/steps. General integrals, fractional coefficients and definite integrals are unsupported; use the ordinary schema without claiming engine verification.',
+          "Avoid equivalent antiderivative tasks in previousAntiderivativeInputs. The complete integrand coefficients matter, including the constant. Changing only variable, language or option order is not a new exercise.",
           "Avoid equivalent derivative tasks in previousDerivativeInputs (constant-first coefficient arrays). Changing only the additive constant, variable name, language or option order does not make a new task. The supplied history is bounded guidance; the server checks the full saved section history. If no supported new question remains, return insufficient rather than claiming novelty.",
         ]
       : []),
@@ -63,7 +65,7 @@ export function parsePracticeProposal(
       throw new TutorError(502, "Invalid mathematical evidence");
     try {
       return {
-        ...verifyDerivative(q.task, language),
+        ...verifyPolynomial(q.task, language),
         evidenceIds: [...new Set(q.evidenceIds)],
       };
     } catch {
@@ -184,6 +186,8 @@ export async function generatePractice(req: Request, ctx: Context) {
                 evidence: evidence.map((e) => ({ id: e.id, text: e.text })),
                 previous: config.previous,
                 previousDerivativeInputs: config.previousDerivativeInputs ?? [],
+                previousAntiderivativeInputs:
+                  config.previousAntiderivativeInputs ?? [],
               }),
             },
           ],
