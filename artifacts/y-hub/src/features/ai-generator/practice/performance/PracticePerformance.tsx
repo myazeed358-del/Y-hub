@@ -5,6 +5,8 @@ import { performanceRepository, type Performance } from "./repository";
 import { performanceCopy } from "./copy";
 import { PerformanceSummary } from "./PerformanceSummary";
 import { WeightEditor } from "./WeightEditor";
+import { TopicPerformance } from "./TopicPerformance";
+import { topicCopy } from "./topicCopy";
 export function PracticePerformance({ courseId }: { courseId: string }) {
   const { language } = useLanguage(),
     t = performanceCopy[language];
@@ -33,6 +35,10 @@ function PerformancePanel({ courseId }: { courseId: string }) {
     [epoch, setEpoch] = useState(0),
     [loading, setLoading] = useState(true),
     [error, setError] = useState("");
+  const [dimension, setDimension] = useState<"unit" | "chapter" | "topic">(
+    "unit",
+  );
+  const topics = topicCopy[language];
   const [draft, setDraft] = useState<Performance["weights"] | null>(null);
   const request = useRef<AbortController | null>(null);
   const reload = () => {
@@ -118,37 +124,63 @@ function PerformancePanel({ courseId }: { courseId: string }) {
               {t.unavailable}: <bdi dir="ltr">{data.unavailableSessions}</bdi>
             </p>
           )}
-          <h4 className="font-semibold">
-            {t.units} (<bdi dir="ltr">{data.unitCount}</bdi>)
-          </h4>
-          {!data.units.length && <p>{t.none}</p>}
-          {data.units.map((u) => (
-            <article
-              key={u.unitId ?? "unclassified"}
-              className="min-w-0 space-y-2 rounded border p-3"
-            >
-              <h5 className="break-words font-medium" dir="auto">
-                {u.title ?? t.unmapped}
-              </h5>
-              <PerformanceSummary summary={u.summary} />
-            </article>
-          ))}
-          <div className="flex flex-wrap gap-2">
-            <button
-              className={button}
-              disabled={offset === 0}
-              onClick={() => setOffset(Math.max(0, offset - 20))}
-            >
-              {t.previous}
-            </button>
-            <button
-              className={button}
-              disabled={!data.hasMore}
-              onClick={() => setOffset(offset + 20)}
-            >
-              {t.next}
-            </button>
+          <div
+            role="group"
+            aria-label={topics.dimension}
+            className="flex flex-wrap gap-2"
+          >
+            {(["unit", "chapter", "topic"] as const).map((kind) => (
+              <button
+                key={kind}
+                className={button}
+                aria-pressed={dimension === kind}
+                onClick={() => setDimension(kind)}
+              >
+                {topics[kind]}
+              </button>
+            ))}
           </div>
+          {dimension !== "unit" ? (
+            <TopicPerformance
+              key={courseId + dimension}
+              courseId={courseId}
+              kind={dimension}
+            />
+          ) : (
+            <>
+              <h4 className="font-semibold">
+                {t.units} (<bdi dir="ltr">{data.unitCount}</bdi>)
+              </h4>
+              {!data.units.length && <p>{t.none}</p>}
+              {data.units.map((u) => (
+                <article
+                  key={u.unitId ?? "unclassified"}
+                  className="min-w-0 space-y-2 rounded border p-3"
+                >
+                  <h5 className="break-words font-medium" dir="auto">
+                    {u.title ?? t.unmapped}
+                  </h5>
+                  <PerformanceSummary summary={u.summary} />
+                </article>
+              ))}
+              <div className="flex flex-wrap gap-2">
+                <button
+                  className={button}
+                  disabled={offset === 0}
+                  onClick={() => setOffset(Math.max(0, offset - 20))}
+                >
+                  {t.previous}
+                </button>
+                <button
+                  className={button}
+                  disabled={!data.hasMore}
+                  onClick={() => setOffset(offset + 20)}
+                >
+                  {t.next}
+                </button>
+              </div>
+            </>
+          )}
         </>
       )}
     </div>

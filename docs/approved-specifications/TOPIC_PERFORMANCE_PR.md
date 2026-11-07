@@ -1,0 +1,11 @@
+## Complete trusted chapter/topic breakdowns in the existing practice indicator
+
+The weighted course practice indicator now offers syllabus-unit, PDF-chapter and PDF-topic views. Attribution uses the private citations and instructor-authored mapping already introduced in0054. All citations must agree on one entry; mixed/unmapped answers remain unclassified and each question counts once per independent view. Source-qualified identities prevent equal titles or IDs in separate files from merging. Existing manual history is never guessed or rewritten.
+
+Migration0055 adds private shared eligibility/attribution helpers and an authenticated reader with current section access, auth.uid-only results, no client actor/score, and20groups per page. Drafts/unsubmitted exams are hidden; pending/excluded answers do not lower scores. Current weights and review outcomes are recomputed; invalidated scopes are excluded. The existing unit summary remains compatible, proved by a populated upgrade preserving historical rows, audit events and report JSON. No table/data changes or math algorithm changes.
+
+Validation:2343Vitest/264files,36Python,194academicSQL/RLS,125native local Auth/JWT/PostgREST,5populated practice upgrades,39auditSQL+1audit upgrade,37Chromium cases. Workspace TypeScript,strict architecture/math/module boundaries,8guard cases,math artifact drift andproduction build PASS.0finalfailures. Native HTTP runs local Auth/RLS and the real math artifact; browser fixtures do not prove hosted deployment.
+
+Decision42 completes locally within supported verified/human-resolved AI Practice outcomes and trusted mappings. No official course grades or guessed attribution. Based on authorized merge main9327493; this new branch is not merged.0055 local-only. Production migrations were requested but remain blocked by absent administrative DB connection/network configuration; actual production ledger is unknown. Hosted Staging/Edge/provider and production-scale query timing remain pending. Known Vercel Python size issue deferred. See `docs/approved-specifications/TOPIC_PERFORMANCE.md` and migration status/inventory.
+
+GitHub API is blocked in this environment; this is a prepared PR description, not a claim that a PR exists.

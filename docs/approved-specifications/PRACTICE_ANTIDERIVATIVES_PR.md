@@ -1,0 +1,15 @@
+# Verify bounded polynomial antiderivatives in AI Practice
+
+AI Practice can now verify an additional supported kind of question using the existing mathematical engine: indefinite integrals with integer-coefficient polynomial antiderivatives. The server derives all four candidates, requires exactly one match, and renders the question/steps in Arabic or English. Options differing only by an additive constant are rejected as equivalent. Ordinary model suggestions remain unverified.
+
+This advances approved decisions18/17; neither decision is claimed fully complete. No free-form grading, fractional/general integration, new engine, new page or math-algorithm change. Existing delayed evidence/solutions, source/section guards, review precedence and score exclusions remain in place.
+
+Migration0056 adds a private generated identity/index and extends the existing service-only publisher. Concurrent equivalent proposals serialize per student/section. Retraining stays explicit and does not inflate the distinct sample count used for adaptive difficulty. Integral identity includes the integrand's constant; derivative identity remains unchanged. Existing historical attempts are preserved.
+
+Final verification PASS: **2370 Vitest /265files** (27new), **36 Python**, **204 academicSQL/RLS** (10new), **131 native local Auth/JWT/PostgREST** (6new), **39 auditSQL +1audit upgrade**, **6 populated practice upgrades**, **25 Chromium scenarios** (4new integrals +16sessions/derivative/adaptive/review +5Tutor). Workspace TypeScript, strict architecture/math/module boundaries,8guard cases,server artifact drift and production build all PASS.223focused tests are a subset. Final failures0. Corrected test-only Arabic wording and the expected history for explicit retraining; reran the fullSQL suite. Tutor browser harness needed the prepared Playwright module path, then all5cases passed. No disabled tests. Existing PDF.js,Starlette/httpx andVite chunk warnings remain.
+
+Browser HTTP/provider tests are fixtures; native Auth/JWT/PostgREST, PostgreSQL and the existing mathematical artifact execute locally. Visual Arabic mobile check and explicit browser RTL/LTR/overflow assertions passed. Hosted provider/Edge/Staging is not proven by these tests.
+
+This branch is stacked on unmerged `feature/approved-topic-performance` **2ff7f1a41fcbc9f12b2ffc88aba20cb071bc925b**. Comparing against main9327493 includes its prerequisite0055; review/merge that prerequisite first or compare this package against2ff7f1a. No automatic merge or production migration/Edge deployment. Administrative DB connectivity is still unavailable; actual production ledger reconciliation and hosted Staging/provider validation remain pending. Review generated-column/index DDL locks and data size before production rollout. Known Vercel Python deployment size issue is deferred and untouched.
+
+See [implementation, contracts, tests and limitations](PRACTICE_ANTIDERIVATIVES.md) and [71-decision tracker](PROGRESS.md). GitHub API is blocked by the environment policy; this is a prepared description, not a claim that a PR has already been created.

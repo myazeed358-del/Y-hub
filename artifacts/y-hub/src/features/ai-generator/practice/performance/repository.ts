@@ -39,7 +39,7 @@ export const performanceSchema = z.object({
 });
 export type Performance = z.infer<typeof performanceSchema>;
 export type PerformanceSummary = z.infer<typeof summarySchema>;
-async function rpc(
+export async function performanceRpc(
   name: string,
   args: Record<string, unknown>,
   signal?: AbortSignal,
@@ -60,7 +60,7 @@ async function rpc(
 export const performanceRepository = {
   async read(courseId: string, offset: number, signal?: AbortSignal) {
     const data = performanceSchema.parse(
-      await rpc(
+      await performanceRpc(
         "read_ai_practice_performance",
         { p_course: courseId, p_offset: offset },
         signal,
@@ -81,7 +81,7 @@ export const performanceRepository = {
       .refine((w) => w.practice + w.exam === 100)
       .parse({ practice, exam });
     return count.parse(
-      await rpc("set_ai_practice_performance_weights", {
+      await performanceRpc("set_ai_practice_performance_weights", {
         p_course: courseId,
         p_revision: revision,
         p_practice: weights.practice,

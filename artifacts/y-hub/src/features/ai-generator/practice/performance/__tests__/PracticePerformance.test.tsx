@@ -15,7 +15,8 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/i18n/LanguageContext", () => ({
   useLanguage: () => ({ language: mocks.language }),
 }));
-vi.mock("../repository", () => ({
+vi.mock("../repository", async original => ({
+  ...await original<object>(),
   performanceRepository: { read: mocks.read, save: mocks.save },
 }));
 import { PracticePerformance } from "../PracticePerformance";

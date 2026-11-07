@@ -38,6 +38,15 @@ const mathProposal = {
   },
   evidenceIds: ["evidence"],
 };
+const integralProposal = {
+  ...mathProposal,
+  task: {
+    kind: "polynomial_antiderivative",
+    variable: "x",
+    coefficients: [2, -6, 3],
+    options: [[0, 2, -3, 1], [0, 2, -6, 1], [0, 2, -3, 3], [0]],
+  },
+};
 let ctx: Context;
 let rpc: ReturnType<typeof vi.fn>;
 let fetcher: ReturnType<typeof vi.fn>;
@@ -130,6 +139,72 @@ it("rejects a model attempting to use an engine not authorized for the user", as
   fetcher.mockResolvedValue(
     Response.json({
       choices: [{ message: { content: JSON.stringify(mathProposal) } }],
+    }),
+  );
+  await expect(generatePractice(request(), ctx)).rejects.toMatchObject({
+    status: 403,
+  });
+  expect(
+    rpc.mock.calls.some((c) => c[0] === "publish_ai_practice_math_question"),
+  ).toBe(false);
+});
+it.each(["ar", "en"] as const)(
+  "verifies integral proposals in %s without trusting model keys",
+  async (language) => {
+    const base = rpc.getMockImplementation()!;
+    rpc.mockImplementation(async (name, ...args) => {
+      if (name === "authorize_engine_compute")
+        return { data: true, error: null };
+      const result = await base(name, ...args);
+      return name === "ai_practice_generation_context"
+        ? {
+            ...result,
+            data: {
+              ...result.data,
+              language,
+              previousAntiderivativeInputs: [[1, 2]],
+            },
+          }
+        : result;
+    });
+    fetcher.mockResolvedValue(
+      Response.json({
+        choices: [{ message: { content: JSON.stringify(integralProposal) } }],
+      }),
+    );
+    expect(await generatePractice(request(), ctx)).toEqual({ stored: true });
+    expect(
+      rpc.mock.calls.find(
+        (c) => c[0] === "publish_ai_practice_math_question",
+      )?.[1],
+    ).toMatchObject({
+      p_question: {
+        correct: 0,
+        explanation: expect.stringContaining("x^{3}-3x^{2}+2x+C"),
+      },
+      p_verification: { method: "polynomial-antiderivative-v1" },
+    });
+    const messages = JSON.parse(fetcher.mock.calls[0][1].body).messages;
+    expect(messages[0].content).toContain("polynomial_antiderivative");
+    expect(
+      JSON.parse(messages[1].content).previousAntiderivativeInputs,
+    ).toEqual([[1, 2]]);
+  },
+);
+it.each([
+  { ...integralProposal, correct: 0 },
+  { ...integralProposal, evidenceIds: ["fake"] },
+  {
+    ...integralProposal,
+    task: { ...integralProposal.task, options: [[0], [1], [0, 1], [0, 2]] },
+  },
+])("rejects forged or ambiguous integral proposals %#", (candidate) => {
+  expect(() => parsePracticeProposal(candidate, [evidence])).toThrow();
+});
+it("denies integral computation without current engine permission", async () => {
+  fetcher.mockResolvedValue(
+    Response.json({
+      choices: [{ message: { content: JSON.stringify(integralProposal) } }],
     }),
   );
   await expect(generatePractice(request(), ctx)).rejects.toMatchObject({

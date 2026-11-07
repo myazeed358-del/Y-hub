@@ -2,9 +2,10 @@
 import assert from "node:assert/strict";
 import { mkdir } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
-import { verifyDerivative } from "../artifacts/y-hub/supabase/functions/_shared/tutor/polynomialVerifier.mjs";
+import { verifyDerivative, verifyAntiderivative } from "../artifacts/y-hub/supabase/functions/_shared/tutor/polynomialVerifier.mjs";
 const adaptiveRun = process.env.YHUB_PRACTICE_ADAPTIVE === "1";
-const mathRun = process.env.YHUB_PRACTICE_MATH === "1";
+const integralRun = process.env.YHUB_PRACTICE_ANTIDERIVATIVE === "1";
+const mathRun = integralRun || process.env.YHUB_PRACTICE_MATH === "1";
 const { chromium } = await import(
   pathToFileURL(
     process.env.YHUB_PLAYWRIGHT_MODULE ||
@@ -17,7 +18,9 @@ const base = new URL(
 assert(["127.0.0.1", "localhost"].includes(base.hostname));
 const output =
   process.env.YHUB_SCREENSHOTS ||
-  (adaptiveRun
+  (integralRun
+    ? "/workspace/practice-antiderivative-screenshots"
+    : adaptiveRun
     ? "/workspace/practice-adaptive-screenshots"
     : mathRun
       ? "/workspace/practice-math-screenshots"
@@ -62,12 +65,12 @@ try {
       generations = 0;
     const ar = language === "ar";
     const computed = mathRun
-      ? verifyDerivative(
+      ? (integralRun ? verifyAntiderivative : verifyDerivative)(
           {
-            kind: "polynomial_derivative",
+            kind: integralRun ? "polynomial_antiderivative" : "polynomial_derivative",
             variable: "x",
-            coefficients: [1, -5, 2, 1],
-            options: [[-5, 4, 3], [0], [1], [2]],
+            coefficients: integralRun ? [2, -6, 3] : [1, -5, 2, 1],
+            options: integralRun ? [[0, 2, -3, 1], [0, 2, -6, 1], [0, 2, -3, 3], [0]] : [[-5, 4, 3], [0], [1], [2]],
           },
           language,
         )
@@ -435,6 +438,16 @@ try {
       .waitFor();
     assert((await page.locator(".katex").count()) > 2);
     assert.equal(await page.locator(".katex-error").count(), 0);
+    if (integralRun) {
+      assert(await page.locator(".katex").evaluateAll(nodes =>
+        nodes.every(node => getComputedStyle(node).direction === "ltr")));
+      assert.equal(await page.locator(".ai-tutor-message").filter({
+        hasText: ar ? "اختر عائلة الدوال الأصلية" : "Choose the antiderivative family",
+      }).getAttribute("dir"), ar ? "rtl" : "ltr");
+      assert(await page.locator(".katex-display").evaluateAll(nodes =>
+        nodes.filter(node => node.scrollWidth > node.clientWidth).every(node =>
+          getComputedStyle(node).overflowX === "auto")));
+    }
     if (mathRun)
       await page
         .getByRole("region", {
@@ -463,7 +476,7 @@ try {
     assert.equal(await page.getByLabel("1: 1", { exact: true }).count(), 0);
     assert.deepEqual(errors, []);
     console.log(
-      `PASS ${width}/${language}/${theme}/${mode}/${adaptiveRun ? "adaptive-level" : mathRun ? "engine/repeated-proposal" : "suggestion"}: scope, generation, lost connection/reload recovery, delayed feedback, KaTeX, revocation.`,
+      `PASS ${width}/${language}/${theme}/${mode}/${integralRun ? "antiderivative" : adaptiveRun ? "adaptive-level" : mathRun ? "engine/repeated-proposal" : "suggestion"}: scope, generation, lost connection/reload recovery, delayed feedback, KaTeX, revocation.`,
     );
     await context.close();
   }

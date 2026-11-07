@@ -10,7 +10,7 @@ const result = await build({
   entryPoints: [
     fileURLToPath(
       new URL(
-        "artifacts/y-hub/src/services/practice-math/polynomialDerivative.ts",
+        "artifacts/y-hub/src/services/practice-math/index.ts",
         root,
       ),
     ),

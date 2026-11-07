@@ -50,8 +50,8 @@ export const sessionCopy = {
     scope: "Select valid indexed sources/pages above first.",
     working: "Working…",
     advisory:
-      "AI-generated multiple-choice practice. Only explicitly labelled polynomial derivatives are checked by the engine; other suggestions may be wrong. This is not an official grade.",
-    verified: "Engine-verified polynomial derivative",
+      "AI-generated multiple-choice practice. Only explicitly labelled polynomial derivatives and integer-coefficient antiderivatives are checked by the engine; other suggestions may be wrong. This is not an official grade.",
+    verified: "Engine-verified polynomial calculation",
     verifiedMatch: "Matches the engine-verified answer",
     verifiedDifferent: "Does not match the engine-verified answer",
     match: "Matches the AI suggestion",
@@ -114,8 +114,8 @@ export const sessionCopy = {
     scope: "اختر مصادر وصفحات مفهرسة صالحة أعلاه أولًا.",
     working: "جارٍ التنفيذ…",
     advisory:
-      "تدريب اختيار متعدد مولّد بالذكاء الاصطناعي. مشتقات كثيرات الحدود الموسومة صراحةً فقط محققة بالمحرك؛ بقية الاقتراحات قد تخطئ. ليست علامة رسمية.",
-    verified: "مشتقة كثيرة حدود محققة بالمحرك",
+      "تدريب اختيار متعدد مولّد بالذكاء الاصطناعي. مشتقات كثيرات الحدود وتكاملاتها ذات المعاملات الصحيحة الموسومة صراحةً فقط محققة بالمحرك؛ بقية الاقتراحات قد تخطئ. ليست علامة رسمية.",
+    verified: "حساب كثيرة حدود محقق بالمحرك",
     verifiedMatch: "يطابق الإجابة المحققة بالمحرك",
     verifiedDifferent: "لا يطابق الإجابة المحققة بالمحرك",
     match: "يطابق اقتراح الذكاء الاصطناعي",
