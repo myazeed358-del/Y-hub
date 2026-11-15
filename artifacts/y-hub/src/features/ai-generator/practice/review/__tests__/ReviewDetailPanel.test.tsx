@@ -6,7 +6,11 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
-const calls = vi.hoisted(() => ({ detail: vi.fn(), resolve: vi.fn() }));
+const calls = vi.hoisted(() => ({
+  detail: vi.fn(),
+  resolve: vi.fn(),
+  resolveWritten: vi.fn(),
+}));
 vi.mock("@/i18n/LanguageContext", () => ({
   useLanguage: () => ({ language: "en" }),
 }));
@@ -33,6 +37,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   calls.detail.mockResolvedValue(data);
   calls.resolve.mockResolvedValue(4);
+  calls.resolveWritten.mockResolvedValue(4);
   vi.spyOn(window, "confirm").mockReturnValue(true);
 });
 afterEach(() => {
@@ -132,3 +137,31 @@ it("revalidates on focus and clears details after revoked authorization", async 
   expect(screen.queryByText("Apply resolution")).toBeNull();
   expect(denied).toHaveBeenCalledOnce();
 });
+it.each(["1", "0", "exclude"])(
+  "reviews written content with an explicit score/exclusion (%s)",
+  async (selected) => {
+    calls.detail.mockResolvedValue({
+      ...data,
+      question: { ...data.question, choice: null, writtenAnswer: "x+x" },
+    });
+    await open();
+    expect(screen.getByText("x+x")).toBeTruthy();
+    fireEvent.change(screen.getByLabelText("Written answer decision"), {
+      target: { value: selected },
+    });
+    fireEvent.change(
+      screen.getByLabelText("Explain the resolution (10–2000 characters)"),
+      { target: { value: "Reviewed the student's complete expression." } },
+    );
+    fireEvent.click(screen.getByText("Apply resolution"));
+    await waitFor(() =>
+      expect(calls.resolveWritten).toHaveBeenCalledWith(
+        "review",
+        3,
+        selected === "exclude" ? null : Number(selected),
+        expect.any(String),
+      ),
+    );
+    expect(calls.resolve).not.toHaveBeenCalled();
+  },
+);

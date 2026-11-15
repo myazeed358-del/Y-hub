@@ -6,4 +6,6 @@ export {
   verifyAntiderivative,
   parseAntiderivativeTask,
   verifyPolynomial,
+  gradeWrittenPolynomial,
+  parseWrittenPolynomial,
 } from "../../../../src/services/practice-math/index";

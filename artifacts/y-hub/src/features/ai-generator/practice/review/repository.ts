@@ -55,7 +55,8 @@ export const detailSchema = z.object({
   question: z.object({
     prompt: z.string().max(3000),
     options: z.array(z.string().max(1000)).length(4),
-    choice,
+    choice: choice.nullable(),
+    writtenAnswer: z.string().max(400).nullable().optional(),
     suggestedChoice: choice,
     explanation: z.string().max(6000),
     citations: z.array(practiceCitationSchema).max(6),
@@ -114,6 +115,25 @@ async function rpc(
   return data;
 }
 export const reviewRepository = {
+  async resolveWritten(
+    id: string,
+    revision: number,
+    score: number | null,
+    explanation: string,
+  ) {
+    return z
+      .number()
+      .int()
+      .positive()
+      .parse(
+        await rpc("resolve_ai_practice_written_review", {
+          p_review: id,
+          p_revision: revision,
+          p_score: z.number().int().min(0).max(1).nullable().parse(score),
+          p_explanation: z.string().trim().min(10).max(2000).parse(explanation),
+        }),
+      );
+  },
   async assessment(sessionId: string, signal?: AbortSignal) {
     return assessmentSchema.parse(
       await rpc("get_ai_practice_assessment", { p_session: sessionId }, signal),

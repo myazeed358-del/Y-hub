@@ -8,6 +8,8 @@ import {
   TutorError,
   uuid,
 } from "./core.ts";
+import { gradeWrittenPolynomial } from "./polynomialVerifier.mjs";
+import { writtenEngineAccess } from "./practiceWritten.ts";
 const failed = (error: { code?: string } | null) => {
   if (error)
     throw new TutorError(
@@ -64,6 +66,38 @@ export async function recheckPractice(req: Request, ctx: Context) {
     throw new TutorError(503, "Review unavailable");
   await access(ctx, context.courseId);
   if (context.done) return { stored: true };
+  if (typeof context.writtenAnswer === "string") {
+    let result: ReturnType<typeof gradeWrittenPolynomial>;
+    try {
+      await writtenEngineAccess(ctx);
+      result = gradeWrittenPolynomial(
+        context.verification,
+        context.writtenAnswer,
+        context.language,
+      );
+    } catch (error) {
+      if (!(error instanceof TutorError) || error.status !== 403) throw error;
+      // Losing a separate engine grant must not strand an otherwise authorized
+      // learner's review. No computation or score is claimed in this case.
+      result = {
+        score: null,
+        explanation:
+          context.language === "ar"
+            ? "تعذر التحقق الآلي حاليًا. الإجابة معلقة ويمكن طلب مراجعة بشرية."
+            : "Automatic verification is unavailable. The answer remains pending; human review can be requested.",
+      };
+    }
+    await access(ctx, context.courseId);
+    const saved = await ctx.admin.rpc("publish_ai_practice_written_recheck", {
+      p_actor: ctx.actor,
+      p_review: body.reviewId,
+      p_revision: context.revision,
+      p_score: result.score,
+      p_explanation: result.explanation,
+    });
+    failed(saved.error);
+    return { stored: true };
+  }
   return lease(ctx, context.courseId, false, async () => {
     let result: ReturnType<typeof parseRecheck>;
     try {

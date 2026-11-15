@@ -1,5 +1,6 @@
 import { verifyDerivative } from "./polynomialDerivative";
 import { verifyAntiderivative } from "./polynomialAntiderivative";
+export { gradeWrittenPolynomial, parseWrittenPolynomial } from "./writtenPolynomial";
 export {
   verifyDerivative,
   parseDerivativeTask,

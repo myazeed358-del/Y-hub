@@ -2,10 +2,11 @@
 import assert from "node:assert/strict";
 import { mkdir } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
-import { verifyDerivative, verifyAntiderivative } from "../artifacts/y-hub/supabase/functions/_shared/tutor/polynomialVerifier.mjs";
+import { verifyDerivative, verifyAntiderivative, gradeWrittenPolynomial } from "../artifacts/y-hub/supabase/functions/_shared/tutor/polynomialVerifier.mjs";
+const writtenRun = process.env.YHUB_PRACTICE_WRITTEN === "1";
 const adaptiveRun = process.env.YHUB_PRACTICE_ADAPTIVE === "1";
 const integralRun = process.env.YHUB_PRACTICE_ANTIDERIVATIVE === "1";
-const mathRun = integralRun || process.env.YHUB_PRACTICE_MATH === "1";
+const mathRun = writtenRun || integralRun || process.env.YHUB_PRACTICE_MATH === "1";
 const { chromium } = await import(
   pathToFileURL(
     process.env.YHUB_PLAYWRIGHT_MODULE ||
@@ -18,7 +19,9 @@ const base = new URL(
 assert(["127.0.0.1", "localhost"].includes(base.hostname));
 const output =
   process.env.YHUB_SCREENSHOTS ||
-  (integralRun
+  (writtenRun
+    ? "/workspace/practice-written-screenshots"
+    : integralRun
     ? "/workspace/practice-antiderivative-screenshots"
     : adaptiveRun
     ? "/workspace/practice-adaptive-screenshots"
@@ -64,6 +67,8 @@ try {
       rejectRepeated = mathRun,
       generations = 0;
     const ar = language === "ar";
+    const writtenText = width === 390 ? "(x+1)^2" : "3x^2+4x-5";
+    let writtenResult = null;
     const computed = mathRun
       ? (integralRun ? verifyAntiderivative : verifyDerivative)(
           {
@@ -173,21 +178,21 @@ try {
       if (url.pathname === "/rest/v1/rpc/get_ai_practice_assessment") {
         const released = state.questions.filter(
           (q) =>
-            q.choice !== null &&
+            (q.choice !== null || q.writtenAnswer) &&
             (state.submittedAt || (state.mode === "practice" && q.answered)),
         );
         return json({
-          earned: mathRun ? released.filter((q) => q.choice === 0).length : 0,
-          graded: mathRun ? released.length : 0,
-          pending: mathRun ? 0 : released.length,
+          earned: writtenRun ? released.filter(() => writtenResult?.score === 1).length : mathRun ? released.filter((q) => q.choice === 0).length : 0,
+          graded: writtenRun ? (writtenResult?.score == null ? 0 : released.length) : mathRun ? released.length : 0,
+          pending: writtenRun ? (writtenResult?.score == null ? released.length : 0) : mathRun ? 0 : released.length,
           excluded: 0,
           items: released.map((q) => ({
             position: q.position,
             id: null,
-            state: mathRun ? "math_verified" : "unverified",
+            state: writtenRun && writtenResult?.score == null ? "unverified" : mathRun ? "math_verified" : "unverified",
             revision: null,
             outcome: null,
-            score: mathRun ? Number(q.choice === 0) : null,
+            score: writtenRun ? writtenResult?.score : mathRun ? Number(q.choice === 0) : null,
           })),
         });
       }
@@ -217,6 +222,7 @@ try {
               "$5x$",
             ],
             choice: null,
+            ...(writtenRun ? { writtenAnswer: null, acceptsWritten: true } : {}),
             answered: false,
             feedback: null,
             ...(adaptiveRun
@@ -233,6 +239,19 @@ try {
         state.revision++;
         return json({ stored: true });
       }
+      if (url.pathname === "/functions/v1/ai-practice-answer") {
+        const args = route.request().postDataJSON(); writes.push(args);
+        assert.deepEqual(Object.keys(args).sort(), ["answer","position","revision","sessionId","text"]);
+        assert.equal(args.sessionId,state.id); assert.equal(args.position,1);
+        if (!allowed) return json({error:"denied"},403);
+        if (offline) return json({error:"unavailable"},503);
+        assert.equal(args.revision,state.revision);
+        writtenResult = gradeWrittenPolynomial(computed.verification,args.text,language);
+        state.questions[0].writtenAnswer=args.text;
+        state.questions[0].answered=args.answer;
+        if (args.answer && mode === "practice") state.questions[0].feedback={...feedback,matchesSuggestion:null,writtenResult};
+        return json({revision:++state.revision});
+      }
       if (url.pathname === "/rest/v1/rpc/save_ai_practice_answer") {
         const args = route.request().postDataJSON();
         writes.push(args);
@@ -245,7 +264,7 @@ try {
       }
       if (url.pathname === "/rest/v1/rpc/submit_ai_practice_session") {
         state.submittedAt = "2026-10-29T12:00:00Z";
-        state.questions[0].feedback = feedback;
+        state.questions[0].feedback = writtenRun ? {...feedback,matchesSuggestion:null,writtenResult} : feedback;
         return json(++state.revision);
       }
       if (url.pathname.startsWith("/rest/v1/")) return json([]);
@@ -380,6 +399,20 @@ try {
         .count(),
       0,
     );
+    if (writtenRun) {
+      const input=page.getByLabel(ar ? "1: إجابة مكتوبة" : "1: Written answer",{exact:true});
+      offline=true; await input.fill(writtenText);
+      await page.getByRole("alert").filter({hasText:ar ? "تعذر الاتصال" : "Connection or service"}).waitFor();
+      assert.equal(await input.inputValue(),writtenText);
+      assert.equal(await page.evaluate(key=>localStorage.getItem(key),`yhub-practice-choice:${id}:${state.id}`),null);
+      offline=false; await click("Save answer draft","حفظ مسودة الإجابة");
+      await page.getByText(ar ? "محفوظ في حسابك" : "Saved to your account",{exact:true}).waitFor();
+      assert.equal(state.questions[0].feedback,null);
+      await page.reload(); await open();
+      await page.getByRole("button").filter({hasText:ar ? "قيد التقدم" : "In progress"}).click();
+      await input.waitFor(); assert.equal(await input.inputValue(),writtenText);
+      assert.equal(await input.getAttribute("dir"),"ltr");
+    } else {
     offline = true;
     await page.getByLabel("1: 1", { exact: true }).check();
     await page
@@ -415,6 +448,7 @@ try {
         exact: true,
       })
       .waitFor();
+    }
     if (mode === "practice") await click("Confirm answer", "تأكيد الإجابة");
     else
       await click(
@@ -423,7 +457,9 @@ try {
       );
     await page
       .getByText(
-        mathRun
+        writtenRun && writtenResult.score === null
+          ? ar ? "تحتاج مراجعة — لا تدخل في العلامة" : "Needs review — excluded from the score"
+          : mathRun
           ? ar
             ? "يطابق الإجابة المحققة بالمحرك"
             : "Matches the engine-verified answer"
@@ -448,7 +484,7 @@ try {
         nodes.filter(node => node.scrollWidth > node.clientWidth).every(node =>
           getComputedStyle(node).overflowX === "auto")));
     }
-    if (mathRun)
+    if (mathRun && !(writtenRun && writtenResult.score === null))
       await page
         .getByRole("region", {
           name: ar
@@ -476,7 +512,7 @@ try {
     assert.equal(await page.getByLabel("1: 1", { exact: true }).count(), 0);
     assert.deepEqual(errors, []);
     console.log(
-      `PASS ${width}/${language}/${theme}/${mode}/${integralRun ? "antiderivative" : adaptiveRun ? "adaptive-level" : mathRun ? "engine/repeated-proposal" : "suggestion"}: scope, generation, lost connection/reload recovery, delayed feedback, KaTeX, revocation.`,
+      `PASS ${width}/${language}/${theme}/${mode}/${writtenRun ? "written-answer" : integralRun ? "antiderivative" : adaptiveRun ? "adaptive-level" : mathRun ? "engine/repeated-proposal" : "suggestion"}: scope, generation, lost connection/reload recovery, delayed feedback, KaTeX, revocation.`,
     );
     await context.close();
   }

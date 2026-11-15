@@ -429,3 +429,7 @@ verify_jwt = true
 # Rechecking never bypasses source access, Tutor quotas or review permissions.
 [functions.ai-practice-recheck]
 verify_jwt = true
+
+# Deterministic written-answer grading; source, session and engine authorization remain mandatory.
+[functions.ai-practice-answer]
+verify_jwt = true
