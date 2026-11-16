@@ -10,7 +10,7 @@ const browser=await chromium.launch({executablePath:process.env.YHUB_CHROMIUM||'
 await mkdir('/tmp/yhub-sheets-review-screenshots',{recursive:true});
 try {
  for(const width of [1280,390])for(const theme of ['light','dark']){
-  const language=theme==='dark'?'ar':'en';
+  const language=theme==='dark'?'ar':'en'; const t=(en,ar)=>language==='ar'?ar:en;
   const {context,state}=await sheetsFixture(browser,base,{width,theme,language});
   const page=await context.newPage();const errors=[],consoleErrors=[];let answer;
   page.on('pageerror',e=>errors.push(e.message));
@@ -21,12 +21,12 @@ try {
   await page.getByRole('button',{name:'New Workbook',exact:true}).waitFor();
   assert.equal(await page.locator('aside').count(),0);
   await page.getByRole('button',{name:'All files list',exact:true}).click();
-  await page.getByRole('button',{name:'Load more files'}).click();
+  await page.getByRole('button',{name:t('Load more files','تحميل المزيد')}).click();
   await page.waitForFunction(()=>document.querySelectorAll('.ys-file-card').length===51);
   assert(state.offsets.includes(50));
   const time=page.locator('time').first();assert.equal(await time.innerText(),new Intl.DateTimeFormat(language==='ar'?'ar-JO':'en-GB',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',timeZone:'UTC'}).format(new Date('2026-01-01T00:00:00Z')));
-  await page.getByRole('textbox',{name:'Search workbooks'}).or(page.getByRole('searchbox',{name:'Search workbooks'})).fill('Review');
-  await page.getByRole('button',{name:'Search',exact:true}).click();
+  await page.getByRole('textbox',{name:t('Search all files and folders','البحث في جميع الملفات والمجلدات')}).or(page.getByRole('searchbox',{name:t('Search all files and folders','البحث في جميع الملفات والمجلدات')})).fill('Review');
+  await page.getByRole('button',{name:t('Search','بحث'),exact:true}).click();
   await page.waitForFunction(()=>document.querySelectorAll('.ys-file-card').length===0);
   answer='Review workbook';await page.getByRole('button',{name:'New Workbook',exact:true}).click();
   const formula=page.getByPlaceholder(/Enter a value or formula/);await formula.waitFor();
@@ -41,7 +41,7 @@ try {
   await page.getByRole('button',{name:'Rename',exact:true}).click();await page.getByRole('textbox',{name:'Worksheet name',exact:true}).fill('Review tab');await page.getByRole('textbox',{name:'Worksheet name',exact:true}).press('Enter');
   await page.getByText('Sheet 1',{exact:true}).click();await saved();
   await page.getByRole('button',{name:'My Files',exact:true}).click();
-  await page.getByRole('button',{name:'More options for Review workbook',exact:true}).click();answer='Review renamed';await page.getByRole('button',{name:'Rename',exact:true}).click();
+  answer='Review renamed';await page.getByRole('article',{name:'Review workbook',exact:true}).getByRole('button',{name:t('Rename','إعادة تسمية'),exact:true}).click();
   await page.locator('.ys-file-open').filter({hasText:'Review renamed'}).click();await formula.waitFor();
   assert.equal(await formula.inputValue(),'=2+3');assert.equal(state.rows.get(id).content.sheets[1].name,'Review tab');
   await formula.fill('=99');await page.reload();await page.getByRole('button',{name:'Recover',exact:true}).click();await formula.waitFor();await saved();assert.equal(await formula.inputValue(),'=99');
@@ -61,7 +61,7 @@ try {
   await page.getByRole('button',{name:'Export workbook'}).click();const backup=page.getByRole('button',{name:/Y-Sheets Backup/});await backup.focus();const exportDownload=page.waitForEvent('download');await backup.press('Enter');assert((await readFile(await (await exportDownload).path(),'utf8')).includes('Item'));
   // JSON export closes its own dialog after the download is prepared.
   await page.getByRole('button',{name:'My Files',exact:true}).click();
-  const deleteCopy=async()=>{await page.getByRole('button',{name:'More options for Review recovered copy',exact:true}).click();await page.getByRole('button',{name:'Delete',exact:true}).click();};
+  const deleteCopy=async()=>{await page.getByRole('article',{name:'Review recovered copy',exact:true}).getByRole('button',{name:t('Delete','حذف'),exact:true}).click();};
   answer=false;await deleteCopy();assert(state.rows.has(copy.id));
   state.failDelete=true;answer=true;await deleteCopy();await page.getByRole('alert').filter({hasText:'Delete was not confirmed'}).waitFor();assert(state.rows.has(copy.id));
   state.failDelete=false;answer=true;await deleteCopy();await page.waitForFunction(()=>![...document.querySelectorAll('.ys-file-open')].some(e=>e.textContent.includes('Review recovered copy')));assert(!state.rows.has(copy.id));

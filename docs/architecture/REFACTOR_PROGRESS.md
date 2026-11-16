@@ -1,3 +1,15 @@
+# Y-Sheets folder organization checkpoint — 2026-11-16
+
+User requested continued development of the approved decisions. Current branch **feature/approved-sheets-folders** starts from local written-answer checkpoint **a66d55b**; both packages are unpushed/unmerged. Main is unchanged at **eb8cb7358b96866dcfaf7bdeb1e892881930545d**. No push/PR/merge/production SQL/deployment is authorized for this continuation. Historical instructions below do not change that scope.
+
+Read [SHEETS_FOLDERS.md](../approved-specifications/SHEETS_FOLDERS.md) and PROGRESS. Decision43 implements nested owner-private folders, cycle-safe moves, rename, global literal name search, favorites, pins, sort and paging. Existing YSheetsHostAdapter/editor/save/recovery remain. Organization metadata has separate CAS revisions; moving/flagging never rewrites workbook content or save receipts. Old files remain at root without a backfill. Names/content are excluded or redacted from mandatory audit events. The browser retains creation identity after lost acknowledgements, handles stale revisions explicitly, refreshes on focus and clears protected metadata on denied access.
+
+Additive local migration **20261116141052_sheets_folders.sql**, two owner-scoped RPCs and RPC-only RLS tables. Owner tree advisory lock plus composite parent ownership prevents concurrent cycles/cross-account moves; no arbitrary depth cap. No third-party provider/dependency or new editor. New workbooks start at root. Folder deletion is intentionally unavailable until47; existing file deletion retains its explicit permanent-delete confirmation.
+
+Final PASS:2463 Vitest/268files plus final10-directory rerun (2 additional cases;2465 distinct),235 SQL/RLS,9 native local Auth/JWT/PostgREST,39 audit tests,1 populated upgrade preserving files/receipts/audit,36 Python,8 Chromium scenarios. Workspace TypeScript, architecture/math/module guards,8 guard tests, artifact drift and Vite build passed. Fixed test matcher/types and audit schema inventory; no disabled tests or final failures. Exact evidence is recorded in the linked report. Local SQL/Auth are real; browser network is fixture-based. No hosted deployment/load verification. Progress after this group: **34 complete locally,20 partial,17 missing**.30 remains partial for real content previews/classification,68 for broader events;50/51/54/62 sharing and47/55/63 trash remain next dependency groups.72–80 remain unapproved. Preserve both local packages and do not repeat their implementation.
+
+## Preserved previous checkpoints
+
 # Written polynomial answers checkpoint — 2026-11-15
 
 Current branch: **feature/approved-practice-written-answers**, based on merged main **eb8cb7358b96866dcfaf7bdeb1e892881930545d** (PR45). The user authorized this first local code/migration/test batch after the attachment's initial read-only review. **No push, PR creation, merge, production SQL or deployment is authorized by this batch.** Old push/deploy instructions and unmerged-branch statuses below are historical, not current authorization. Preserve this checkout and changes.

@@ -5,7 +5,7 @@ export async function sheetsFixture(browser,base,{theme,language,width}) {
  const user={id:owner,email:'local-test@example.invalid',aud:'authenticated',role:'authenticated',app_metadata:{},user_metadata:{},created_at:'2026-01-01T00:00:00Z'};
  const expires=Math.floor(Date.now()/1000)+3600;
  const token=[{alg:'HS256',typ:'JWT'},{sub:owner,aud:'authenticated',exp:expires}].map(x=>Buffer.from(JSON.stringify(x)).toString('base64url')).join('.')+'.synthetic';
- const state={rows:new Map(),receipts:new Map(),offsets:[],failDelete:false,loseAck:false};
+ const state={rows:new Map(),receipts:new Map(),offsets:[],failDelete:false,loseAck:false,folders:new Map(),locations:new Map(),denied:false,loseOrganizationAck:false};
  for(let i=0;i<51;i++) {const id=`00000000-0000-4000-8000-${String(i+100).padStart(12,'0')}`;state.rows.set(id,{id,name:`Archive ${String(i).padStart(2,'0')}`,updated_at:'2026-01-01T00:00:00Z',revision:1});}
  await context.route('**/*',async route=>{
   const request=route.request(),url=new URL(request.url());
@@ -19,6 +19,27 @@ export async function sheetsFixture(browser,base,{theme,language,width}) {
    const search=(url.searchParams.get('name')??'').replace(/^ilike\.%|%$/g,'').replace(/\\([%_\\])/g,'$1').toLowerCase();
    const rows=[...state.rows.values()].filter(r=>r.name.toLowerCase().includes(search)).sort((a,b)=>b.updated_at.localeCompare(a.updated_at)||a.id.localeCompare(b.id));
    return json(rows.slice(offset,offset+Number(url.searchParams.get('limit')??50)).map(({content,...r})=>r));
+  }
+  if(url.pathname==='/rest/v1/rpc/browse_y_sheets'){
+   const p=request.postDataJSON();if(state.denied||p.p_owner!==owner)return json({code:'42501'},403);
+   state.offsets.push(p.p_offset||0);
+   const trail=[];let parent=p.p_parent;
+   while(parent){const f=state.folders.get(parent);if(!f)return json({code:'42501'},403);trail.unshift({id:f.id,name:f.name});parent=f.parent_id;}
+   let rows=[...state.folders.values(),...[...state.rows.values()].map(r=>({kind:'workbook',id:r.id,name:r.name,revision:r.revision,updated_at:r.updated_at,parent_id:null,favorite:false,pinned:false,organization_revision:0,...state.locations.get(r.id)}))];
+   rows=rows.filter(r=>(p.p_search||p.p_view!=='folder'||r.parent_id===p.p_parent)&&(!p.p_search||r.name.toLowerCase().includes(p.p_search.toLowerCase()))&&(p.p_view!=='favorite'||r.favorite)&&(p.p_view!=='pinned'||r.pinned));
+   rows.sort((a,b)=>Number(b.pinned)-Number(a.pinned)||(p.p_sort==='updated'?b.updated_at.localeCompare(a.updated_at):0)||a.name.localeCompare(b.name)||a.id.localeCompare(b.id));
+   return json({items:rows.slice(p.p_offset||0,(p.p_offset||0)+51),trail});
+  }
+  if(url.pathname==='/rest/v1/rpc/organize_y_sheets'){
+   const p=request.postDataJSON();if(state.denied||p.p_owner!==owner)return json({code:'42501'},403);
+   const map=p.p_kind==='folder'?state.folders:state.locations,old=map.get(p.p_id);
+   if(old&&old.parent_id===p.p_parent&&old.favorite===p.p_favorite&&old.pinned===p.p_pinned&&(p.p_kind!=='folder'||old.name===p.p_name))return json(old.organization_revision);
+   if((old?.organization_revision||0)!==p.p_revision)return json({code:'PT409'},409);
+   let parent=p.p_parent;while(parent){if(parent===p.p_id)return json({code:'22023'},400);parent=state.folders.get(parent)?.parent_id;}
+   const value={parent_id:p.p_parent,favorite:p.p_favorite,pinned:p.p_pinned,organization_revision:p.p_revision+1};
+   map.set(p.p_id,p.p_kind==='folder'?{...value,kind:'folder',id:p.p_id,name:p.p_name,revision:null,updated_at:new Date().toISOString()}:value);
+   if(state.loseOrganizationAck){state.loseOrganizationAck=false;return json({code:'unavailable'},503);}
+   return json(value.organization_revision);
   }
   if(url.pathname==='/rest/v1/rpc/save_y_sheets_workbook'){
    const p=request.postDataJSON(),row=state.rows.get(p.p_id),key=p.p_id+':'+p.p_request_id;

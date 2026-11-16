@@ -1,0 +1,128 @@
+import { useEffect, useRef, useState, type MutableRefObject } from 'react';
+import { Folder, FileSpreadsheet, LayoutGrid, List } from 'lucide-react';
+import { useLanguage } from '@/i18n/LanguageContext';
+import { directoryRepository as repo, DirectoryError, initialDirectory, type DirectoryEntry, type DirectoryQuery } from './directoryRepository';
+
+type Props = {
+  owner: string; busy: boolean; location?: MutableRefObject<DirectoryQuery>;
+  open: (id: string) => Promise<void>;
+  rename: (id: string) => Promise<void>;
+  remove: (file: { id: string; name: string; revision?: number }) => Promise<void>;
+};
+export function WorkbookDirectory({ owner, busy, open, rename, remove, location }: Props) {
+  const { language } = useLanguage(), ar = language === 'ar';
+  const t = (en: string, arabic: string) => ar ? arabic : en;
+  const [query, setQuery] = useState<DirectoryQuery>(() => location?.current ?? initialDirectory);
+  const [search, setSearch] = useState(query.search);
+  const [items, setItems] = useState<DirectoryEntry[]>([]);
+  const [trail, setTrail] = useState<Array<{ id: string; name: string }>>([]);
+  const [more, setMore] = useState(false), [loading, setLoading] = useState(false);
+  const [error, setError] = useState(''), [grid, setGrid] = useState(true);
+  const [moving, setMoving] = useState<DirectoryEntry | null>(null);
+  const [editing, setEditing] = useState<DirectoryEntry | null>(null);
+  const alive = useRef(true), sequence = useRef(0), operation = useRef(false);
+  const disabled = busy || loading;
+  function report(e: unknown) {
+    if (!alive.current) return;
+    if (e instanceof DirectoryError && e.kind === 'denied') {
+      setItems([]); setTrail([]); setMoving(null); setEditing(null); setMore(false);
+    }
+    setError(e instanceof DirectoryError && e.kind === 'conflict'
+      ? t('This item changed on another device. Refresh and review before retrying.', 'تغيّر العنصر على جهاز آخر. حدّث القائمة وراجعه قبل إعادة المحاولة.')
+      : e instanceof DirectoryError && e.kind === 'invalid'
+        ? t('Invalid name or destination. A folder cannot contain itself or an ancestor.', 'الاسم أو الوجهة غير صالحين. لا يمكن وضع المجلد داخل نفسه أو أحد فروعه.')
+        : t('Directory unavailable. Check your connection and access, then retry.', 'تعذر الوصول إلى الملفات. تحقق من الاتصال والصلاحية ثم أعد المحاولة.'));
+  }
+  async function load(next: DirectoryQuery, append = false) {
+    const request = ++sequence.current;
+    setLoading(true); setError('');
+    if (!append) { setItems([]); setMore(false); setTrail([]); }
+    try {
+      const result = await repo.browse(owner, next, append ? items.length : 0);
+      if (!alive.current || request !== sequence.current) return;
+      setItems(old => append ? [...old, ...result.items.filter(n => !old.some(o => o.id === n.id && o.kind === n.kind))] : result.items);
+      setTrail(result.trail); setMore(result.more);
+    } catch (e) { if (request === sequence.current) report(e); }
+    finally { if (alive.current && request === sequence.current) setLoading(false); }
+  }
+  useEffect(() => {
+    alive.current = true; if (location) location.current = query; void load(query);
+    const focus = () => { if (!operation.current) void load(query); };
+    window.addEventListener("focus", focus);
+    return () => { alive.current = false; sequence.current++; window.removeEventListener("focus", focus); };
+  }, [owner, query]);
+  const navigate = (parent: string | null) => {
+    setSearch(''); setQuery({ ...query, parent, view: 'folder', search: '' });
+  };
+  async function mutate(action: () => Promise<unknown>, done?: () => void) {
+    if (operation.current || disabled) return;
+    operation.current = true; setLoading(true); setError('');
+    try {
+      await action();
+      if (!alive.current) return;
+      done?.(); await load(query);
+    } catch (e) { report(e); }
+    finally { operation.current = false; if (alive.current) setLoading(false); }
+  }
+  const newFolder = () => setEditing({ kind: 'folder', id: crypto.randomUUID(), name: '', parent_id: query.parent,
+    favorite: false, pinned: false, organization_revision: 0, revision: null, updated_at: '' });
+  const destination = query.view === 'folder' && query.search === '';
+  return <section className="ys-browser" aria-label={t('Workbook directory', 'دليل الملفات')}>
+    <div className="ys-section-heading">
+      <h2>{t('Files and folders', 'الملفات والمجلدات')}</h2>
+      <div className="ys-file-view-controls">
+        <button className="ys-view-toggle" aria-label="Card view" aria-pressed={grid} onClick={() => setGrid(true)}><LayoutGrid size={18}/></button>
+        <button className="ys-view-toggle" aria-label="All files list" aria-pressed={!grid} onClick={() => setGrid(false)}><List size={18}/></button>
+        <button className="ys-secondary-button" disabled={disabled || !destination} onClick={newFolder}>{t('New folder', 'مجلد جديد')}</button>
+      </div>
+    </div>
+    <nav className="ys-directory-path" aria-label={t('Folder path', 'مسار المجلد')}>
+      <button disabled={disabled} onClick={() => navigate(null)}>{t('My files', 'ملفاتي')}</button>
+      {trail.map(f => <button key={f.id} disabled={disabled} onClick={() => navigate(f.id)}><span aria-hidden="true"> / </span>{f.name}</button>)}
+    </nav>
+    <form className="ys-search-row" onSubmit={e => { e.preventDefault(); setQuery({ ...query, search, parent: null, view: 'all' }); }}>
+      <input type="search" maxLength={200} aria-label={t('Search all files and folders', 'البحث في جميع الملفات والمجلدات')} value={search} onChange={e => setSearch(e.target.value)} placeholder={t('Search names in every folder', 'ابحث بالأسماء في جميع المجلدات')}/>
+      <button className="ys-secondary-button" disabled={disabled}>{t('Search', 'بحث')}</button>
+      <button type="button" className="ys-secondary-button" disabled={disabled} onClick={() => void load(query)}>{t('Refresh files', 'تحديث الملفات')}</button>
+    </form>
+    <div className="ys-directory-tools">
+      <label>{t('Show', 'عرض')} <select aria-label={t('Directory filter', 'تصفية الملفات')} value={query.view} disabled={disabled} onChange={e => { setSearch(''); setQuery({ ...query, view: e.target.value as DirectoryQuery['view'], search: '' }); }}>
+        <option value="folder">{t('Current folder', 'المجلد الحالي')}</option><option value="all">{t('All files and folders', 'جميع الملفات والمجلدات')}</option>
+        <option value="favorite">{t('Favorites', 'المفضلة')}</option><option value="pinned">{t('Pinned', 'المثبتة')}</option>
+      </select></label>
+      <label>{t('Sort', 'ترتيب')} <select aria-label={t('Directory sort', 'ترتيب الملفات')} value={query.sort} disabled={disabled} onChange={e => setQuery({ ...query, sort: e.target.value as DirectoryQuery['sort'] })}>
+        <option value="name">{t('Name', 'الاسم')}</option><option value="updated">{t('Recently updated', 'آخر تعديل')}</option>
+      </select></label>
+    </div>
+    <p className="ys-files-subtitle">{t('Pinned items appear first. New workbooks start in My files; move them to a folder when ready.', 'تظهر العناصر المثبتة أولًا. تُنشأ الجداول الجديدة في ملفاتي؛ يمكنك نقلها إلى مجلد بعد إنشائها.')}</p>
+    {error && <p role="alert" className="y-sheets-workspace-error">{error}</p>}
+    {loading && <p role="status">{t('Loading…', 'جارٍ التحميل…')}</p>}
+    {editing && <form className="ys-directory-edit" aria-label={t('Folder name form', 'تسمية المجلد')} onSubmit={e => { e.preventDefault(); void mutate(() => repo.save(owner, editing), () => setEditing(null)); }}>
+      <label>{t('Folder name', 'اسم المجلد')} <input autoFocus maxLength={200} value={editing.name} disabled={disabled} onChange={e => setEditing({ ...editing, name: e.target.value })}/></label>
+      <button className="ys-secondary-button" disabled={disabled || !editing.name.trim()}>{t('Save folder', 'حفظ المجلد')}</button>
+      <button className="ys-secondary-button" type="button" disabled={disabled} onClick={() => setEditing(null)}>{t('Cancel', 'إلغاء')}</button>
+    </form>}
+    {moving && <div className="ys-directory-edit" role="region" aria-label={t('Move destination', 'وجهة النقل')}>
+      <p>{t('Moving', 'نقل')}: <bdi>{moving.name}</bdi>. {t('Open the destination folder, then choose Move here.', 'افتح مجلد الوجهة ثم اختر النقل إلى هنا.')}</p>
+      <button className="ys-secondary-button" disabled={disabled || !destination} onClick={() => void mutate(() => repo.save(owner, { ...moving, parent_id: query.parent }), () => setMoving(null))}>{t('Move here', 'نقل إلى هنا')}</button>
+      <button className="ys-secondary-button" disabled={disabled} onClick={() => setMoving(null)}>{t('Cancel move', 'إلغاء النقل')}</button>
+    </div>}
+    {!loading && items.length === 0 && <p>{t('No matching files or folders.', 'لا توجد ملفات أو مجلدات مطابقة.')}</p>}
+    <div className={grid ? 'ys-file-cards' : 'ys-file-list'}>
+      {items.map(item => <article className="ys-file-card" key={item.kind + item.id} aria-label={item.name}>
+        <button className="ys-file-open" disabled={disabled} onClick={() => item.kind === 'folder' ? navigate(item.id) : void open(item.id)}>
+          <span className="ys-file-preview" aria-hidden="true">{item.kind === 'folder' ? <Folder size={26}/> : <FileSpreadsheet size={26}/>}</span>
+          <span className="ys-file-details"><strong dir="auto">{item.name}</strong><small>{item.kind === 'folder' ? t('Folder', 'مجلد') : t('Workbook', 'جدول')}{item.pinned ? ' · 📌' : ''}{item.favorite ? ' · ★' : ''}</small><small><time dateTime={item.updated_at}>{new Intl.DateTimeFormat(ar ? 'ar-JO' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(item.updated_at))}</time></small></span>
+        </button>
+        <div className="ys-directory-actions">
+          <button disabled={disabled} aria-pressed={item.favorite} onClick={() => void mutate(() => repo.save(owner, { ...item, favorite: !item.favorite }))}>{t('Favorite', 'مفضلة')}</button>
+          <button disabled={disabled} aria-pressed={item.pinned} onClick={() => void mutate(() => repo.save(owner, { ...item, pinned: !item.pinned }))}>{t('Pin', 'تثبيت')}</button>
+          <button disabled={disabled} onClick={() => setMoving(item)}>{t('Move', 'نقل')}</button>
+          <button disabled={disabled} onClick={() => item.kind === 'folder' ? setEditing(item) : void mutate(() => rename(item.id))}>{t('Rename', 'إعادة تسمية')}</button>
+          {item.kind === 'workbook' && <button disabled={disabled} onClick={() => void mutate(() => remove({ id: item.id, name: item.name, revision: item.revision ?? undefined }))}>{t('Delete', 'حذف')}</button>}
+        </div>
+      </article>)}
+    </div>
+    {more && <button className="ys-secondary-button ys-load-more" disabled={disabled} onClick={() => void load(query, true)}>{t('Load more files', 'تحميل المزيد')}</button>}
+  </section>;
+}

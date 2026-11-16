@@ -24,6 +24,6 @@ if ! (
   done
 ) >"$log" 2>&1; then cat "$log"; exit 1; fi
 printf 'Historical migrations and audit migration applied locally. Log: %s\n' "$log"
-YHUB_ACADEMIC_TEST_CONTAINER="$container" python3 -B -m unittest discover -s artifacts/y-hub/supabase/tests/academic -p 'test_*.py' -v
+YHUB_ACADEMIC_TEST_CONTAINER="$container" python3 -B -m unittest discover -s artifacts/y-hub/supabase/tests/academic -p "${YHUB_ACADEMIC_TEST_PATTERN:-test_*.py}" -v
 psql_file artifacts/y-hub/supabase/tests/0018_user_numbers.sql > /dev/null
 printf 'PASS: isolated academic architecture and RLS tests\n'

@@ -1,24 +1,29 @@
 import { useLocation } from "wouter";
-import { ArrowLeft, FileSpreadsheet, Plus, Search, MoreHorizontal, LayoutGrid, List, RefreshCw, Clock3 } from "lucide-react";
+import { ArrowLeft, FileSpreadsheet, Plus } from "lucide-react";
 import { YSheetsBrandMark } from "../components/YSheetsBrandMark";
 import { useLanguage } from "@/i18n/LanguageContext";
 import "./workspace.css";
 import { recoveryWorkbook } from "../io/recoveryJournal";
-import { useState } from "react";
 import { useTheme } from "next-themes";
 import { YSheetsHostAdapter } from "../integration/YSheetsHostAdapter";
 import type { HostUser } from "../integration/hostContract";
 import { downloadWorkbookJSON } from "../io/localPersistence";
+import { useRef } from "react";
+import { initialDirectory } from "./directoryRepository";
+import { WorkbookDirectory } from "./WorkbookDirectory";
 import { useWorkbookWorkspace } from "./useWorkbookWorkspace";
 
 export function WorkbookWorkspace({ user }: { user: HostUser }) {
   const w = useWorkbookWorkspace(user.id);
+  const directoryLocation = useRef(initialDirectory);
+  const directoryOwner = useRef(user.id);
+  if (directoryOwner.current !== user.id) {
+    directoryOwner.current = user.id;
+    directoryLocation.current = initialDirectory;
+  }
   const [, navigate] = useLocation();
   const { language } = useLanguage();
   const { resolvedTheme } = useTheme();
-  const [search, setSearch] = useState("");
-  const [showAllFiles, setShowAllFiles] = useState(false);
-  const [menuFileId, setMenuFileId] = useState<string | null>(null);
   const download = () => {
     const wb = w.session.current?.recoveryCopy();
     if (wb) downloadWorkbookJSON(wb);
@@ -60,6 +65,7 @@ export function WorkbookWorkspace({ user }: { user: HostUser }) {
           };
       const wb = await w.storage.createWorkbook!(name, initial);
       w.journal.acknowledge(wb);
+      directoryLocation.current = initialDirectory;
       w.activate(wb);
       await w.refresh();
     });
@@ -69,8 +75,6 @@ export function WorkbookWorkspace({ user }: { user: HostUser }) {
     navigate("/dashboard");
   });
   const showMyFiles = () => {
-    setShowAllFiles(false);
-    setMenuFileId(null);
     void w.myFiles();
   };
   const formatModified = (value: string) => {
@@ -178,7 +182,7 @@ export function WorkbookWorkspace({ user }: { user: HostUser }) {
               </section>
             )}
 
-            {!showAllFiles && (
+            {(
               <section className="ys-start-section" aria-label="Start creating">
                 <div className="ys-section-heading">
                   <h2>{language === "ar" ? "ابدأ ملفًا جديدًا" : "Start creating"}</h2>
@@ -201,99 +205,8 @@ export function WorkbookWorkspace({ user }: { user: HostUser }) {
               </section>
             )}
 
-            <section className="ys-browser" aria-label="Workbook files">
-              <div className="ys-section-heading">
-                <div>
-                  <h2>{showAllFiles ? (language === "ar" ? "كل الملفات" : "All files") :
-                    (language === "ar" ? "الملفات الأخيرة" : "Recent files")}</h2>
-                  <p>{w.files.length} {language === "ar" ? "ملف محمّل" : "loaded workbooks"}</p>
-                </div>
-                <div className="ys-file-view-controls">
-                  <button type="button" className="ys-view-toggle" title="Card view"
-                    aria-label="Card view" aria-pressed={!showAllFiles}
-                    onClick={() => { setShowAllFiles(false); setMenuFileId(null); }}>
-                    <LayoutGrid size={17}/>
-                  </button>
-                  <button type="button" className="ys-view-toggle" title="All files list"
-                    aria-label="All files list" aria-pressed={showAllFiles}
-                    onClick={() => { setShowAllFiles(true); setMenuFileId(null); }}>
-                    <List size={17}/>
-                  </button>
-                  {!showAllFiles && (
-                    <button className="ys-view-all" type="button"
-                      onClick={() => setShowAllFiles(true)}>
-                      {language === "ar" ? "عرض الكل" : "View all"} →
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              <form className="ys-search-row" onSubmit={event => {
-                event.preventDefault();
-                setShowAllFiles(true);
-                void w.searchFiles(search);
-              }}>
-                <div className="ys-search-field">
-                  <Search size={17}/>
-                  <input type="search" aria-label="Search workbooks" value={search}
-                    onChange={event => setSearch(event.target.value)}
-                    placeholder={language === "ar" ? "ابحث عن ملف..." : "Search workbooks..."} />
-                </div>
-                <button type="submit" disabled={w.busy} className="ys-secondary-button">Search</button>
-                <button type="button" disabled={w.busy} className="ys-icon-button"
-                  onClick={() => void w.run(w.refresh)} title="Refresh files" aria-label="Refresh files">
-                  <RefreshCw size={17}/>
-                </button>
-              </form>
-
-              {w.files.length > 0 ? (
-                <div className={showAllFiles ? "ys-file-list" : "ys-file-cards"}>
-                  {(showAllFiles ? w.files : w.files.slice(0, 6)).map(file => (
-                    <article className="ys-file-card" key={file.id}>
-                      <button type="button" className="ys-file-open" disabled={w.busy}
-                        onClick={() => void w.open(file.id)}>
-                        <span className="ys-file-preview" aria-hidden="true">
-                          <FileSpreadsheet size={26}/>
-                          <span className="ys-preview-lines"><i/><i/><i/></span>
-                        </span>
-                        <span className="ys-file-details">
-                          <strong dir="auto">{file.name}</strong>
-                          <small><Clock3 size={12}/> <time dateTime={file.updatedAt}>
-                            {formatModified(file.updatedAt)}
-                          </time></small>
-                        </span>
-                      </button>
-                      <div className="ys-file-actions">
-                        <button type="button" className="ys-icon-button" disabled={w.busy}
-                          aria-label={"More options for " + file.name} title="File options"
-                          aria-expanded={menuFileId === file.id}
-                          onClick={() => setMenuFileId(menuFileId === file.id ? null : file.id)}>
-                          <MoreHorizontal size={20}/>
-                        </button>
-                        {menuFileId === file.id && (
-                          <div className="ys-file-menu">
-                            <button type="button" disabled={w.busy}
-                              onClick={() => { setMenuFileId(null); void w.rename(file.id); }}>Rename</button>
-                            <button type="button" disabled={w.busy} className="ys-delete-action"
-                              onClick={() => { setMenuFileId(null); void w.remove(file); }}>Delete</button>
-                          </div>
-                        )}
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              ) : (
-                <div className="ys-files-empty">
-                  <FileSpreadsheet size={30}/>
-                  <strong>{language === "ar" ? "ما في ملفات لعرضها" : "No workbooks found"}</strong>
-                  <p>Create a workbook, recover a local copy, or refresh your files.</p>
-                </div>
-              )}
-              {w.hasMore && showAllFiles && (
-                <button className="ys-secondary-button ys-load-more" type="button" disabled={w.busy}
-                  onClick={() => void w.more()}>Load more files</button>
-              )}
-            </section>
+            <WorkbookDirectory key={user.id} owner={user.id} busy={w.busy} location={directoryLocation}
+              open={w.open} rename={w.rename} remove={w.remove} />
           </div>
         </section>
       )}
