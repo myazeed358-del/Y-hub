@@ -1,3 +1,17 @@
+# Y-Sheets direct sharing checkpoint — 2026-11-17
+
+Current branch **feature/approved-sheets-sharing** starts from local folders checkpoint **d8c79a4**, which follows written answers **a66d55b**. These packages remain unpushed/unmerged. Read-only remote main verification found **eb8cb7358b96866dcfaf7bdeb1e892881930545d**. User authorized local development and tests; no push, PR, merge, production SQL or deployment in this continuation. Historical scope below does not supersede this checkpoint.
+
+Read [SHEETS_SHARING.md](../approved-specifications/SHEETS_SHARING.md) and PROGRESS. Decision50 now supports owner-confirmed direct file sharing by exact nine-digit account number, view/edit grants, revocation, and a current-recipient file list. Owner/Admin roles cannot bypass personal ownership. Shared editing uses the existing YSheetsHostAdapter and the original workbook CAS revision; no silent rebase, ownership transfer, reshare, rename, move or delete for recipients. New additive local migration **20261116144657_sheets_sharing.sql** provides RPC-only private tables, current-session checks, grant revision CAS, serialized save/revoke/delete and audited grant metadata without file names/content. Old receipts cannot bypass a revoked or changed grant.
+
+Shared sessions keep pending edits only in memory, exclude RecoveryJournal/localStorage/downloads and system clipboard writes, and close when access cannot be verified. Access is checked at every save, every15seconds, focus and visibility. Server denial is serialized immediately; UI is polling/event-based and cannot reclaim already delivered bytes. Conflict retains in-memory edits without automatic retry/rebase; navigation asks to discard them. Decision59 is partial. Folder inheritance51/54/62, trash47/55/63, broader retention and offline merge remain unfinished.72–80 remain unapproved.
+
+Final verification PASS:2477 Vitest/269files plus final12-sharing rerun (one additional case;2478 distinct),250 academic SQL/RLS (15sharing),13 native local Auth/JWT/PostgREST,39 audit tests,1 populated sharing upgrade,36 Python and12 Chromium scenarios (4sharing+4folders+4owner editor). Architecture/math/module guards,8 guard cases, workspace types, artifact drift and Vite build passed. Browser caught and fixed a committed-draft save-status bug; regression added. SQL test audit-column names corrected. No disabled tests or final failures. Local DB/Auth are real; browser HTTP is fixture-based. Arabic mobile screenshot inspected. No hosted deployment, load or cost verification. See report for limitations and commands.
+
+Progress: **35 complete locally,20 partial,16 missing**. Keep both earlier local packages; do not repeat them. The new commit hash is established through Git, not embedded in its own contents.
+
+## Preserved previous checkpoints
+
 # Y-Sheets folder organization checkpoint — 2026-11-16
 
 User requested continued development of the approved decisions. Current branch **feature/approved-sheets-folders** starts from local written-answer checkpoint **a66d55b**; both packages are unpushed/unmerged. Main is unchanged at **eb8cb7358b96866dcfaf7bdeb1e892881930545d**. No push/PR/merge/production SQL/deployment is authorized for this continuation. Historical instructions below do not change that scope.

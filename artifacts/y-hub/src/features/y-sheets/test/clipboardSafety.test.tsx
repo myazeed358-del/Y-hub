@@ -1,5 +1,5 @@
 import {act,cleanup,renderHook} from '@testing-library/react';
-import {afterEach,expect,it} from 'vitest';
+import {afterEach,expect,it,vi} from 'vitest';
 import {WorkbookProvider,useWorkbook} from '../state/workbookContext';
 import {createDefaultWorkbook} from '../state/defaultWorkbook';
 afterEach(cleanup);
@@ -27,4 +27,11 @@ it('refuses a clipped cut rather than erasing values that cannot fit',async()=>{
 });
 it('copying a blank cell clears an existing destination value',async()=>{
  const {result}=setup();act(()=>result.current.setActiveCell({row:2,col:0}));act(()=>result.current.copySelection());act(()=>result.current.setActiveCell({row:0,col:0}));await act(()=>result.current.pasteSelection());expect(result.current.activeSheet.cells['0,0']).toBeUndefined();
+});
+
+it('keeps internal copy available but never writes the system clipboard when export is denied',()=>{
+ const writeText=vi.fn();vi.stubGlobal('navigator',{clipboard:{writeText}});
+ const wb=createDefaultWorkbook();wb.sheets[0].cells={'0,0':{raw:'Shared private value'}};
+ const {result}=renderHook(()=>useWorkbook(),{wrapper:({children})=><WorkbookProvider initialWorkbook={wb} permissions={{canEdit:true,canExport:false}}>{children}</WorkbookProvider>});
+ act(()=>result.current.copySelection());expect(writeText).not.toHaveBeenCalled();expect(result.current.clipboard?.cells['0,0']?.raw).toBe('Shared private value');vi.unstubAllGlobals();
 });

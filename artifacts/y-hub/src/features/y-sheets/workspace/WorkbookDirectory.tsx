@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type MutableRefObject } from 'react';
 import { Folder, FileSpreadsheet, LayoutGrid, List } from 'lucide-react';
+import { SharePanel } from '../sharing/SharePanel';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { directoryRepository as repo, DirectoryError, initialDirectory, type DirectoryEntry, type DirectoryQuery } from './directoryRepository';
 
@@ -18,6 +19,7 @@ export function WorkbookDirectory({ owner, busy, open, rename, remove, location 
   const [trail, setTrail] = useState<Array<{ id: string; name: string }>>([]);
   const [more, setMore] = useState(false), [loading, setLoading] = useState(false);
   const [error, setError] = useState(''), [grid, setGrid] = useState(true);
+  const [sharing, setSharing] = useState<DirectoryEntry | null>(null);
   const [moving, setMoving] = useState<DirectoryEntry | null>(null);
   const [editing, setEditing] = useState<DirectoryEntry | null>(null);
   const alive = useRef(true), sequence = useRef(0), operation = useRef(false);
@@ -25,7 +27,7 @@ export function WorkbookDirectory({ owner, busy, open, rename, remove, location 
   function report(e: unknown) {
     if (!alive.current) return;
     if (e instanceof DirectoryError && e.kind === 'denied') {
-      setItems([]); setTrail([]); setMoving(null); setEditing(null); setMore(false);
+      setItems([]); setTrail([]); setSharing(null); setMoving(null); setEditing(null); setMore(false);
     }
     setError(e instanceof DirectoryError && e.kind === 'conflict'
       ? t('This item changed on another device. Refresh and review before retrying.', 'تغيّر العنصر على جهاز آخر. حدّث القائمة وراجعه قبل إعادة المحاولة.')
@@ -97,6 +99,7 @@ export function WorkbookDirectory({ owner, busy, open, rename, remove, location 
     <p className="ys-files-subtitle">{t('Pinned items appear first. New workbooks start in My files; move them to a folder when ready.', 'تظهر العناصر المثبتة أولًا. تُنشأ الجداول الجديدة في ملفاتي؛ يمكنك نقلها إلى مجلد بعد إنشائها.')}</p>
     {error && <p role="alert" className="y-sheets-workspace-error">{error}</p>}
     {loading && <p role="status">{t('Loading…', 'جارٍ التحميل…')}</p>}
+    {sharing && <SharePanel key={sharing.id} actor={owner} id={sharing.id} name={sharing.name} onClose={() => setSharing(null)}/>}
     {editing && <form className="ys-directory-edit" aria-label={t('Folder name form', 'تسمية المجلد')} onSubmit={e => { e.preventDefault(); void mutate(() => repo.save(owner, editing), () => setEditing(null)); }}>
       <label>{t('Folder name', 'اسم المجلد')} <input autoFocus maxLength={200} value={editing.name} disabled={disabled} onChange={e => setEditing({ ...editing, name: e.target.value })}/></label>
       <button className="ys-secondary-button" disabled={disabled || !editing.name.trim()}>{t('Save folder', 'حفظ المجلد')}</button>
@@ -119,6 +122,7 @@ export function WorkbookDirectory({ owner, busy, open, rename, remove, location 
           <button disabled={disabled} aria-pressed={item.pinned} onClick={() => void mutate(() => repo.save(owner, { ...item, pinned: !item.pinned }))}>{t('Pin', 'تثبيت')}</button>
           <button disabled={disabled} onClick={() => setMoving(item)}>{t('Move', 'نقل')}</button>
           <button disabled={disabled} onClick={() => item.kind === 'folder' ? setEditing(item) : void mutate(() => rename(item.id))}>{t('Rename', 'إعادة تسمية')}</button>
+          {item.kind === 'workbook' && <button disabled={disabled} onClick={() => setSharing(item)}>{t('Share', 'مشاركة')}</button>}
           {item.kind === 'workbook' && <button disabled={disabled} onClick={() => void mutate(() => remove({ id: item.id, name: item.name, revision: item.revision ?? undefined }))}>{t('Delete', 'حذف')}</button>}
         </div>
       </article>)}

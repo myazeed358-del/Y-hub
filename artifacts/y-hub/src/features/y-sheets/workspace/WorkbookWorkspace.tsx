@@ -8,13 +8,16 @@ import { useTheme } from "next-themes";
 import { YSheetsHostAdapter } from "../integration/YSheetsHostAdapter";
 import type { HostUser } from "../integration/hostContract";
 import { downloadWorkbookJSON } from "../io/localPersistence";
-import { useRef } from "react";
+import { SharedFiles } from "../sharing/SharedFiles";
+import { SharedWorkbookView } from "../sharing/SharedWorkbookView";
+import { useRef, useState } from "react";
 import { initialDirectory } from "./directoryRepository";
 import { WorkbookDirectory } from "./WorkbookDirectory";
 import { useWorkbookWorkspace } from "./useWorkbookWorkspace";
 
 export function WorkbookWorkspace({ user }: { user: HostUser }) {
   const w = useWorkbookWorkspace(user.id);
+  const [sharedId, setSharedId] = useState<string | null>(null);
   const directoryLocation = useRef(initialDirectory);
   const directoryOwner = useRef(user.id);
   if (directoryOwner.current !== user.id) {
@@ -84,6 +87,7 @@ export function WorkbookWorkspace({ user }: { user: HostUser }) {
       day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit",
     }).format(date);
   };
+  if (sharedId) return <div className="y-sheets-workspace"><SharedWorkbookView key={`${user.id}:${sharedId}`} actor={user.id} id={sharedId} onClose={() => setSharedId(null)}/></div>;
   return (
     <div className="y-sheets-workspace" data-testid="y-sheets-workspace">
       {!w.active && (
@@ -205,6 +209,7 @@ export function WorkbookWorkspace({ user }: { user: HostUser }) {
               </section>
             )}
 
+            <SharedFiles key={`shared:${user.id}`} actor={user.id} onOpen={setSharedId}/>
             <WorkbookDirectory key={user.id} owner={user.id} busy={w.busy} location={directoryLocation}
               open={w.open} rename={w.rename} remove={w.remove} />
           </div>

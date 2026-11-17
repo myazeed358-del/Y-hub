@@ -234,13 +234,13 @@ export const WorkbookProvider: React.FC<WorkbookProviderProps> = ({
 
     // Write to system clipboard if permitted
     try {
-      if (navigator.clipboard?.writeText) {
+      if (permissions?.canExport !== false && navigator.clipboard?.writeText) {
         navigator.clipboard.writeText(tsvRows.join('\n')).catch(() => {});
       }
     } catch {
       // Ignore clipboard API security blocks
     }
-  }, [selection, activeSheet]);
+  }, [selection, activeSheet, permissions?.canExport]);
 
   const cutSelection = useCallback(() => {
     if (!canEdit) return;

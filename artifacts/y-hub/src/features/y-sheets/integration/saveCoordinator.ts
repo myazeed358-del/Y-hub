@@ -94,7 +94,7 @@ export class WorkbookSaveCoordinator {
         this.onSaved(snapshot);
       } catch (error) {
         // Preserve newer edits rather than replacing them.
-        this.pending ??= snapshot;
+        if (!this.disposed) this.pending ??= snapshot;
 
         const conflict = isConflict(error);
 
@@ -110,6 +110,7 @@ export class WorkbookSaveCoordinator {
 
   dispose(): void {
     this.disposed = true;
+    this.pending = null;
     this.clearTimer();
   }
 
