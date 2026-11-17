@@ -26,7 +26,7 @@ it('moves the selected file into a navigated folder with original metadata revis
  mocks.browse.mockResolvedValue({ ...page([]), trail: [{ id: folder.id, name: folder.name }] });
  fireEvent.click(within(screen.getByRole('article', { name: folder.name })).getByRole('button', { name: /^Folder Folder/ }));
  await waitFor(() => expect((screen.getByRole('button', { name: 'Move here' }) as HTMLButtonElement).disabled).toBe(false));
- fireEvent.click(screen.getByRole('button', { name: 'Move here' }));await waitFor(() => expect(mocks.save).toHaveBeenCalledWith('owner', { ...item, parent_id: folder.id }));
+ const confirmation=vi.spyOn(window,'confirm').mockReturnValue(false);fireEvent.click(screen.getByRole('button', { name: 'Move here' }));expect(mocks.save).not.toHaveBeenCalled();confirmation.mockReturnValue(true);fireEvent.click(screen.getByRole('button', { name: 'Move here' }));confirmation.mockRestore();await waitFor(() => expect(mocks.save).toHaveBeenCalledWith('owner', { ...item, parent_id: folder.id }));
 });
 it('keeps creation identity after lost acknowledgement for safe retry', async () => {
  await ready();fireEvent.click(screen.getByRole('button', { name: 'New folder' }));fireEvent.change(screen.getByLabelText('Folder name'), { target: { value: 'New' } });

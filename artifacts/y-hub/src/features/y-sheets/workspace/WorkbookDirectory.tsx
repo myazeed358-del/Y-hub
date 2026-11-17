@@ -99,7 +99,7 @@ export function WorkbookDirectory({ owner, busy, open, rename, remove, location 
     <p className="ys-files-subtitle">{t('Pinned items appear first. New workbooks start in My files; move them to a folder when ready.', 'تظهر العناصر المثبتة أولًا. تُنشأ الجداول الجديدة في ملفاتي؛ يمكنك نقلها إلى مجلد بعد إنشائها.')}</p>
     {error && <p role="alert" className="y-sheets-workspace-error">{error}</p>}
     {loading && <p role="status">{t('Loading…', 'جارٍ التحميل…')}</p>}
-    {sharing && <SharePanel key={sharing.id} actor={owner} id={sharing.id} name={sharing.name} onClose={() => setSharing(null)}/>}
+    {sharing && <SharePanel key={sharing.id} actor={owner} id={sharing.id} name={sharing.name} kind={sharing.kind} onClose={() => setSharing(null)}/>}
     {editing && <form className="ys-directory-edit" aria-label={t('Folder name form', 'تسمية المجلد')} onSubmit={e => { e.preventDefault(); void mutate(() => repo.save(owner, editing), () => setEditing(null)); }}>
       <label>{t('Folder name', 'اسم المجلد')} <input autoFocus maxLength={200} value={editing.name} disabled={disabled} onChange={e => setEditing({ ...editing, name: e.target.value })}/></label>
       <button className="ys-secondary-button" disabled={disabled || !editing.name.trim()}>{t('Save folder', 'حفظ المجلد')}</button>
@@ -107,7 +107,7 @@ export function WorkbookDirectory({ owner, busy, open, rename, remove, location 
     </form>}
     {moving && <div className="ys-directory-edit" role="region" aria-label={t('Move destination', 'وجهة النقل')}>
       <p>{t('Moving', 'نقل')}: <bdi>{moving.name}</bdi>. {t('Open the destination folder, then choose Move here.', 'افتح مجلد الوجهة ثم اختر النقل إلى هنا.')}</p>
-      <button className="ys-secondary-button" disabled={disabled || !destination} onClick={() => void mutate(() => repo.save(owner, { ...moving, parent_id: query.parent }), () => setMoving(null))}>{t('Move here', 'نقل إلى هنا')}</button>
+      <button className="ys-secondary-button" disabled={disabled || !destination} onClick={() => { if(window.confirm(t('Moving changes inherited access for this item and its contents to match the destination. Independent direct shares remain. Continue?', 'يغيّر النقل الوصول الموروث لهذا العنصر ومحتوياته بحسب الوجهة، وتبقى المشاركات المباشرة المستقلة. هل تريد المتابعة؟'))) void mutate(() => repo.save(owner, { ...moving, parent_id: query.parent }), () => setMoving(null)); }}>{t('Move here', 'نقل إلى هنا')}</button>
       <button className="ys-secondary-button" disabled={disabled} onClick={() => setMoving(null)}>{t('Cancel move', 'إلغاء النقل')}</button>
     </div>}
     {!loading && items.length === 0 && <p>{t('No matching files or folders.', 'لا توجد ملفات أو مجلدات مطابقة.')}</p>}
@@ -122,7 +122,7 @@ export function WorkbookDirectory({ owner, busy, open, rename, remove, location 
           <button disabled={disabled} aria-pressed={item.pinned} onClick={() => void mutate(() => repo.save(owner, { ...item, pinned: !item.pinned }))}>{t('Pin', 'تثبيت')}</button>
           <button disabled={disabled} onClick={() => setMoving(item)}>{t('Move', 'نقل')}</button>
           <button disabled={disabled} onClick={() => item.kind === 'folder' ? setEditing(item) : void mutate(() => rename(item.id))}>{t('Rename', 'إعادة تسمية')}</button>
-          {item.kind === 'workbook' && <button disabled={disabled} onClick={() => setSharing(item)}>{t('Share', 'مشاركة')}</button>}
+          <button disabled={disabled} onClick={() => setSharing(item)}>{t('Share', 'مشاركة')}</button>
           {item.kind === 'workbook' && <button disabled={disabled} onClick={() => void mutate(() => remove({ id: item.id, name: item.name, revision: item.revision ?? undefined }))}>{t('Delete', 'حذف')}</button>}
         </div>
       </article>)}

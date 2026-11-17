@@ -5,7 +5,7 @@ export async function sheetsFixture(browser,base,{theme,language,width}) {
  const user={id:owner,email:'local-test@example.invalid',aud:'authenticated',role:'authenticated',app_metadata:{},user_metadata:{},created_at:'2026-01-01T00:00:00Z'};
  const expires=Math.floor(Date.now()/1000)+3600;
  const token=[{alg:'HS256',typ:'JWT'},{sub:owner,aud:'authenticated',exp:expires}].map(x=>Buffer.from(JSON.stringify(x)).toString('base64url')).join('.')+'.synthetic';
- const state={rows:new Map(),receipts:new Map(),offsets:[],failDelete:false,loseAck:false,folders:new Map(),locations:new Map(),denied:false,loseOrganizationAck:false,grants:new Map(),incoming:new Map(),sharedOffline:false};
+ const state={rows:new Map(),receipts:new Map(),offsets:[],failDelete:false,loseAck:false,folders:new Map(),locations:new Map(),denied:false,loseOrganizationAck:false,grants:new Map(),folderGrants:new Map(),inherited:new Map(),incoming:new Map(),sharedOffline:false};
  for(let i=0;i<51;i++) {const id=`00000000-0000-4000-8000-${String(i+100).padStart(12,'0')}`;state.rows.set(id,{id,name:`Archive ${String(i).padStart(2,'0')}`,updated_at:'2026-01-01T00:00:00Z',revision:1});}
  await context.route('**/*',async route=>{
   const request=route.request(),url=new URL(request.url());
@@ -20,16 +20,18 @@ export async function sheetsFixture(browser,base,{theme,language,width}) {
    const rows=[...state.rows.values()].filter(r=>r.name.toLowerCase().includes(search)).sort((a,b)=>b.updated_at.localeCompare(a.updated_at)||a.id.localeCompare(b.id));
    return json(rows.slice(offset,offset+Number(url.searchParams.get('limit')??50)).map(({content,...r})=>r));
   }
-  if(url.pathname==='/rest/v1/rpc/preview_y_sheets_recipient'){
-   const p=request.postDataJSON(),g=state.grants.get(p.p_id);
+  if(url.pathname==='/rest/v1/rpc/list_y_sheets_inherited')return json(state.inherited.get(request.postDataJSON().p_id)||[]);
+  const grantMap=url.pathname.includes('folder_')?state.folderGrants:state.grants;
+  if(['/rest/v1/rpc/preview_y_sheets_recipient','/rest/v1/rpc/preview_y_sheets_folder_recipient'].includes(url.pathname)){
+   const p=request.postDataJSON(),g=grantMap.get(p.p_id);
    return json(p.p_number==='123456789'?{id:'00000000-0000-4000-8000-000000000022',number:'123456789',name:'Selected recipient',revision:g?.revision||0}:null);
   }
-  if(url.pathname==='/rest/v1/rpc/list_y_sheets_shares'){const p=request.postDataJSON(),g=state.grants.get(p.p_id);return json(g?[g]:[]);}
-  if(url.pathname==='/rest/v1/rpc/set_y_sheets_share'){
-   const p=request.postDataJSON(),old=state.grants.get(p.p_id);
+  if(['/rest/v1/rpc/list_y_sheets_shares','/rest/v1/rpc/list_y_sheets_folder_shares'].includes(url.pathname)){const p=request.postDataJSON(),g=grantMap.get(p.p_id);return json(g?[g]:[]);}
+  if(['/rest/v1/rpc/set_y_sheets_share','/rest/v1/rpc/set_y_sheets_folder_share'].includes(url.pathname)){
+   const p=request.postDataJSON(),old=grantMap.get(p.p_id);
    if(old?.permission===p.p_permission)return json(old.revision);
    if((old?.revision||0)!==p.p_revision)return json({code:'PT409'},409);
-   state.grants.set(p.p_id,{id:p.p_recipient,number:'123456789',name:'Selected recipient',permission:p.p_permission,revision:p.p_revision+1});return json(p.p_revision+1);
+   grantMap.set(p.p_id,{id:p.p_recipient,number:'123456789',name:'Selected recipient',permission:p.p_permission,revision:p.p_revision+1});return json(p.p_revision+1);
   }
   if(url.pathname==='/rest/v1/rpc/list_shared_y_sheets')return json([...state.incoming.values()].filter(r=>r.permission!=='none').map(r=>({id:r.workbook.id,name:r.workbook.name,ownerName:'File owner',permission:r.permission})));
   if(url.pathname==='/rest/v1/rpc/read_shared_y_sheets'){

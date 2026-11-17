@@ -12,7 +12,7 @@ try {
  for (const width of [390,1280]) for (const theme of ['light','dark']) {
   const language=theme==='dark'?'ar':'en', t=(en,ar)=>language==='ar'?ar:en;
   const {context,state}=await sheetsFixture(browser,base,{width,theme,language});
-  const page=await context.newPage(), errors=[];page.on('pageerror',e=>errors.push(e.message));
+  const page=await context.newPage(), errors=[];page.on('dialog',dialog=>dialog.accept());page.on('pageerror',e=>errors.push(e.message));
   await page.goto(new URL('/y-sheets',base).href);
   await page.getByRole('article',{name:'Archive 00',exact:true}).waitFor();
   const create=async name=>{
