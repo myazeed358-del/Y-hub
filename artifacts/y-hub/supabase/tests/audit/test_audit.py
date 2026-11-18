@@ -349,7 +349,7 @@ class AuditTests(unittest.TestCase):
     def test_all_domain_columns_have_an_explicit_audit_classification(self):
         # A future schema addition must be deliberately tracked/redacted; no silent gaps.
         rows = query("SELECT c.relname,n.nspname,encode(t.tgargs,'escape') AS args FROM pg_trigger t JOIN pg_class c ON c.oid=t.tgrelid JOIN pg_namespace n ON n.oid=c.relnamespace WHERE t.tgname='audit_capture'")
-        self.assertEqual({r['relname'] for r in rows}, {'courses','course_definitions','course_materials','exams','questions','course_enrollments','syllabus_units','syllabus_sections','users','engine_grants','academic_lectures','lecture_access_blocks','attendance_sessions','attendance_records','lesson_completion_rules','lesson_completion_overrides','ai_practice_references','ai_practice_reviews','ai_practice_performance_weights','ai_practice_outlines','y_sheets_folders','locations','shares','folder_shares'})
+        self.assertEqual({r['relname'] for r in rows}, {'courses','course_definitions','course_materials','exams','questions','course_enrollments','syllabus_units','syllabus_sections','users','engine_grants','academic_lectures','lecture_access_blocks','attendance_sessions','attendance_records','lesson_completion_rules','lesson_completion_overrides','ai_practice_references','ai_practice_reviews','ai_practice_performance_weights','ai_practice_outlines','y_sheets_folders','locations','shares','folder_shares','trash_entries'})
         for row in rows:
             tracked = set(row['args'].split('\\000')[0].split(','))
             if row['relname'] == 'users':
@@ -365,6 +365,8 @@ class AuditTests(unittest.TestCase):
                 visible = set(row['args'].split('\\000')[1].split(','))
                 self.assertIn('name', tracked)
                 self.assertNotIn('name', visible)
+            if row['relname'] == 'trash_entries':
+                omitted = {'payload', 'name'}  # Never audit archived workbook content or names.
             self.assertEqual(tracked, {column['column_name'] for column in columns} - omitted)
 
     def test_demotion_committing_before_write_prevents_stale_role_authorization(self):

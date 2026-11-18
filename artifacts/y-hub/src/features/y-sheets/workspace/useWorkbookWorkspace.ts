@@ -238,7 +238,7 @@ export function useWorkbookWorkspace(ownerId: string) {
         );
       if (
         !window.confirm(
-          `Delete "${file.name}" permanently? This cannot be undone.`,
+          language === "ar" ? `نقل "${file.name}" إلى السلة لمدة 30 يومًا؟ يتوقف الوصول المشترك فورًا.` : `Move "${file.name}" to trash for 30 days? Shared access stops immediately.`,
         )
       )
         return;

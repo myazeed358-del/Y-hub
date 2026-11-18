@@ -69,5 +69,5 @@ class Stack:
    time.sleep(.25)
   raise RuntimeError('Local service did not become ready: '+service)
  def close(self):
-  for kind in reversed(self.started):self.docker('rm','-f',self.names[kind])
+  for kind in reversed(self.started):self.docker('rm','-fv',self.names[kind])
   if self.network:self.docker('network','rm',self.name)
