@@ -5,7 +5,7 @@ export async function sheetsFixture(browser,base,{theme,language,width}) {
  const user={id:owner,email:'local-test@example.invalid',aud:'authenticated',role:'authenticated',app_metadata:{},user_metadata:{},created_at:'2026-01-01T00:00:00Z'};
  const expires=Math.floor(Date.now()/1000)+3600;
  const token=[{alg:'HS256',typ:'JWT'},{sub:owner,aud:'authenticated',exp:expires}].map(x=>Buffer.from(JSON.stringify(x)).toString('base64url')).join('.')+'.synthetic';
- const state={rows:new Map(),receipts:new Map(),offsets:[],failDelete:false,loseAck:false,folders:new Map(),locations:new Map(),denied:false,loseOrganizationAck:false,grants:new Map(),folderGrants:new Map(),inherited:new Map(),incoming:new Map(),sharedOffline:false,trash:new Map(),failRestore:false};
+ const state={rows:new Map(),receipts:new Map(),offsets:[],failDelete:false,loseAck:false,folders:new Map(),locations:new Map(),denied:false,loseOrganizationAck:false,grants:new Map(),folderGrants:new Map(),inherited:new Map(),incoming:new Map(),sharedOffline:false,trash:new Map(),failRestore:false,categories:new Map(),previewRequests:0};
  for(let i=0;i<51;i++) {const id=`00000000-0000-4000-8000-${String(i+100).padStart(12,'0')}`;state.rows.set(id,{id,name:`Archive ${String(i).padStart(2,'0')}`,updated_at:'2026-01-01T00:00:00Z',revision:1});}
  const archive=(kind,id,revision)=>{
   const item=(kind==='folder'?state.folders:state.rows).get(id);
@@ -65,29 +65,46 @@ export async function sheetsFixture(browser,base,{theme,language,width}) {
   }
   if(url.pathname==='/rest/v1/rpc/list_y_sheets_trash'){
    const p=request.postDataJSON();if(state.denied||p.p_actor!==owner)return json({code:'42501'},403);
-   for(const e of state.trash.values())if(e.state==='trashed'&&Date.parse(e.expiresAt)<=Date.now()){e.state='purged';e.snapshot=null;}
+   for(const e of state.trash.values())if(e.state==='trashed'&&Date.parse(e.expiresAt)<=Date.now()){for(const f of e.snapshot?.files||[])state.categories.delete(`workbook:${f.id}`);for(const f of e.snapshot?.folders||[])state.categories.delete(`folder:${f.id}`);e.state='purged';e.snapshot=null;}
    return json([...state.trash.values()].filter(e=>e.state==='trashed').slice(p.p_offset||0,(p.p_offset||0)+51).map(({snapshot,state,...e})=>e));
   }
   if(['/rest/v1/rpc/restore_y_sheets_trash','/rest/v1/rpc/purge_y_sheets_trash'].includes(url.pathname)){
    const p=request.postDataJSON(),e=state.trash.get(p.p_entry);if(state.denied||p.p_actor!==owner||!e)return json({code:'42501'},403);
-   if(url.pathname.endsWith('/purge_y_sheets_trash')){if(e.state==='restored')return json({code:'PT409'},409);e.state='purged';e.snapshot=null;return json(null);}
+   if(url.pathname.endsWith('/purge_y_sheets_trash')){if(e.state==='restored')return json({code:'PT409'},409);for(const f of e.snapshot?.files||[])state.categories.delete(`workbook:${f.id}`);for(const f of e.snapshot?.folders||[])state.categories.delete(`folder:${f.id}`);e.state='purged';e.snapshot=null;return json(null);}
    if(state.failRestore)return json({code:'unavailable'},503);
    if(e.state==='restored')return json(e.rootId);
    if(e.state!=='trashed'||Date.parse(e.expiresAt)<=Date.now())return json({code:'PT409'},409);
    for(const f of e.snapshot.folders)state.folders.set(f.id,{...f,parent_id:f.id===e.rootId?null:f.parent_id,organization_revision:f.organization_revision+1});
    for(const f of e.snapshot.files)state.rows.set(f.id,{...f,revision:f.revision+1});
    for(const [id,l] of e.snapshot.locations)state.locations.set(id,{favorite:false,pinned:false,...l,parent_id:e.kind==='folder'?l?.parent_id:null,organization_revision:(l?.organization_revision||0)+1});
+   for(const f of e.snapshot.files){const c=state.categories.get(`workbook:${f.id}`);if(c)c.category_revision++;}for(const f of e.snapshot.folders){const c=state.categories.get(`folder:${f.id}`);if(c)c.category_revision++;}
    e.state='restored';e.snapshot=null;return json(e.rootId);
   }
-  if(url.pathname==='/rest/v1/rpc/browse_y_sheets'){
+  if(['/rest/v1/rpc/browse_y_sheets','/rest/v1/rpc/browse_y_sheets_library'].includes(url.pathname)){
    const p=request.postDataJSON();if(state.denied||p.p_owner!==owner)return json({code:'42501'},403);
    state.offsets.push(p.p_offset||0);
    const trail=[];let parent=p.p_parent;
    while(parent){const f=state.folders.get(parent);if(!f)return json({code:'42501'},403);trail.unshift({id:f.id,name:f.name});parent=f.parent_id;}
    let rows=[...state.folders.values(),...[...state.rows.values()].map(r=>({kind:'workbook',id:r.id,name:r.name,revision:r.revision,updated_at:r.updated_at,parent_id:null,favorite:false,pinned:false,organization_revision:0,...state.locations.get(r.id)}))];
+   rows=rows.map(r=>({...r,category:null,category_revision:0,...state.categories.get(`${r.kind}:${r.id}`)}));
+   rows=rows.filter(r=>p.p_category==null||(p.p_category===''?r.category===null:r.category?.toLowerCase()===p.p_category.trim().toLowerCase()));
    rows=rows.filter(r=>(p.p_search||p.p_view!=='folder'||r.parent_id===p.p_parent)&&(!p.p_search||r.name.toLowerCase().includes(p.p_search.toLowerCase()))&&(p.p_view!=='favorite'||r.favorite)&&(p.p_view!=='pinned'||r.pinned));
    rows.sort((a,b)=>Number(b.pinned)-Number(a.pinned)||(p.p_sort==='updated'?b.updated_at.localeCompare(a.updated_at):0)||a.name.localeCompare(b.name)||a.id.localeCompare(b.id));
    return json({items:rows.slice(p.p_offset||0,(p.p_offset||0)+51),trail});
+  }
+  if(url.pathname==='/rest/v1/rpc/classify_y_sheets'){
+   const p=request.postDataJSON(),item=(p.p_kind==='folder'?state.folders:state.rows).get(p.p_id),key=`${p.p_kind}:${p.p_id}`,c=state.categories.get(key),label=p.p_category?.trim()||null;
+   if(state.denied||p.p_owner!==owner||!item)return json({code:'42501'},403);
+   if((c?.category??null)===label)return json(c?.category_revision||0);
+   if((c?.category_revision||0)!==p.p_revision)return json({code:'PT409'},409);
+   const next={category:label,category_revision:p.p_revision+1};state.categories.set(key,next);return json(next.category_revision);
+  }
+  if(url.pathname==='/rest/v1/rpc/preview_y_sheets_library'){
+   state.previewRequests++;const p=request.postDataJSON(),w=state.rows.get(p.p_id);
+   if(state.denied||p.p_owner!==owner||!w)return json({code:'42501'},403);
+   if(w.revision!==p.p_revision)return json({code:'PT409'},409);
+   const sheet=w.content?.sheets.find(s=>s.id===w.content.activeSheetId),cells=Array.from({length:24},(_,i)=>{const raw=sheet?.cells?.[`${Math.floor(i/4)},${i%4}`]?.raw||'';return {row:Math.floor(i/4),col:i%4,text:raw.slice(0,160),truncated:raw.length>160};});
+   return json({revision:w.revision,sheetName:sheet?.name||'Sheet 1',sheetCount:w.content?.sheets.length||1,cells});
   }
   if(url.pathname==='/rest/v1/rpc/organize_y_sheets'){
    const p=request.postDataJSON();if(state.denied||p.p_owner!==owner)return json({code:'42501'},403);

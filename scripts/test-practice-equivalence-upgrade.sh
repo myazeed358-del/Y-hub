@@ -11,12 +11,13 @@ case "${1:-equivalence}" in
   outline) stop=0054; test_file=practice_outline.py ;;
   topics) stop=0055; test_file=practice_topics.py ;;
   antiderivatives) stop=0056; test_file=practice_antiderivatives.py ;;
+  library) stop=20261118162757; test_file=sheets_library.py ;;
   trash) stop=20261117211046; test_file=sheets_trash.py ;;
   inheritance) stop=20261117130556; test_file=sheets_inheritance.py ;;
   sharing) stop=20261116144657; test_file=sheets_sharing.py ;;
   folders) stop=20261116141052; test_file=sheets_folders.py ;;
   written) stop=20261114053306; test_file=practice_written.py ;;
-  *) echo 'Usage: test-practice-equivalence-upgrade.sh [equivalence|adaptive|performance|outline|topics|antiderivatives|written|folders|sharing|inheritance|trash]' >&2; exit 2 ;;
+  *) echo 'Usage: test-practice-equivalence-upgrade.sh [equivalence|adaptive|performance|outline|topics|antiderivatives|written|folders|sharing|inheritance|trash|library]' >&2; exit 2 ;;
 esac
 container="yhub-academic-test-upgrade-$(date +%s)-$$"
 trap 'docker rm -fv "$container" >/dev/null 2>&1 || true' EXIT

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type MutableRefObject } from 'react';
 import { Folder, FileSpreadsheet, LayoutGrid, List } from 'lucide-react';
 import { TrashPanel } from '../trash/TrashPanel';
 import { trashRepository } from '../trash/repository';
+import { WorkbookPreview } from './WorkbookPreview';
 import { SharePanel } from '../sharing/SharePanel';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { directoryRepository as repo, DirectoryError, initialDirectory, type DirectoryEntry, type DirectoryQuery } from './directoryRepository';
@@ -16,6 +17,9 @@ export function WorkbookDirectory({ owner, busy, open, rename, remove, location 
   const { language } = useLanguage(), ar = language === 'ar';
   const t = (en: string, arabic: string) => ar ? arabic : en;
   const [query, setQuery] = useState<DirectoryQuery>(() => location?.current ?? initialDirectory);
+  const [previewId,setPreviewId]=useState<string|null>(null);
+  const [classifying,setClassifying]=useState<DirectoryEntry|null>(null),[categoryName,setCategoryName]=useState('');
+  const [categoryFilter,setCategoryFilter]=useState(query.category??'');
   const [search, setSearch] = useState(query.search);
   const [items, setItems] = useState<DirectoryEntry[]>([]);
   const [trail, setTrail] = useState<Array<{ id: string; name: string }>>([]);
@@ -30,7 +34,7 @@ export function WorkbookDirectory({ owner, busy, open, rename, remove, location 
   function report(e: unknown) {
     if (!alive.current) return;
     if (e instanceof DirectoryError && e.kind === 'denied') {
-      setItems([]); setTrail([]); setSharing(null); setMoving(null); setEditing(null); setMore(false);
+      setItems([]); setTrail([]); setSharing(null); setPreviewId(null); setClassifying(null); setMoving(null); setEditing(null); setMore(false);
     }
     setError(e instanceof DirectoryError && e.kind === 'conflict'
       ? t('This item changed on another device. Refresh and review before retrying.', 'تغيّر العنصر على جهاز آخر. حدّث القائمة وراجعه قبل إعادة المحاولة.')
@@ -41,7 +45,7 @@ export function WorkbookDirectory({ owner, busy, open, rename, remove, location 
   async function load(next: DirectoryQuery, append = false) {
     const request = ++sequence.current;
     setLoading(true); setError('');
-    if (!append) { setItems([]); setMore(false); setTrail([]); }
+    if (!append) { setPreviewId(null); setItems([]); setMore(false); setTrail([]); }
     try {
       const result = await repo.browse(owner, next, append ? items.length : 0);
       if (!alive.current || request !== sequence.current) return;
@@ -57,7 +61,7 @@ export function WorkbookDirectory({ owner, busy, open, rename, remove, location 
     return () => { alive.current = false; sequence.current++; window.removeEventListener("focus", focus); };
   }, [owner, query]);
   const navigate = (parent: string | null) => {
-    setSearch(''); setQuery({ ...query, parent, view: 'folder', search: '' });
+    setSearch(''); setCategoryFilter(''); setQuery({ ...query, parent, view: 'folder', search: '', category:null });
   };
   async function mutate(action: () => Promise<unknown>, done?: () => void) {
     if (operation.current || disabled) return;
@@ -99,6 +103,20 @@ export function WorkbookDirectory({ owner, busy, open, rename, remove, location 
         <option value="name">{t('Name', 'الاسم')}</option><option value="updated">{t('Recently updated', 'آخر تعديل')}</option>
       </select></label>
     </div>
+    <form className="ys-search-row" onSubmit={e=>{e.preventDefault();setQuery({...query,category:categoryFilter.trim()||null,view:'all'});}}>
+      <input aria-label={t('Category filter','تصفية حسب التصنيف')} maxLength={40} value={categoryFilter} onChange={e=>setCategoryFilter(e.target.value)} placeholder={t('Category name','اسم التصنيف')}/>
+      <button className="ys-secondary-button" disabled={disabled}>{t('Filter category','تصفية التصنيف')}</button>
+      <button className="ys-secondary-button" type="button" disabled={disabled} onClick={()=>{setCategoryFilter('');setQuery({...query,category:'',view:'all'});}}>{t('Unclassified','غير مصنف')}</button>
+      <button className="ys-secondary-button" type="button" disabled={disabled} onClick={()=>{setCategoryFilter('');setQuery({...query,category:null});}}>{t('All categories','جميع التصنيفات')}</button>
+    </form>
+    {query.category!==undefined&&query.category!==null&&<p>{t('Category','التصنيف')}: <bdi>{query.category||t('Unclassified','غير مصنف')}</bdi></p>}
+    {classifying&&<form className="ys-directory-edit" aria-label={t('Classify item','تصنيف العنصر')} onSubmit={e=>{e.preventDefault();void mutate(()=>repo.classify(owner,classifying,categoryName),()=>setClassifying(null));}}>
+      <p><bdi>{classifying.name}</bdi></p>
+      <label>{t('Item category','تصنيف العنصر')} <input autoFocus maxLength={40} disabled={disabled} value={categoryName} onChange={e=>setCategoryName(e.target.value)}/></label>
+      <p>{t('Leave empty to remove the category. Categories do not change sharing.','اتركه فارغًا لإزالة التصنيف. التصنيفات لا تغيّر المشاركة.')}</p>
+      <button className="ys-secondary-button" disabled={disabled}>{t('Save category','حفظ التصنيف')}</button>
+      <button className="ys-secondary-button" type="button" disabled={disabled} onClick={()=>setClassifying(null)}>{t('Cancel category','إلغاء التصنيف')}</button>
+    </form>}
     <p className="ys-files-subtitle">{t('Pinned items appear first. New workbooks start in My files; move them to a folder when ready.', 'تظهر العناصر المثبتة أولًا. تُنشأ الجداول الجديدة في ملفاتي؛ يمكنك نقلها إلى مجلد بعد إنشائها.')}</p>
     {error && <p role="alert" className="y-sheets-workspace-error">{error}</p>}
     {loading && <p role="status">{t('Loading…', 'جارٍ التحميل…')}</p>}
@@ -117,12 +135,15 @@ export function WorkbookDirectory({ owner, busy, open, rename, remove, location 
     </div>}
     {!loading && items.length === 0 && <p>{t('No matching files or folders.', 'لا توجد ملفات أو مجلدات مطابقة.')}</p>}
     <div className={grid ? 'ys-file-cards' : 'ys-file-list'}>
-      {items.map(item => <article className="ys-file-card" key={item.kind + item.id} aria-label={item.name}>
+      {items.map(item => <article className={`ys-file-card${previewId===item.id?' ys-preview-expanded':''}`} key={item.kind + item.id} aria-label={item.name}>
         <button className="ys-file-open" disabled={disabled} onClick={() => item.kind === 'folder' ? navigate(item.id) : void open(item.id)}>
           <span className="ys-file-preview" aria-hidden="true">{item.kind === 'folder' ? <Folder size={26}/> : <FileSpreadsheet size={26}/>}</span>
-          <span className="ys-file-details"><strong dir="auto">{item.name}</strong><small>{item.kind === 'folder' ? t('Folder', 'مجلد') : t('Workbook', 'جدول')}{item.pinned ? ' · 📌' : ''}{item.favorite ? ' · ★' : ''}</small><small><time dateTime={item.updated_at}>{new Intl.DateTimeFormat(ar ? 'ar-JO' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(item.updated_at))}</time></small></span>
+          <span className="ys-file-details"><strong dir="auto">{item.name}</strong><small>{item.kind === 'folder' ? t('Folder', 'مجلد') : t('Workbook', 'جدول')}{item.pinned ? ' · 📌' : ''}{item.favorite ? ' · ★' : ''}{item.category ? ` · ${item.category}` : ''}</small><small><time dateTime={item.updated_at}>{new Intl.DateTimeFormat(ar ? 'ar-JO' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(item.updated_at))}</time></small></span>
         </button>
+        {previewId===item.id&&item.kind==='workbook'&&item.revision&&<WorkbookPreview key={`${owner}:${item.id}:${item.revision}`} owner={owner} id={item.id} revision={item.revision} onClose={()=>setPreviewId(null)}/>}
         <div className="ys-directory-actions">
+          {item.kind==='workbook'&&<button disabled={disabled} onClick={()=>setPreviewId(previewId===item.id?null:item.id)}>{t('Preview','معاينة')}</button>}
+          <button disabled={disabled} onClick={()=>{setClassifying(item);setCategoryName(item.category??'');}}>{t('Classify','تصنيف')}</button>
           <button disabled={disabled} aria-pressed={item.favorite} onClick={() => void mutate(() => repo.save(owner, { ...item, favorite: !item.favorite }))}>{t('Favorite', 'مفضلة')}</button>
           <button disabled={disabled} aria-pressed={item.pinned} onClick={() => void mutate(() => repo.save(owner, { ...item, pinned: !item.pinned }))}>{t('Pin', 'تثبيت')}</button>
           <button disabled={disabled} onClick={() => setMoving(item)}>{t('Move', 'نقل')}</button>

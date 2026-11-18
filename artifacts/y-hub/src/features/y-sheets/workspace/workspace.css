@@ -172,3 +172,11 @@
  .y-sheets-workspace .ys-file-list .ys-directory-actions { flex:auto; }
  .y-sheets-workspace .ys-search-row > input { flex-basis:100%; }
 }
+/* Bounded saved-cell preview, scoped to the existing library. */
+.y-sheets-workspace .ys-cell-preview { min-width:0; padding:12px; flex:1 0 100%; order:3; }
+.y-sheets-workspace .ys-cell-preview p { font-size:12px; margin:6px 0; overflow-wrap:anywhere; }
+.y-sheets-workspace .ys-cell-preview table { width:100%; table-layout:fixed; border-collapse:collapse; margin:10px 0; font-size:11px; }
+.y-sheets-workspace .ys-cell-preview th, .y-sheets-workspace .ys-cell-preview td { border:1px solid hsl(var(--border)); padding:5px; height:27px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.y-sheets-workspace .ys-cell-preview th { background:rgba(34,211,238,.08); }
+.y-sheets-workspace .ys-cell-preview th:first-child { width:28px; }
+.y-sheets-workspace .ys-file-list .ys-preview-expanded { flex-wrap:wrap; }

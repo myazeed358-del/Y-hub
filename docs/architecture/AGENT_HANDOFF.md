@@ -1,3 +1,21 @@
+# Y-Sheets library checkpoint — 2026-11-18
+
+Current branch **feature/approved-sheets-library** starts from local trash checkpoint **9bd9832**, preserving all earlier local packages. Read-only remote main check: **eb8cb7358b96866dcfaf7bdeb1e892881930545d**. Local development, migrations and tests only; no push, PR, merge, production SQL or deployment. Historical instructions below do not override this scope.
+
+Read [SHEETS_LIBRARY.md](../approved-specifications/SHEETS_LIBRARY.md) and PROGRESS. Decision30 adds on-demand real saved-cell previews and private manual categories for files/folders, completing the existing Grid/List, name search, sorting, pins, favorites and folders. Preserve the approved cyan identity, editor, math algorithms, routes and prior ownership/sharing behavior.
+
+Additive migration **20261118162757_sheets_library.sql** provides private forced-RLS categories and owner-only RPCs with fixed search_path. Category CAS is independent of content/location/access revisions. Labels survive private trash, restoration increments their revision, and purge/expiry removes them. Mandatory audit excludes label/cell text; failure rolls back changes. Old browse RPC remains unchanged; new browse applies category filtering before pagination. Populated upgrade must preserve existing files, folders, grants, receipts, trash snapshots and history.
+
+Preview RPC returns only24 saved raw cells A1:D6 from the active sheet, each truncated to160 codepoints; formulas are displayed as entered, never computed or executed. Requires active owner identity and exact content revision; shared recipients and other administrators cannot use it. UI fetches only on request, keeps data in memory, clears on offline/list refresh and ignores late responses after owner/file/unmount changes. It is a bounded preview, not a rendered workbook or all-sheet export.
+
+Verification PASS:2499 Vitest tests/271files (19 focused directory/library cases included),293 academic SQL/RLS cases (13 library cases included),1 populated library upgrade,39 audit cases,24 native local GoTrue/JWT/PostgREST cases,36 Python tests, workspace TypeScript, architecture/math/module guards,8 guard cases, generated artifact drift and Vite build. Chromium:12 scenarios (4 library +4 trash +4 owner-file/editor). Browser network uses fixtures; SQL/native Auth are real local services. No final test failures; no production or load validation.
+
+Supabase CLI2.89.0 security advisors completed on isolated TLS PostgreSQL16. Two baseline WARNs remain: mutable search_path for0010 enforce_student_only_study_year and uuid-ossp in public from test bootstrap. No new library objects flagged; this is not a warning-free or hosted audit. Existing PDF.js/Vite warnings remain. Initial typecheck caught an unsupported Testing Library query option in a new test; corrected and full verification restarted, no disabled tests. Arabic mobile preview screenshot inspected.
+
+Progress: **42 complete locally,19 partial,10 missing**.59/70 retention/offline merge and66 collaboration/history remain incomplete;72–80 outside authorization. Separate launch needs ordered migrations, Staging and scale validation, plus the previously documented trash maintenance scheduler. Preserve prior local work. Commit identity is established through Git rather than embedded in its own contents.
+
+## Preserved previous checkpoints
+
 # Y-Sheets private trash checkpoint — 2026-11-17
 
 Current branch **feature/approved-sheets-trash** starts from local inheritance checkpoint **9b86e52**, following direct sharing **dd8e539**, folders **d8c79a4** and written answers **a66d55b**. These packages remain unpushed/unmerged. Read-only remote main check still found **eb8cb7358b96866dcfaf7bdeb1e892881930545d**. Local development/migrations/tests only; no push, PR, merge, production SQL or deployment. Historical permissions below do not supersede this checkpoint.
