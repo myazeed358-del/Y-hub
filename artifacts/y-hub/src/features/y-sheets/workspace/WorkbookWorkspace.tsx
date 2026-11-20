@@ -170,12 +170,19 @@ export function WorkbookWorkspace({ user }: { user: HostUser }) {
               <section className="ys-recovery-panel" aria-label="Local recovery">
                 <h2>Recover unsaved work</h2>
                 <p>Stored in this browser for this account. Recovery never overwrites a newer cloud revision.</p>
+                <p>{language === "ar"
+                  ? "دمج مع أحدث نسخة يتحقق من الوصول ثم يحفظ تعديلات الخلايا غير المتعارضة. عند التعارض أو تغيير بنية الورقة تبقى نسختك المحلية دون دمج."
+                  : "Merge with latest checks access, then saves non-overlapping cell edits. Overlapping edits or sheet structure changes keep your local copy without merging."}</p>
                 {w.recoveries.map(entry => (
                   <div key={entry.key} className="ys-recovery-entry">
                     <span className="ys-recovery-label" dir="auto">
                       {entry.record.workbook.name} · {formatModified(entry.record.updatedAt)}
                     </span>
                     <button type="button" disabled={w.busy} onClick={() => void w.restore(entry)}>Recover</button>
+                    {entry.record.base && <button type="button" disabled={w.busy}
+                      onClick={() => void w.mergeLatest(entry)}>
+                      {language === "ar" ? "دمج مع أحدث نسخة" : "Merge with latest"}
+                    </button>}
                     <button type="button" onClick={() => downloadWorkbookJSON(
                       recoveryWorkbook(entry.record.workbook, entry.record.draft),
                     )}>Download</button>

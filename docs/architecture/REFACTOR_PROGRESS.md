@@ -1,3 +1,17 @@
+# Owner recovery merge checkpoint — 2026-11-20
+
+Current branch **feature/approved-sheets-recovery-merge**, based on **97f325e**. Read-only remote main check remains **eb8cb7358b96866dcfaf7bdeb1e892881930545d**. Preserve all previous local packages; local development/tests only, no push, PR, merge, production SQL or deployment. No SQL or dependency changes in this batch.
+
+Read [SHEETS_RECOVERY_MERGE.md](../approved-specifications/SHEETS_RECOVERY_MERGE.md) and PROGRESS. This advances decisions66/70 without completing either. New owner recovery records carry a validated original base; old records remain recoverable without inventing one. Explicit Merge with latest reads current ownership/revision through a separate existing storage adapter, merges non-overlapping atomic cell changes, recalculates through the existing reducer and saves with existing CAS. Any overlap/structural change leaves the original untouched. A save race retains original and merged recovery; old records are removed only after acknowledgment and unchanged-record comparison. No shared-recipient retention rights or collaborative editing are added.
+
+Structural changes are deliberately unsupported; atomic cells include formatting/deletion. Derived computed/error caches are ignored. Workbook rename merges only when unambiguous; local active-sheet selection is retained. Original session base is conservative across repeated saves. Extra local storage may hit quota; existing failure handling blocks unsafe saving. Retention duration, broader reconnect automation, participant retention authorization and server version history remain pending.
+
+Verification:2511 Vitest/272files,12 added cases, workspace TypeScript, architecture/math/module checks,8 guard cases, generated artifact check and Vite build PASS.36 Python tests PASS after rerun outside sandbox (local TestClient stalled inside it).5 real local Auth/JWT/PostgREST tests PASS.4 Chromium merge scenarios PASS (390/1280, Arabic dark/English light); mobile Arabic screenshot reviewed. 4 additional owner-file/editor Chromium regression scenarios PASS (8 browser scenarios total). Browser HTTP uses fixtures; native Auth tests are real local services. Initial deletion fixture corrected to actually remove a cell; browser fixture origin corrected to match its synthetic auth key. No tests disabled. Earlier auto-review usage limit temporarily blocked a browser invocation, resolved after environment resume. Existing PDF.js/Vite warnings remain. No new Supabase advisor run required for unchanged SQL; prior baseline warnings remain historical, not a current hosted audit.
+
+Progress remains **42 complete locally,19 partial,10 missing**. User explicitly requests that EVERY development delivery list the numbers of completed, partially implemented and unimplemented decisions, plus which decisions this batch advanced. Preserve this reporting requirement.72–80 remain outside authorization. Commit identity is established through Git, not embedded in its own contents.
+
+## Preserved previous checkpoints
+
 # Y-Sheets library checkpoint — 2026-11-18
 
 Current branch **feature/approved-sheets-library** starts from local trash checkpoint **9bd9832**, preserving all earlier local packages. Read-only remote main check: **eb8cb7358b96866dcfaf7bdeb1e892881930545d**. Local development, migrations and tests only; no push, PR, merge, production SQL or deployment. Historical instructions below do not override this scope.

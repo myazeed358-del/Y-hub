@@ -1,5 +1,6 @@
 import { useNavigationGuard } from "@/shared/navigation/guardedLocation";
 import { useLanguage } from "@/i18n/LanguageContext";
+import { mergeRecovery } from "../io/mergeRecovery";
 import { workbookReducer } from "../state/workbookReducer";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createSupabaseWorkbookStorage } from "../integration/supabaseWorkbookStorage";
@@ -179,6 +180,24 @@ export function useWorkbookWorkspace(ownerId: string) {
       });
       activate(wb, entry);
     });
+  const mergeLatest = (entry: RecoveryEntry) =>
+    run(async () => {
+      await leave();
+      if (!entry.record.base) throw new Error("This older recovery has no merge base. Use Recover or Download.");
+      // A fresh adapter reads current ownership/revision without replacing an
+      // unresolved receipt in the active adapter. No mutation before merge succeeds.
+      const reader = createSupabaseWorkbookStorage(ownerId);
+      const latest = await reader.loadWorkbook(entry.record.workbook.id);
+      if (!alive.current) return;
+      const merged = mergeRecovery(entry.record.base,
+        recoveryWorkbook(entry.record.workbook, entry.record.draft), latest);
+      const checkpoint = reader.checkpoint!(latest.id)!;
+      journal.archiveCurrent(latest.id, entry);
+      storage.restoreCheckpoint!(latest.id, checkpoint);
+      const adopted = { ...entry, record: { ...entry.record, base: latest, checkpoint } };
+      const wb = workbookReducer(merged, { type: "SET_WORKBOOK", payload: merged });
+      activate(wb, adopted); // Save still uses CAS; a new remote edit cannot be overwritten.
+    });
   const myFiles = () =>
     run(async () => {
       await leave();
@@ -306,6 +325,7 @@ export function useWorkbookWorkspace(ownerId: string) {
     refresh,
     open,
     restore,
+    mergeLatest,
     myFiles,
     keepAndLeave,
     change,

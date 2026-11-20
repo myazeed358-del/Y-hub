@@ -155,3 +155,13 @@ it("archives a different unsaved copy before adopting an older recovery", () => 
     "Irreplaceable newer draft",
   ]);
 });
+
+it('persists the original merge base across checkpoint updates and rejects a foreign base', () => {
+  const journal = new RecoveryJournal('a', localStorage), base = workbook();
+  const local = { ...base, name: 'Local' };
+  journal.write(local, { revision: 1 }, undefined, base);
+  journal.checkpoint(local.id, { revision: 2 });
+  expect(journal.list().entries[0].record.base).toEqual(base);
+  journal.write(local, { revision: 2 }, undefined, { ...base, id: 'foreign' });
+  expect(journal.list().corruptKeys).toHaveLength(1);
+});

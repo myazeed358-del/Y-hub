@@ -14,6 +14,7 @@ export class WorkbookSession {
   workbook: WorkbookData;
   draft?: PendingCellEdit;
   private localDirty = false;
+  private readonly base?: WorkbookData;
   readonly coordinator: WorkbookSaveCoordinator;
   constructor(
     workbook: WorkbookData,
@@ -23,6 +24,7 @@ export class WorkbookSession {
     private recovered?: RecoveryEntry,
   ) {
     this.workbook = validateWorkbook(workbook);
+    this.base = recovered ? recovered.record.base : validateWorkbook(workbook);
     this.coordinator = new WorkbookSaveCoordinator(
       (wb) => storage.saveWorkbook(wb),
       onStatus,
@@ -50,7 +52,7 @@ export class WorkbookSession {
     const checkpoint = this.storage.checkpoint?.(this.workbook.id);
     if (!checkpoint)
       throw new Error("Missing save revision. Download a recovery copy.");
-    this.journal.write(this.workbook, checkpoint, this.draft);
+    this.journal.write(this.workbook, checkpoint, this.draft, this.base);
   }
   change(workbook: WorkbookData) {
     // Keep the in-memory edit even if validation or browser storage fails.
