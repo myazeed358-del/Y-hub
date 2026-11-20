@@ -165,3 +165,37 @@ it('persists the original merge base across checkpoint updates and rejects a for
   journal.write(local, { revision: 2 }, undefined, { ...base, id: 'foreign' });
   expect(journal.list().corruptKeys).toHaveLength(1);
 });
+
+it('advances the merge base only after acknowledgment while preserving newer edits and drafts', async () => {
+  const journal = new RecoveryJournal('a', localStorage), original = workbook();
+  let finish!: () => void;
+  const save = vi.fn().mockImplementationOnce(() => new Promise<void>(resolve => { finish = resolve; }))
+    .mockRejectedValueOnce(new Error('conflict'));
+  const storage = { saveWorkbook: save, checkpoint: () => ({ revision: 2 }) } as unknown as HostStorageAdapter;
+  const session = new WorkbookSession(original, storage, journal, vi.fn());
+  const first = { ...original, name: 'Acknowledged' };
+  session.change(first);
+  const pending = session.flush().catch(() => {});
+  const newer = { ...original, name: 'Newer pending' };
+  session.change(newer);
+  session.editDraft({ sheetId: original.activeSheetId, row: 0, col: 0, raw: 'typing' });
+  expect(journal.list().entries[0].record.base?.name).toBe(original.name);
+  finish(); await pending;
+  const record = journal.list().entries[0].record;
+  expect(record.base?.name).toBe('Acknowledged');
+  expect(record.workbook.name).toBe('Newer pending');
+  expect(record.draft?.raw).toBe('typing');
+  session.dispose();
+});
+it('does not let a disposed session rewrite recovery after a late acknowledgment', async () => {
+  const journal = new RecoveryJournal('a', localStorage), wb = workbook();
+  let finish!: () => void;
+  const storage = { saveWorkbook: () => new Promise<void>(resolve => { finish = resolve; }), checkpoint: () => ({ revision: 1 }) } as unknown as HostStorageAdapter;
+  const session = new WorkbookSession(wb, storage, journal, vi.fn());
+  session.change({ ...wb, name: 'old' }); const pending = session.flush();
+  session.change({ ...wb, name: 'older pending' }); session.dispose();
+  journal.write({ ...wb, name: 'new editor' }, { revision: 2 }, undefined, wb);
+  const before = journal.list().entries[0].encoded;
+  finish(); await pending;
+  expect(journal.list().entries[0].encoded).toBe(before);
+});

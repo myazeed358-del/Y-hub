@@ -302,3 +302,49 @@ describe('explicit recovery merge', () => {
     expect(mocks.save).not.toHaveBeenCalled();
   });
 });
+
+describe('owner reconnect retry', () => {
+  it('retries a network-failed save once on reconnect and ignores duplicate online events', async () => {
+    vi.useFakeTimers();
+    try {
+      const { result } = renderHook(() => useWorkbookWorkspace('owner'));
+      await act(async () => { await result.current.open('first'); });
+      mocks.save.mockRejectedValue(new WorkbookStorageError('network', 'offline'));
+      await act(async () => { await result.current.change({ ...result.current.active!, name: 'offline work' }); });
+      await act(async () => { await vi.advanceTimersByTimeAsync(2300); });
+      expect(result.current.status).toBe('error');
+      expect(mocks.save).toHaveBeenCalledTimes(3);
+      let finish!: () => void;
+      mocks.save.mockImplementation(() => new Promise<void>(resolve => { finish = resolve; }));
+      await act(async () => { window.dispatchEvent(new Event('online')); window.dispatchEvent(new Event('online')); });
+      expect(mocks.save).toHaveBeenCalledTimes(4);
+      await act(async () => { finish(); });
+      expect(result.current.status).toBe('saved');
+    } finally { vi.useRealTimers(); }
+  });
+  it.each(['session', 'invalid', 'conflict'] as const)('does not auto-retry %s failures', async kind => {
+    const { result } = renderHook(() => useWorkbookWorkspace('owner'));
+    await act(async () => { await result.current.open('first'); });
+    mocks.save.mockRejectedValue(new WorkbookStorageError(kind, kind));
+    await act(async () => { await result.current.change({ ...result.current.active!, name: 'local' }); await result.current.retry(); });
+    const count = mocks.save.mock.calls.length;
+    await act(async () => { window.dispatchEvent(new Event('online')); });
+    expect(mocks.save).toHaveBeenCalledTimes(count);
+  });
+  it('never submits an unfinished draft or a disposed editor on reconnect', async () => {
+    vi.useFakeTimers();
+    try {
+      const { result, unmount } = renderHook(() => useWorkbookWorkspace('owner'));
+      await act(async () => { await result.current.open('first'); });
+      mocks.save.mockRejectedValue(new WorkbookStorageError('network', 'offline'));
+      await act(async () => { await result.current.change({ ...result.current.active!, name: 'local' }); });
+      await act(async () => { await vi.advanceTimersByTimeAsync(2300); });
+      act(() => result.current.draft({ sheetId: result.current.active!.activeSheetId, row: 0, col: 0, raw: 'typing' }));
+      await act(async () => { window.dispatchEvent(new Event('online')); });
+      expect(mocks.save).toHaveBeenCalledTimes(3);
+      unmount();
+      window.dispatchEvent(new Event('online'));
+      expect(mocks.save).toHaveBeenCalledTimes(3);
+    } finally { vi.useRealTimers(); }
+  });
+});

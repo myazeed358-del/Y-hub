@@ -1,3 +1,19 @@
+# Owner reconnect checkpoint — 2026-11-20
+
+Current branch **feature/approved-sheets-reconnect**, based on **96e0f1f**. Read-only remote main check: **eb8cb7358b96866dcfaf7bdeb1e892881930545d**. Local work/testing only; preserve prior local packages. No push, PR, merge, production SQL or deployment. No migrations or dependency changes.
+
+Read [SHEETS_RECONNECT.md](../approved-specifications/SHEETS_RECONNECT.md) and PROGRESS. This advances70 and improves the66 recovery foundation; both remain partial. An open owner session retries a classified network-failed save on browser online, with existing identity checks, pending request identity and CAS. Duplicate events do not parallelize saves. Permission/invalid/conflict/unknown errors, unfinished cell drafts and disposed editors never auto-retry. online is only a retry hint; failures remain visible, and manual retry remains available if another operation is active. No automatic conflict merge or recipient retention is introduced.
+
+Owner storage recognizes the installed SDK isAuthRetryableFetchError for auth transport failures without treating rejected identity as network. Only confirmed server acknowledgment advances the session merge base; newer pending edits/drafts are journaled with that base. Failed saves never advance it. A disposed session ignores a late acknowledgment so it cannot rewrite another editor's journal. This supersedes the previous checkpoint's fixed session-base limitation, preserving historical documentation below.
+
+Verification PASS:2519 Vitest cases/272files,52 focused cases included (8 new), workspace TypeScript, architecture/math/module guards,8 guard cases, generated artifact check, Vite build and36 Python tests.5 real isolated local Auth/JWT/PostgREST cases PASS.8 Chromium scenarios PASS:4 reconnect and4 existing explicit merge,390/1280 Arabic/English. No final failures or disabled tests.
+
+Current Supabase changelog/getUser documentation and installed SDK error classifier reviewed. Browser uses fixture HTTP; native Auth testing uses isolated local services, not production. A duplicate Vite startup found5175 occupied; browser tests reused the existing local server for this checkout. Existing PDF.js/Vite warnings remain. No new SQL/advisor/production claims.
+
+Progress remains **42 complete locally,19 partial,10 missing**. EVERY development delivery must list decision numbers grouped as complete/partial/unimplemented, and identify this batch's progress.70 still lacks local expiry/recipient retention/broader reconnect merge;66 lacks direct collaboration and server history;59 still partial.72–80 are outside scope. Commit identity is established through Git rather than embedded in its own contents.
+
+## Preserved previous checkpoints
+
 # Owner recovery merge checkpoint — 2026-11-20
 
 Current branch **feature/approved-sheets-recovery-merge**, based on **97f325e**. Read-only remote main check remains **eb8cb7358b96866dcfaf7bdeb1e892881930545d**. Preserve all previous local packages; local development/tests only, no push, PR, merge, production SQL or deployment. No SQL or dependency changes in this batch.

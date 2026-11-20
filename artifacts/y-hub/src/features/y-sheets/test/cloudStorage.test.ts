@@ -116,3 +116,18 @@ it.each(['40001','P0002','PT409'])('retains the intent and classifies %s as a te
  expect(storage.checkpoint?.(wb.id)?.intent?.workbook.id).toBe(wb.id);
  expect(api.rpc).toHaveBeenCalledTimes(1);
 });
+
+it('distinguishes retryable auth transport failure from a rejected identity without writing', async () => {
+  const { AuthRetryableFetchError } = await import('@supabase/supabase-js');
+  const storage = createSupabaseWorkbookStorage(owner);
+  const wb = await storage.loadWorkbook(workbook().id);
+  api.getUser.mockResolvedValue({ data: { user: null }, error: new AuthRetryableFetchError('offline', 0) });
+  await expect(storage.saveWorkbook(wb)).rejects.toMatchObject({ kind: 'network' });
+  expect(api.rpc).not.toHaveBeenCalled();
+  api.getUser.mockResolvedValue({ data: { user: null }, error: new Error('invalid identity') });
+  await expect(storage.saveWorkbook(wb)).rejects.toMatchObject({ kind: 'session' });
+  expect(api.rpc).not.toHaveBeenCalled();
+  api.getUser.mockResolvedValue({ data: { user: { id: owner } }, error: null });
+  await storage.saveWorkbook(wb);
+  expect(api.rpc).toHaveBeenCalledTimes(1);
+});

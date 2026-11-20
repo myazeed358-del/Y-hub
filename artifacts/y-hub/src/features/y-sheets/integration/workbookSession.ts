@@ -14,7 +14,8 @@ export class WorkbookSession {
   workbook: WorkbookData;
   draft?: PendingCellEdit;
   private localDirty = false;
-  private readonly base?: WorkbookData;
+  private disposed = false;
+  private base?: WorkbookData;
   readonly coordinator: WorkbookSaveCoordinator;
   constructor(
     workbook: WorkbookData,
@@ -30,12 +31,16 @@ export class WorkbookSession {
       onStatus,
       700,
       (wb) => {
+        if (this.disposed) return;
         // Clear matching recovery data only after a successful save.
         journal.acknowledge(wb);
         if (
           JSON.stringify(validateWorkbook(this.workbook)) === JSON.stringify(wb)
         )
           this.localDirty = false;
+        // Only an acknowledged server save can advance the merge base.
+        this.base = validateWorkbook(wb);
+        if (this.localDirty || this.draft) this.persistLocal();
         if (this.recovered) {
           journal.removeUnchanged(this.recovered);
           this.recovered = undefined;
@@ -79,6 +84,13 @@ export class WorkbookSession {
     return recoveryWorkbook(this.workbook, this.draft);
   }
 
+  get canResumeAfterReconnect() {
+    return !this.draft && this.coordinator.canRetryAfterReconnect;
+  }
+  async resumeAfterReconnect() {
+    if (this.canResumeAfterReconnect) await this.flush();
+  }
+
   async flush() {
     if (this.draft)
       throw new Error(
@@ -94,6 +106,7 @@ export class WorkbookSession {
     this.persistLocal();
   }
   dispose() {
+    this.disposed = true;
     this.coordinator.dispose();
   }
 }

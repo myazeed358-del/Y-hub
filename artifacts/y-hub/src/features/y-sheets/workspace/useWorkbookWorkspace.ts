@@ -134,6 +134,15 @@ export function useWorkbookWorkspace(ownerId: string) {
       }
     }
   };
+  useEffect(() => {
+    const online = () => {
+      const current = session.current;
+      if (current?.canResumeAfterReconnect && !operation.current)
+        void run(() => current.resumeAfterReconnect());
+    };
+    window.addEventListener("online", online);
+    return () => window.removeEventListener("online", online);
+  });
   const activate = (wb: WorkbookData, recovery?: RecoveryEntry) => {
     if (!alive.current) return;
     session.current?.dispose();
