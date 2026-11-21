@@ -1,3 +1,19 @@
+# Recovery conflict details checkpoint — 2026-11-21
+
+Current branch **feature/approved-sheets-conflict-details**, based on **a48f90f**. Read-only remote main check remains **eb8cb7358b96866dcfaf7bdeb1e892881930545d**. Preserve all prior local packages. Local development/tests only; no push, PR, merge, production SQL or deployment. No SQL, authorization or dependency changes.
+
+Read [SHEETS_CONFLICT_DETAILS.md](../approved-specifications/SHEETS_CONFLICT_DETAILS.md) and PROGRESS. Decisions66/70 advance but remain partial. Explicit recovery merge now reports identity, structure, rename or cell overlap separately. Cell conflicts carry total count and at most10 locations, ordered by sheet/row/column, with sheet name and A1-style address only. No raw/computed cell content in diagnostics. Atomic rejection and existing CAS/ownership/recovery behavior remain unchanged; no partial save or overwrite selection.
+
+RecoveryConflictDetails renders escaped names and bilingual messages, bounded scrolling and keyboard focus, and clears with the next operation. Structural changes still need manual review; rename conflict is reported before cell comparison. No interactive per-cell resolution or direct collaboration/server history added.
+
+Verification PASS:2527 Vitest cases/273files, including37 focused merge/workspace/report cases and8 new cases. Workspace TypeScript, architecture/math/module guards,8 guard tests, generated artifact check, Vite build and36 Python tests PASS.8 Chromium scenarios PASS:4 explicit merge/conflict report and4 reconnect regression,390/1280 Arabic/English. Arabic mobile screenshot reviewed; no overflow or executable markup. No final failures.
+
+One focused test setup originally deleted a cell instead of restoring its baseline value; corrected fixture, retained deletion conflict semantics. No disabled tests. Browser transport is mocked; no new SQL/native Auth claims for unchanged contracts. Existing PDF.js/Vite warnings remain. Every development final response must list decision numbers grouped as complete/partial/unimplemented and state which decisions this batch advanced.
+
+Progress remains **42 complete locally,19 partial,10 missing**.66/70 still partial, as is59;72–80 outside scope. Commit identity comes from Git rather than embedding its own hash.
+
+## Preserved previous checkpoints
+
 # Owner reconnect checkpoint — 2026-11-20
 
 Current branch **feature/approved-sheets-reconnect**, based on **96e0f1f**. Read-only remote main check: **eb8cb7358b96866dcfaf7bdeb1e892881930545d**. Local work/testing only; preserve prior local packages. No push, PR, merge, production SQL or deployment. No migrations or dependency changes.

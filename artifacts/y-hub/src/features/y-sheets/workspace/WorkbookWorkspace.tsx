@@ -13,6 +13,7 @@ import { SharedWorkbookView } from "../sharing/SharedWorkbookView";
 import { useRef, useState } from "react";
 import { initialDirectory } from "./directoryRepository";
 import { WorkbookDirectory } from "./WorkbookDirectory";
+import { RecoveryConflictDetails } from "./RecoveryConflictDetails";
 import { useWorkbookWorkspace } from "./useWorkbookWorkspace";
 
 export function WorkbookWorkspace({ user }: { user: HostUser }) {
@@ -107,6 +108,7 @@ export function WorkbookWorkspace({ user }: { user: HostUser }) {
         </header>
       )}
 
+      {w.mergeConflict && <RecoveryConflictDetails conflict={w.mergeConflict} />}
       {w.error && <div role="alert" className="y-sheets-workspace-error">{w.error}</div>}
       {w.busy && <div role="status" className="ys-busy-status">Loading…</div>}
 

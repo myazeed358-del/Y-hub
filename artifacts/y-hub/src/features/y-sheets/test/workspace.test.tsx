@@ -268,6 +268,11 @@ describe('explicit recovery merge', () => {
     expect(mocks.restore).not.toHaveBeenCalled();
     expect(mocks.save).not.toHaveBeenCalled();
     expect(localStorage.getItem(entry.key)).toBe(entry.encoded);
+    expect(result.current.mergeConflict).toMatchObject({ kind: 'cells', totalCells: 1 });
+    expect(result.current.mergeConflict?.cells[0].address).toBe('A1');
+    remote.sheets[0].cells['0,0'] = structuredClone(entry.record.base!.sheets[0].cells['0,0']);
+    await act(async () => { await result.current.mergeLatest(entry); });
+    expect(result.current.mergeConflict).toBeNull();
   });
   it('fails closed on denied or offline latest read', async () => {
     const { entry } = prepare();

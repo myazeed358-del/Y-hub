@@ -1,6 +1,6 @@
 import { useNavigationGuard } from "@/shared/navigation/guardedLocation";
 import { useLanguage } from "@/i18n/LanguageContext";
-import { mergeRecovery } from "../io/mergeRecovery";
+import { mergeRecovery, RecoveryMergeConflict } from "../io/mergeRecovery";
 import { workbookReducer } from "../state/workbookReducer";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createSupabaseWorkbookStorage } from "../integration/supabaseWorkbookStorage";
@@ -51,13 +51,16 @@ export function useWorkbookWorkspace(ownerId: string) {
   const [active, setActive] = useState<WorkbookData | null>(null);
   const [status, setStatus] = useState<SaveStatus>("saved");
   const [error, setError] = useState("");
+  const [mergeConflict, setMergeConflict] = useState<RecoveryMergeConflict | null>(null);
   const [busy, setBusy] = useState(false);
   const session = useRef<WorkbookSession | null>(null);
   const alive = useRef(true);
   const operation = useRef(false);
   const report = useCallback((err: unknown) => {
-    if (alive.current)
-      setError(err instanceof Error ? err.message : String(err));
+    if (alive.current) {
+      if (err instanceof RecoveryMergeConflict) { setMergeConflict(err); setError(""); }
+      else { setMergeConflict(null); setError(err instanceof Error ? err.message : String(err)); }
+    }
   }, []);
   const refreshLocal = useCallback(() => {
     const result = journal.list();
@@ -118,6 +121,7 @@ export function useWorkbookWorkspace(ownerId: string) {
     operation.current = true;
     setBusy(true);
     setError("");
+    setMergeConflict(null);
     try {
       await action();
     } catch (e) {
@@ -326,6 +330,7 @@ export function useWorkbookWorkspace(ownerId: string) {
     active,
     status,
     error,
+    mergeConflict,
     busy,
     session,
     run,

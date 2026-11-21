@@ -180,3 +180,6 @@
 .y-sheets-workspace .ys-cell-preview th { background:rgba(34,211,238,.08); }
 .y-sheets-workspace .ys-cell-preview th:first-child { width:28px; }
 .y-sheets-workspace .ys-file-list .ys-preview-expanded { flex-wrap:wrap; }
+
+.y-sheets-workspace .ys-recovery-conflict { max-height: min(40vh, 280px); overflow-wrap: anywhere; }
+.y-sheets-workspace .ys-recovery-conflict ul { list-style: disc; padding-inline-start: 24px; margin-block: 8px; }

@@ -52,3 +52,41 @@ describe('conservative recovery merge', () => {
     expect(() => mergeRecovery(base, local, remote)).toThrow(RecoveryMergeConflict);
   });
 });
+
+it('reports bounded, stable cell locations and total count without cell contents', () => {
+  const { base, local, remote } = setup();
+  for (let row = 12; row >= 0; row--) {
+    local.sheets[0].cells[`${row},0`] = { raw: 'secret local' };
+    remote.sheets[0].cells[`${row},0`] = { raw: 'secret remote' };
+  }
+  try { mergeRecovery(base, local, remote); throw Error('Expected conflict'); }
+  catch (error) {
+    expect(error).toBeInstanceOf(RecoveryMergeConflict);
+    const conflict = error as RecoveryMergeConflict;
+    expect(conflict.kind).toBe('cells'); expect(conflict.totalCells).toBe(13);
+    expect(conflict.cells.map(c => c.address)).toEqual(['A1','A2','A3','A4','A5','A6','A7','A8','A9','A10']);
+    expect(JSON.stringify(conflict)).not.toContain('secret');
+  }
+});
+it('distinguishes identity, structure and rename conflicts without inventing cell locations', () => {
+  const { base, local, remote } = setup();
+  const scenarios = [
+    { kind: 'identity', remote: { ...remote, id: 'other' } },
+    { kind: 'structure', remote: { ...remote, version: remote.version + 1 } },
+    { kind: 'name', remote: { ...remote, name: 'Remote rename' } },
+  ];
+  local.name = 'Local rename';
+  for (const scenario of scenarios) {
+    try { mergeRecovery(base, local, scenario.remote); throw Error('Expected conflict'); }
+    catch (error) { expect(error).toMatchObject({ kind: scenario.kind, cells: [], totalCells: 0 }); }
+  }
+});
+it('reports columns beyond Z and keeps sheet identity in the display location', () => {
+  const { base, local, remote } = setup();
+  for (const wb of [base, local, remote]) wb.sheets[0].colCount = 30;
+  local.sheets[0].cells['1,26'] = { raw: 'left' };
+  remote.sheets[0].cells['1,26'] = { raw: 'right' };
+  expect(() => mergeRecovery(base, local, remote)).toThrow(RecoveryMergeConflict);
+  try { mergeRecovery(base, local, remote); }
+  catch (error) { expect((error as RecoveryMergeConflict).cells).toEqual([{ sheetName: base.sheets[0].name, address: 'AA2' }]); }
+});

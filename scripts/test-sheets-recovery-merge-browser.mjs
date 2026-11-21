@@ -31,7 +31,11 @@ try {
     // Overlap must preserve recovery and never dispatch a save.
     file.content.sheets[0].cells['0,0'] = { raw: 'competing' };
     await merge().click();
-    await page.getByRole('alert').filter({ hasText: 'overlap' }).waitFor();
+    await page.getByRole('alert').filter({ hasText: language === 'ar' ? 'تعديلات متعارضة' : 'overlap' }).waitFor();
+    await page.getByRole('alert').getByText('A1', { exact: true }).waitFor();
+    assert.equal(await page.getByRole('alert').getByText('competing', { exact: true }).count(), 0);
+    assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2));
+    await page.getByRole('alert').screenshot({ path: `/workspace/sheets-recovery-merge-screenshots/conflict-${width}-${language}.png` });
     assert.equal(file.revision, 2); assert(await page.evaluate(key => localStorage.getItem(key) !== null, key));
     delete file.content.sheets[0].cells['0,0'];
     await merge().click();
