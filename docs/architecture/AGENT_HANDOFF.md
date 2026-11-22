@@ -1,3 +1,19 @@
+# Recovery cell style merge checkpoint — 2026-11-22
+
+Current branch **feature/approved-sheets-cell-style-merge**, based on **3745d4a**. Read-only remote main check remains **eb8cb7358b96866dcfaf7bdeb1e892881930545d**. Preserve all earlier local packages. Local development/tests only; no push, PR, merge, production SQL or deployment. No schema, authorization or dependency changes.
+
+Read [SHEETS_CELL_STYLE_MERGE.md](../approved-specifications/SHEETS_CELL_STYLE_MERGE.md) and PROGRESS.66/70 remain partial. Three-way owner recovery merge now handles raw cell input and individual style properties independently. Raw edits plus formatting and different style fields can merge; competing same-field values reject atomically. Reset-to-default and explicit false stay distinct. Each border object remains atomic; whole-cell deletion versus an edit still conflicts. Multiple conflicting properties count as one cell location. Computed/error caches remain excluded and existing recalculation runs after merge.
+
+Formatting an absent cell materializes raw:'' in the actual reducer; merge treats that as unchanged empty input so a typed value can combine with the formatting. This does not permit resurrection of a deleted existing cell. Real reducer tests cover both existing and previously absent cells. Earlier whole-cell atomicity notes are historical; structure/CAS/ownership/receipt/recovery protections remain unchanged.
+
+Verification PASS: full suite2542 Vitest cases/273files, followed by final53 focused cases including one additional absent-cell case (2543 distinct cases,7 new). Final application TypeScript rerun PASS after that adjustment; workspace TypeScript, architecture/math/module guards,8 guard tests, generated artifact check, Vite build and36 Python tests PASS.8 Chromium scenarios PASS:4 explicit same-cell raw/style merge and4 reconnect regression,390/1280 Arabic/English. No final failures.
+
+One focused fixture incorrectly removed baseline bold while describing an independent edit; fixed its baseline, preserved reset semantics. The absent-cell case was added after the broad run started and the final focused group was rerun. Browser transport is mocked; no new SQL/production audit claims. Existing PDF.js/Vite warnings remain. No disabled tests.
+
+Progress remains **42 complete locally,19 partial,10 missing**. Every development delivery must list all decision numbers grouped by completion state and identify the batch's progress. No direct collaboration/server history/retention policy added.72–80 outside scope. Commit identity is obtained from Git rather than embedded in its own contents.
+
+## Preserved previous checkpoints
+
 # Recovery presentation merge checkpoint — 2026-11-22
 
 Current branch **feature/approved-sheets-layout-merge**, based on **d460f1f**. Read-only remote main check: **eb8cb7358b96866dcfaf7bdeb1e892881930545d**. Preserve all local packages; local development/tests only. No push, PR, merge, production SQL or deployment; no schema, authorization or dependency changes.

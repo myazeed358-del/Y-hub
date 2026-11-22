@@ -1,3 +1,4 @@
+import type { CellData, CellStyle } from '../types/cell';
 import type { WorkbookData } from '../types/workbook';
 import { validateWorkbook } from './workbookValidation';
 
@@ -30,7 +31,7 @@ function address(key: string): string {
   while (value > 0) { column = String.fromCharCode(65 + (value - 1) % 26) + column; value = Math.floor((value - 1) / 26); }
   return `${column}${row + 1}`;
 }
-/** Atomic cells and independent presentation settings; coordinate-changing edits stay blocked. */
+/** Independent raw/style fields and presentation settings; coordinate-changing edits stay blocked. */
 export function mergeRecovery(baseInput: WorkbookData, localInput: WorkbookData, remoteInput: WorkbookData): WorkbookData {
   const base = clean(baseInput), local = clean(localInput), remote = clean(remoteInput);
   if (base.id !== local.id || base.id !== remote.id) throw new RecoveryMergeConflict('identity');
@@ -49,6 +50,23 @@ export function mergeRecovery(baseInput: WorkbookData, localInput: WorkbookData,
       if (value !== undefined) result[key] = value;
     }
     return result;
+  };
+  const mergeCell = (b: CellData | undefined, l: CellData | undefined, r: CellData | undefined): CellData | undefined => {
+    if (equal(l, b)) return r;
+    if (equal(r, b) || equal(l, r)) return l;
+    // Whole-cell deletion is never combined with an independent edit.
+    if (!l || !r) throw new RecoveryMergeConflict('cells');
+    // Formatting an absent cell materializes raw:''; it is still the unchanged empty value.
+    const raw = choose(b?.raw ?? '', l.raw, r.raw, 'cells');
+    const style: CellStyle = {};
+    const keys = new Set([...Object.keys(b?.style ?? {}), ...Object.keys(l.style ?? {}), ...Object.keys(r.style ?? {})]);
+    for (const key of keys) {
+      const field = key as keyof CellStyle;
+      // Borders remain atomic objects; never synthesize a new border from opposing edits.
+      const value = choose(b?.style?.[field], l.style?.[field], r.style?.[field], 'cells');
+      if (value !== undefined) Object.assign(style, { [field]: value });
+    }
+    return { raw, ...(Object.keys(style).length ? { style } : {}) };
   };
   const merged = structuredClone(remote);
   // This is the editor mutation counter, not the server CAS revision or a schema version.
@@ -70,13 +88,14 @@ export function mergeRecovery(baseInput: WorkbookData, localInput: WorkbookData,
       return ar - br || ac - bc;
     });
     for (const key of keys) {
-      if (!equal(l[key], b[key]) && !equal(r[key], b[key]) && !equal(l[key], r[key])) {
+      try {
+        const value = mergeCell(b[key], l[key], r[key]);
+        if (value === undefined) delete target[key]; else target[key] = structuredClone(value);
+      } catch (error) {
+        if (!(error instanceof RecoveryMergeConflict)) throw error;
         totalCells++;
         if (conflicts.length < 10) conflicts.push({ sheetName: base.sheets[i]!.name, address: address(key) });
-        continue;
       }
-      const value = choose(b[key], l[key], r[key]);
-      if (value === undefined) delete target[key]; else target[key] = structuredClone(value);
     }
   }
   if (new Set(merged.sheets.map(s => s.name.toLowerCase())).size !== merged.sheets.length)

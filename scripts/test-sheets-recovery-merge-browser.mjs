@@ -16,8 +16,9 @@ try {
     page.setDefaultTimeout(30000);
     const file = [...state.rows.values()][0];
     const original = { id: file.id, name: 'Recovery example', version: 1, activeSheetId: 's', sheets: [{ id: 's', name: 'Sheet1', rowCount: 20, colCount: 10, cells: {}, columnWidths: {}, rowHeights: {}, mergedCells: [], conditionalFormats: [], validations: {} }] };
+    original.sheets[0].cells['0,0'] = { raw: 'initial' };
     file.name = original.name; file.content = structuredClone(original); file.content.sheets[0].cells['0,1'] = { raw: 'remote' }; file.revision = 2;
-    const local = structuredClone(original); local.sheets[0].cells['0,0'] = { raw: 'local' };
+    const local = structuredClone(original); local.sheets[0].cells['0,0'] = { raw: 'local', style: { italic: true } };
     local.sheets[0].name = 'Recovered title'; local.sheets[0].rowHeights[0] = 60;
     file.content.sheets[0].columnWidths[0] = 180;
     local.version = 4; file.content.version = 3;
@@ -40,11 +41,12 @@ try {
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2));
     await page.getByRole('alert').screenshot({ path: `/workspace/sheets-recovery-merge-screenshots/conflict-${width}-${language}.png` });
     assert.equal(file.revision, 2); assert(await page.evaluate(key => localStorage.getItem(key) !== null, key));
-    delete file.content.sheets[0].cells['0,0'];
+    file.content.sheets[0].cells['0,0'] = { raw: 'initial', style: { bold: true } };
     await merge().click();
     await page.getByPlaceholder(/Enter a value or formula/).waitFor();
     await new Promise((resolve, reject) => { const start = Date.now(); const check = () => { if (state.rows.get(file.id).revision === 3) return resolve(); if (Date.now() - start > 15000) return reject(Error('Save not acknowledged')); setTimeout(check, 100); }; check(); });
     assert.equal(state.rows.get(file.id).content.sheets[0].cells['0,0'].raw, 'local');
+    assert.deepEqual(state.rows.get(file.id).content.sheets[0].cells['0,0'].style, { italic: true, bold: true });
     assert.equal(state.rows.get(file.id).content.sheets[0].cells['0,1'].raw, 'remote');
     assert.equal(state.rows.get(file.id).content.version, 5);
     assert.equal(state.rows.get(file.id).content.sheets[0].name, 'Recovered title');
@@ -52,7 +54,7 @@ try {
     assert.equal(state.rows.get(file.id).content.sheets[0].rowHeights[0], 60);
     await page.waitForFunction(key => localStorage.getItem(key) === null, key);
     assert.deepEqual(errors, []);
-    console.log(`PASS ${width}/${theme}/${language}: overlap retained, explicit merge saved cells, sheet name and independent dimensions at current revision, recovery acknowledged.`);
+    console.log(`PASS ${width}/${theme}/${language}: overlap retained, explicit merge saved same-cell raw/style changes, sheet name and independent dimensions at current revision, recovery acknowledged.`);
     await context.close();
   }
 } finally { await browser.close(); }

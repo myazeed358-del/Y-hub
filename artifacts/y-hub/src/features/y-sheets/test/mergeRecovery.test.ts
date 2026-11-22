@@ -26,7 +26,8 @@ describe('conservative recovery merge', () => {
     local.sheets[0].cells['0,0'] = { raw: 'local' };
     remote.sheets[0].cells['0,0'] = { raw: 'remote' };
     expect(() => mergeRecovery(base, local, remote)).toThrow(RecoveryMergeConflict);
-    remote.sheets[0].cells['0,0'] = { raw: 'local', style: { bold: true } };
+    local.sheets[0].cells['0,0'] = { raw: 'same', style: { textColor: '#111111' } };
+    remote.sheets[0].cells['0,0'] = { raw: 'same', style: { textColor: '#222222' } };
     expect(() => mergeRecovery(base, local, remote)).toThrow(RecoveryMergeConflict);
   });
   it('merges deletion versus unchanged but rejects deletion versus edit', () => {
@@ -167,4 +168,61 @@ it('rejects independent renames that create duplicate sheet names after merging'
   local.sheets[0].name = 'Combined'; remote.sheets[1].name = 'combined';
   try { mergeRecovery(base,local,remote); throw Error('Expected conflict'); }
   catch(error) { expect(error).toMatchObject({kind:'layout'}); }
+});
+it('combines actual raw editing with formatting of the same cell and recalculates formulas', () => {
+  const {base} = setup(), sheetId = base.sheets[0].id;
+  const local = workbookReducer(base,{type:'SET_CELL_RAW',payload:{sheetId,row:0,col:0,raw:'=3*7'}});
+  const remote = workbookReducer(base,{type:'FORMAT_CELLS',payload:{sheetId,range:{startRow:0,endRow:0,startCol:0,endCol:0},style:{bold:true,textColor:'#123456'}}});
+  const merged = mergeRecovery(base,local,remote);
+  const result = workbookReducer(merged,{type:'SET_WORKBOOK',payload:merged});
+  expect(result.sheets[0].cells['0,0']).toMatchObject({raw:'=3*7',computed:21,style:{bold:true,textColor:'#123456'}});
+});
+it('combines independent formatting fields without changing either input', () => {
+  const {base,local,remote} = setup();
+  base.sheets[0].cells['0,0'] = {raw:'same'};
+  local.sheets[0].cells['0,0'] = {raw:'same',style:{bold:true}};
+  remote.sheets[0].cells['0,0'] = {raw:'same',style:{italic:true}};
+  const before = JSON.stringify([base,local,remote]);
+  expect(mergeRecovery(base,local,remote).sheets[0].cells['0,0']).toEqual({raw:'same',style:{bold:true,italic:true}});
+  expect(JSON.stringify([base,local,remote])).toBe(before);
+});
+it('merges reset of one style field with a different field edit, including explicit false', () => {
+  const {base,local,remote} = setup();
+  base.sheets[0].cells['0,0'] = {raw:'same',style:{bold:true,italic:true}};
+  local.sheets[0].cells['0,0'] = {raw:'same',style:{italic:true}};
+  remote.sheets[0].cells['0,0'] = {raw:'same',style:{bold:true,italic:false}};
+  expect(mergeRecovery(base,local,remote).sheets[0].cells['0,0']).toEqual({raw:'same',style:{italic:false}});
+});
+it('rejects reset and change of the same field without losing the original', () => {
+  const {base,local,remote} = setup();
+  base.sheets[0].cells['0,0'] = {raw:'same',style:{bold:true}};
+  local.sheets[0].cells['0,0'] = {raw:'same'};
+  remote.sheets[0].cells['0,0'] = {raw:'same',style:{bold:false}};
+  expect(() => mergeRecovery(base,local,remote)).toThrow(RecoveryMergeConflict);
+});
+it('keeps each border atomic and rejects conflicting border color versus line changes', () => {
+  const {base,local,remote} = setup();
+  base.sheets[0].cells['0,0'] = {raw:'same',style:{borderTop:{style:'thin',color:'#000000'}}};
+  local.sheets[0].cells['0,0'] = {raw:'same',style:{borderTop:{style:'thin',color:'#ffffff'}}};
+  remote.sheets[0].cells['0,0'] = {raw:'same',style:{borderTop:{style:'double',color:'#000000'}}};
+  expect(() => mergeRecovery(base,local,remote)).toThrow(RecoveryMergeConflict);
+});
+it('rejects whole-cell deletion against formatting and reports one location for multiple conflicts', () => {
+  const {base,local,remote} = setup();
+  base.sheets[0].cells['0,0'] = {raw:'old'};
+  delete local.sheets[0].cells['0,0'];
+  remote.sheets[0].cells['0,0'] = {raw:'old',style:{bold:true}};
+  expect(() => mergeRecovery(base,local,remote)).toThrow(RecoveryMergeConflict);
+  local.sheets[0].cells['0,0'] = {raw:'left',style:{textColor:'#111111'}};
+  remote.sheets[0].cells['0,0'] = {raw:'right',style:{textColor:'#222222'}};
+  try { mergeRecovery(base,local,remote); throw Error('Expected conflict'); }
+  catch(error) { expect(error).toMatchObject({kind:'cells',totalCells:1}); }
+});
+it('merges formatting of a previously absent cell with a real typed value', () => {
+  const {base} = setup(), sheetId = base.sheets[0].id;
+  delete base.sheets[0].cells['7,7'];
+  const local = workbookReducer(base,{type:'SET_CELL_RAW',payload:{sheetId,row:7,col:7,raw:'typed'}});
+  const remote = workbookReducer(base,{type:'FORMAT_CELLS',payload:{sheetId,range:{startRow:7,endRow:7,startCol:7,endCol:7},style:{italic:true}}});
+  expect(remote.sheets[0].cells['7,7'].raw).toBe('');
+  expect(mergeRecovery(base,local,remote).sheets[0].cells['7,7']).toEqual({raw:'typed',style:{italic:true}});
 });
