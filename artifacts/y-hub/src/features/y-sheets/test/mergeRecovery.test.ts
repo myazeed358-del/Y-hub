@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { mergeRecovery, RecoveryMergeConflict } from '../io/mergeRecovery';
 import { createDefaultWorkbook } from '../state/defaultWorkbook';
+import { workbookReducer } from '../state/workbookReducer';
 import { validateWorkbook } from '../io/workbookValidation';
 const setup = () => { const base = validateWorkbook(createDefaultWorkbook()); return { base, local: structuredClone(base), remote: structuredClone(base) }; };
 describe('conservative recovery merge', () => {
@@ -42,7 +43,7 @@ describe('conservative recovery merge', () => {
     remote.sheets[0].rowCount++;
     expect(() => mergeRecovery(base, local, remote)).toThrow(RecoveryMergeConflict);
     expect(() => mergeRecovery(base, local, { ...base, id: 'other' })).toThrow(RecoveryMergeConflict);
-    expect(() => mergeRecovery(base, local, { ...base, version: 2 })).toThrow(RecoveryMergeConflict);
+    expect(() => mergeRecovery(base, local, { ...base, version: Number.MAX_SAFE_INTEGER })).toThrow(RecoveryMergeConflict);
   });
   it('merges a one-sided name change but rejects competing renames', () => {
     const { base, local, remote } = setup();
@@ -72,7 +73,7 @@ it('distinguishes identity, structure and rename conflicts without inventing cel
   const { base, local, remote } = setup();
   const scenarios = [
     { kind: 'identity', remote: { ...remote, id: 'other' } },
-    { kind: 'structure', remote: { ...remote, version: remote.version + 1 } },
+    { kind: 'structure', remote: { ...remote, sheets: remote.sheets.map((s,i) => i === 0 ? { ...s, rowCount: s.rowCount + 1 } : s) } },
     { kind: 'name', remote: { ...remote, name: 'Remote rename' } },
   ];
   local.name = 'Local rename';
@@ -89,4 +90,81 @@ it('reports columns beyond Z and keeps sheet identity in the display location', 
   expect(() => mergeRecovery(base, local, remote)).toThrow(RecoveryMergeConflict);
   try { mergeRecovery(base, local, remote); }
   catch (error) { expect((error as RecoveryMergeConflict).cells).toEqual([{ sheetName: base.sheets[0].name, address: 'AA2' }]); }
+});
+
+it('combines sheet rename, different column/row sizes and independent cell changes', () => {
+  const { base, local, remote } = setup();
+  local.sheets[0].name = 'Local title';
+  local.sheets[0].columnWidths[0] = 180;
+  local.sheets[0].rowHeights[1] = 70;
+  remote.sheets[0].columnWidths[1] = 240;
+  remote.sheets[0].rowHeights[2] = 80;
+  remote.sheets[0].cells['0,0'] = { raw: 'remote edit' };
+  const before = JSON.stringify([base,local,remote]);
+  const result = mergeRecovery(base,local,remote).sheets[0];
+  expect(result.name).toBe('Local title');
+  expect(result.columnWidths).toMatchObject({ 0:180,1:240 });
+  expect(result.rowHeights).toMatchObject({ 1:70,2:80 });
+  expect(result.cells['0,0'].raw).toBe('remote edit');
+  expect(JSON.stringify([base,local,remote])).toBe(before);
+});
+it.each(['columnWidths','rowHeights'] as const)('rejects competing %s changes and accepts identical ones', field => {
+  const { base,local,remote } = setup();
+  local.sheets[0][field][0] = 123; remote.sheets[0][field][0] = 456;
+  expect(() => mergeRecovery(base,local,remote)).toThrow(RecoveryMergeConflict);
+  try { mergeRecovery(base,local,remote); } catch(error) { expect(error).toMatchObject({ kind:'layout',cells:[] }); }
+  remote.sheets[0][field][0] = 123;
+  expect(mergeRecovery(base,local,remote).sheets[0][field][0]).toBe(123);
+});
+it('supports resetting a size to default but rejects reset against a competing size', () => {
+  const {base,local,remote} = setup();
+  base.sheets[0].columnWidths[0] = 100;
+  remote.sheets[0].columnWidths[0] = 100;
+  delete local.sheets[0].columnWidths[0];
+  expect(mergeRecovery(base,local,remote).sheets[0].columnWidths[0]).toBeUndefined();
+  remote.sheets[0].columnWidths[0] = 150;
+  expect(() => mergeRecovery(base,local,remote)).toThrow(RecoveryMergeConflict);
+});
+it('distinguishes competing sheet names from workbook renames', () => {
+  const {base,local,remote} = setup();
+  local.sheets[0].name = 'Local'; remote.sheets[0].name = 'Remote';
+  try { mergeRecovery(base,local,remote); throw Error('Expected conflict'); }
+  catch(error) { expect(error).toMatchObject({ kind:'layout' }); }
+  remote.sheets[0].name = 'Local';
+  expect(mergeRecovery(base,local,remote).sheets[0].name).toBe('Local');
+});
+it('still rejects coordinate and semantic changes alongside presentation edits', () => {
+  const {base,local,remote} = setup();
+  local.sheets[0].name = 'Local';
+  remote.sheets[0].mergedCells.push({id:'merge',startRow:0,endRow:1,startCol:0,endCol:1});
+  expect(() => mergeRecovery(base,local,remote)).toThrow(RecoveryMergeConflict);
+  remote.sheets[0].mergedCells = [];
+  remote.sheets[0].validations['0,0'] = {type:'wholeNumber',value1:1};
+  expect(() => mergeRecovery(base,local,remote)).toThrow(RecoveryMergeConflict);
+  remote.sheets[0].validations = {};
+  remote.sheets.reverse();
+  expect(() => mergeRecovery(base,local,remote)).toThrow(RecoveryMergeConflict);
+});
+it('merges real reducer mutations despite unequal editor counters and recalculates merged formulas', () => {
+  const {base} = setup(), sheetId = base.sheets[0].id;
+  let local = workbookReducer(base,{type:'SET_CELL_RAW',payload:{sheetId,row:0,col:0,raw:'=2+3'}});
+  local = workbookReducer(local,{type:'RENAME_SHEET',payload:{sheetId,newName:'Local title'}});
+  local = workbookReducer(local,{type:'SET_ROW_HEIGHT',payload:{sheetId,row:0,height:70}});
+  let remote = workbookReducer(base,{type:'SET_CELL_RAW',payload:{sheetId,row:0,col:1,raw:'=A1*2'}});
+  remote = workbookReducer(remote,{type:'SET_COL_WIDTH',payload:{sheetId,col:1,width:180}});
+  expect(local.version).not.toBe(remote.version);
+  const merged = mergeRecovery(base,local,remote);
+  expect(merged.version).toBe(Math.max(local.version,remote.version)+1);
+  const result = workbookReducer(merged,{type:'SET_WORKBOOK',payload:merged});
+  expect(result.sheets[0].cells['0,0'].computed).toBe(5);
+  expect(result.sheets[0].cells['0,1'].computed).toBe(10);
+  expect(result.sheets[0].name).toBe('Local title');
+  expect(result.sheets[0].rowHeights[0]).toBe(70);
+  expect(result.sheets[0].columnWidths[1]).toBe(180);
+});
+it('rejects independent renames that create duplicate sheet names after merging', () => {
+  const {base,local,remote} = setup();
+  local.sheets[0].name = 'Combined'; remote.sheets[1].name = 'combined';
+  try { mergeRecovery(base,local,remote); throw Error('Expected conflict'); }
+  catch(error) { expect(error).toMatchObject({kind:'layout'}); }
 });

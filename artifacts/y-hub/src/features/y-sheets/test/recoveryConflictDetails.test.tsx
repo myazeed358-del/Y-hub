@@ -16,7 +16,7 @@ it.each(['ar', 'en'])('renders escaped locations and truncation notice in %s wit
   expect(alert.querySelector('img,button,a,input')).toBeNull();
   expect(alert.getAttribute('tabindex')).toBe('0');
 });
-it.each(['identity','structure','name'] as const)('explains %s separately from cell overlaps', kind => {
+it.each(['identity','structure','name','layout'] as const)('explains %s separately from cell overlaps', kind => {
   locale.language = 'en';
   render(<RecoveryConflictDetails conflict={new RecoveryMergeConflict(kind)}/>);
   expect(screen.getByRole('alert').querySelector('ul')).toBeNull();

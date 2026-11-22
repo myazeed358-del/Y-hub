@@ -15,7 +15,7 @@ function clean(input: WorkbookData): WorkbookData {
   }
   return wb;
 }
-export type RecoveryConflictKind = 'identity' | 'structure' | 'name' | 'cells';
+export type RecoveryConflictKind = 'identity' | 'structure' | 'name' | 'layout' | 'cells';
 export interface RecoveryConflictCell { sheetName: string; address: string }
 export class RecoveryMergeConflict extends Error {
   constructor(
@@ -30,25 +30,39 @@ function address(key: string): string {
   while (value > 0) { column = String.fromCharCode(65 + (value - 1) % 26) + column; value = Math.floor((value - 1) / 26); }
   return `${column}${row + 1}`;
 }
-/** Conservative three-way merge: cells are atomic, structural edits require manual recovery. */
+/** Atomic cells and independent presentation settings; coordinate-changing edits stay blocked. */
 export function mergeRecovery(baseInput: WorkbookData, localInput: WorkbookData, remoteInput: WorkbookData): WorkbookData {
   const base = clean(baseInput), local = clean(localInput), remote = clean(remoteInput);
   if (base.id !== local.id || base.id !== remote.id) throw new RecoveryMergeConflict('identity');
-  const structure = (wb: WorkbookData) => wb.sheets.map(({ cells: _cells, ...rest }) => rest);
+  const structure = (wb: WorkbookData) => wb.sheets.map(({ cells: _cells, name: _name, columnWidths: _widths, rowHeights: _heights, ...rest }) => rest);
   if (!equal(structure(base), structure(local)) || !equal(structure(base), structure(remote)) ||
-    base.version !== local.version || base.version !== remote.version) throw new RecoveryMergeConflict('structure');
-  const choose = <T,>(b: T, l: T, r: T): T => {
+    [base.version, local.version, remote.version].some(v => !Number.isSafeInteger(v) || v >= Number.MAX_SAFE_INTEGER)) throw new RecoveryMergeConflict('structure');
+  const choose = <T,>(b: T, l: T, r: T, kind: RecoveryConflictKind = 'name'): T => {
     if (equal(l, b)) return r;
     if (equal(r, b) || equal(l, r)) return l;
-    throw new RecoveryMergeConflict('name');
+    throw new RecoveryMergeConflict(kind);
+  };
+  const mergeSizes = (b: Record<string, number>, l: Record<string, number>, r: Record<string, number>) => {
+    const result: Record<string, number> = {};
+    for (const key of new Set([...Object.keys(b), ...Object.keys(l), ...Object.keys(r)])) {
+      const value = choose(b[key], l[key], r[key], 'layout');
+      if (value !== undefined) result[key] = value;
+    }
+    return result;
   };
   const merged = structuredClone(remote);
+  // This is the editor mutation counter, not the server CAS revision or a schema version.
+  merged.version = Math.max(base.version, local.version, remote.version) + 1;
   merged.name = choose(base.name, local.name, remote.name);
   // Selection is navigation state, not an edit to cell content.
   merged.activeSheetId = local.activeSheetId;
   const conflicts: RecoveryConflictCell[] = [];
   let totalCells = 0;
   for (let i = 0; i < base.sheets.length; i++) {
+    const bs = base.sheets[i]!, ls = local.sheets[i]!, rs = remote.sheets[i]!, output = merged.sheets[i]!;
+    output.name = choose(bs.name, ls.name, rs.name, 'layout');
+    output.columnWidths = mergeSizes(bs.columnWidths, ls.columnWidths, rs.columnWidths);
+    output.rowHeights = mergeSizes(bs.rowHeights, ls.rowHeights, rs.rowHeights);
     const b = base.sheets[i]!.cells, l = local.sheets[i]!.cells, r = remote.sheets[i]!.cells;
     const target = merged.sheets[i]!.cells;
     const keys = [...new Set([...Object.keys(b), ...Object.keys(l), ...Object.keys(r)])].sort((a, b) => {
@@ -65,6 +79,8 @@ export function mergeRecovery(baseInput: WorkbookData, localInput: WorkbookData,
       if (value === undefined) delete target[key]; else target[key] = structuredClone(value);
     }
   }
+  if (new Set(merged.sheets.map(s => s.name.toLowerCase())).size !== merged.sheets.length)
+    throw new RecoveryMergeConflict('layout');
   if (totalCells) throw new RecoveryMergeConflict('cells', conflicts, totalCells);
   return validateWorkbook(merged);
 }

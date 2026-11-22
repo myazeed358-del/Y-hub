@@ -18,6 +18,9 @@ try {
     const original = { id: file.id, name: 'Recovery example', version: 1, activeSheetId: 's', sheets: [{ id: 's', name: 'Sheet1', rowCount: 20, colCount: 10, cells: {}, columnWidths: {}, rowHeights: {}, mergedCells: [], conditionalFormats: [], validations: {} }] };
     file.name = original.name; file.content = structuredClone(original); file.content.sheets[0].cells['0,1'] = { raw: 'remote' }; file.revision = 2;
     const local = structuredClone(original); local.sheets[0].cells['0,0'] = { raw: 'local' };
+    local.sheets[0].name = 'Recovered title'; local.sheets[0].rowHeights[0] = 60;
+    file.content.sheets[0].columnWidths[0] = 180;
+    local.version = 4; file.content.version = 3;
     const owner = '00000000-0000-4000-8000-000000000001';
     const key = `y-sheets-recovery:v1:${owner}:browser:${file.id}`;
     const record = { version: 1, ownerId: owner, workbook: local, base: original, checkpoint: { revision: 1 }, updatedAt: new Date().toISOString() };
@@ -43,9 +46,13 @@ try {
     await new Promise((resolve, reject) => { const start = Date.now(); const check = () => { if (state.rows.get(file.id).revision === 3) return resolve(); if (Date.now() - start > 15000) return reject(Error('Save not acknowledged')); setTimeout(check, 100); }; check(); });
     assert.equal(state.rows.get(file.id).content.sheets[0].cells['0,0'].raw, 'local');
     assert.equal(state.rows.get(file.id).content.sheets[0].cells['0,1'].raw, 'remote');
+    assert.equal(state.rows.get(file.id).content.version, 5);
+    assert.equal(state.rows.get(file.id).content.sheets[0].name, 'Recovered title');
+    assert.equal(state.rows.get(file.id).content.sheets[0].columnWidths[0], 180);
+    assert.equal(state.rows.get(file.id).content.sheets[0].rowHeights[0], 60);
     await page.waitForFunction(key => localStorage.getItem(key) === null, key);
     assert.deepEqual(errors, []);
-    console.log(`PASS ${width}/${theme}/${language}: overlap retained, explicit merge saved both edits at current revision, recovery acknowledged.`);
+    console.log(`PASS ${width}/${theme}/${language}: overlap retained, explicit merge saved cells, sheet name and independent dimensions at current revision, recovery acknowledged.`);
     await context.close();
   }
 } finally { await browser.close(); }

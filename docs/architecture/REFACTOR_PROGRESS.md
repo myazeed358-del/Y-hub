@@ -1,3 +1,19 @@
+# Recovery presentation merge checkpoint — 2026-11-22
+
+Current branch **feature/approved-sheets-layout-merge**, based on **d460f1f**. Read-only remote main check: **eb8cb7358b96866dcfaf7bdeb1e892881930545d**. Preserve all local packages; local development/tests only. No push, PR, merge, production SQL or deployment; no schema, authorization or dependency changes.
+
+Read [SHEETS_LAYOUT_MERGE.md](../approved-specifications/SHEETS_LAYOUT_MERGE.md) and PROGRESS.66/70 remain partial. Explicit owner recovery merge now combines independent sheet names, per-column widths and per-row heights alongside atomic cell edits. Same-setting competing edits or resulting case-insensitive duplicate sheet names reject the whole merge with a bilingual layout conflict. Resetting a dimension to default is a real deletion. Sheet order/identity, grid dimensions, merged ranges, validation/filter/conditional formatting and other settings still require unchanged structure.
+
+Corrected an existing merge limitation: WorkbookData.version is the reducer mutation counter, not a schema version or server CAS revision. Real edits increment it, so previous equality checks incorrectly rejected safe merges. Actual structure stays guarded; merged counter becomes max(base,local,remote)+1 with safe-integer bounds. A test uses real reducer commands with differing counters and verifies dependent formula recalculation. Storage identity checks and server CAS/receipts remain unchanged.
+
+Verification PASS:2536 Vitest cases/273files, including46 focused cases and9 added cases. Workspace TypeScript, architecture/math/module guards,8 guard cases, generated artifact drift check, Vite build and36 Python tests PASS.8 Chromium scenarios PASS:4 explicit merge with differing editor counters/names/dimensions and4 reconnect regression,390/1280 Arabic/English. No final test failures or disabled tests.
+
+Browser HTTP is mocked; no SQL/native Auth/production audit claims for unchanged server contracts. Existing PDF.js/Vite warnings remain. The previous blanket presentation/version restrictions below are historical and superseded by this batch. No direct collaboration, server history, participant retention or local expiry added.
+
+Progress remains **42 complete locally,19 partial,10 missing**. Every development delivery must list all decision numbers by complete/partial/unimplemented and identify the batch's progress.72–80 outside scope. Commit identity comes from Git rather than embedding its own hash.
+
+## Preserved previous checkpoints
+
 # Recovery conflict details checkpoint — 2026-11-21
 
 Current branch **feature/approved-sheets-conflict-details**, based on **a48f90f**. Read-only remote main check remains **eb8cb7358b96866dcfaf7bdeb1e892881930545d**. Preserve all prior local packages. Local development/tests only; no push, PR, merge, production SQL or deployment. No SQL, authorization or dependency changes.
