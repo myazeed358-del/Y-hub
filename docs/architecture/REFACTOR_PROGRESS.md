@@ -1,3 +1,11 @@
+# Live action isolation checkpoint — 2026-11-23
+
+Current branch integration/approved-work-20261123, PR48. Previous verified remote head09ccd20; implementation commit **73f4e3e**. Read [LIVE_ACTION_ISOLATION](../approved-specifications/LIVE_ACTION_ISOLATION.md). Decision57 advances but remains partial: asynchronous actions are scoped to a connection generation, old pending work cannot lock/unlock the new room or raise stale errors, and send acknowledgments preserve edited/new-connection chat drafts. No server permission or schema changes; no new local chat storage.
+
+Verification PASS:27 lecture tests (5 new), full2562 Vitest/275files,36 Python,8 module guard cases, workspace types, architecture/math/module checks, generated artifact check and Vite build. No SQL/native Auth/browser rerun for this client-only behavior change; do not reuse previous batch counts as new runs. Provider is mocked, not a real LiveKit deployment.
+
+Publication/merge authorization persists. PR48 remains draft because prior Vercel previews failed and logs require unavailable access; check the latest head after publication. PR46/47 already merged; main last verified2073ff76bc71ce45e60300cb66d7ef8d209ed0b5. No production SQL/deployment or force push. Totals remain42 locally complete,19 partial,10 missing; every final delivery lists all decision numbers by status. Historical checkpoints follow.
+
 # Integration and live recovery checkpoint — 2026-11-23
 
 Current branch **integration/approved-work-20261123**, PR **48**. The user's current explicit instruction authorizes normal pushes and merging passing changes into main; it supersedes older local-only checkpoints below. Production Supabase migrations, writes and deployments remain prohibited without separate explicit approval. Preserve every branch and all existing work; no force pushes.
