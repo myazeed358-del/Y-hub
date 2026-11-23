@@ -47,3 +47,36 @@ it('ignores a late microphone operation from the disconnected room',async()=>{
  fireEvent.click(screen.getByText('Enable microphone'));await act(async()=>mock.connect.mock.calls[0][4]());await act(async()=>finish());
  expect(screen.queryByText('Mute microphone')).toBeNull();expect(screen.getByText('Enable microphone')).toBeTruthy();view.unmount();
 });
+it('keeps newer chat text when an earlier send succeeds, even after editing back to the same text',async()=>{
+ let finish!:()=>void;mock.send.mockReturnValue(new Promise<void>(r=>finish=r));
+ render(<LectureRoom lecture="l" ar={false} onLeave={()=>{}}/>);await screen.findByText('Student');
+ fireEvent.change(screen.getByRole('textbox'),{target:{value:'same'}});fireEvent.click(screen.getByText('Send'));
+ fireEvent.change(screen.getByRole('textbox'),{target:{value:'new'}});fireEvent.change(screen.getByRole('textbox'),{target:{value:'same'}});
+ await act(async()=>finish());expect((screen.getByRole('textbox') as HTMLInputElement).value).toBe('same');
+});
+it('clears only the unchanged message after a successful send',async()=>{
+ mock.send.mockResolvedValue(undefined);render(<LectureRoom lecture="l" ar={false} onLeave={()=>{}}/>);await screen.findByText('Student');
+ fireEvent.change(screen.getByRole('textbox'),{target:{value:'sent'}});fireEvent.click(screen.getByText('Send'));
+ await waitFor(()=>expect((screen.getByRole('textbox') as HTMLInputElement).value).toBe(''));
+});
+it('releases old pending actions on room change and ignores their late failure',async()=>{
+ let reject!:(error:Error)=>void;mock.microphone.mockReturnValue(new Promise<void>((_r,j)=>reject=j));
+ const view=render(<LectureRoom lecture="old" ar={false} onLeave={()=>{}}/>);await screen.findByText('Student');fireEvent.click(screen.getByText('Enable microphone'));
+ view.rerender(<LectureRoom lecture="new" ar={false} onLeave={()=>{}}/>);await screen.findByText('Student');
+ expect((screen.getByRole('button',{name:'Enable camera'}) as HTMLButtonElement).disabled).toBe(false);
+ await act(async()=>reject(new Error('old failure')));expect(screen.queryByRole('alert')).toBeNull();
+});
+it('does not release a new pending action when an old action settles',async()=>{
+ let oldDone!:()=>void,newDone!:()=>void;mock.microphone.mockReturnValue(new Promise<void>(r=>oldDone=r));mock.camera.mockReturnValue(new Promise<void>(r=>newDone=r));
+ const view=render(<LectureRoom lecture="old" ar={false} onLeave={()=>{}}/>);await screen.findByText('Student');fireEvent.click(screen.getByText('Enable microphone'));
+ view.rerender(<LectureRoom lecture="new" ar={false} onLeave={()=>{}}/>);await screen.findByText('Student');fireEvent.click(screen.getByText('Enable camera'));
+ await act(async()=>oldDone());expect((screen.getByRole('button',{name:'Enable microphone'}) as HTMLButtonElement).disabled).toBe(true);
+ await act(async()=>newDone());expect(screen.getByText('Stop camera')).toBeTruthy();
+});
+it('does not erase a draft on late acknowledgment from the previous room',async()=>{
+ let finish!:()=>void;mock.send.mockReturnValue(new Promise<void>(r=>finish=r));
+ const view=render(<LectureRoom lecture="old" ar={false} onLeave={()=>{}}/>);await screen.findByText('Student');
+ fireEvent.change(screen.getByRole('textbox'),{target:{value:'retain'}});fireEvent.click(screen.getByText('Send'));
+ view.rerender(<LectureRoom lecture="new" ar={false} onLeave={()=>{}}/>);await screen.findByText('Student');await act(async()=>finish());
+ expect((screen.getByRole('textbox') as HTMLInputElement).value).toBe('retain');
+});
