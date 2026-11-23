@@ -27,3 +27,23 @@ it('renders remote chat as text and restricts removal UI to server-confirmed mod
  mock.join.mockResolvedValue({url:'wss://media.test',token:'server-token',moderator:true});render(<LectureRoom lecture="l" ar={false} onLeave={()=>{}}/>);await screen.findByText('Student');
  act(()=>mock.connect.mock.calls[0][3]({id:'chat',sender:'User',message:'<img src=x onerror=attack()>'}));expect(screen.getByText('<img src=x onerror=attack()>')).toBeTruthy();expect(screen.queryByRole('img')).toBeNull();expect(screen.getByText('Remove participant')).toBeTruthy();
 });
+it('offers a manual retry after denied admission without enabling devices',async()=>{
+ mock.join.mockRejectedValueOnce(new Error('offline'));render(<LectureRoom lecture="l" ar={false} onLeave={()=>{}}/>);
+ fireEvent.click(await screen.findByRole('button',{name:'Retry connection'}));await screen.findByText('Student');
+ expect(mock.join).toHaveBeenCalledTimes(2);expect(mock.camera).not.toHaveBeenCalled();expect(mock.microphone).not.toHaveBeenCalled();expect(screen.queryByText('Retry connection')).toBeNull();
+});
+it('clears media and moderator controls while reconnecting, keeping the unsent message',async()=>{
+ mock.join.mockResolvedValue({url:'wss://media.test',token:'server-token',moderator:true});
+ const view=render(<LectureRoom lecture="l" ar={true} onLeave={()=>{}}/>);await screen.findByText('Student');
+ fireEvent.change(screen.getByRole('textbox'),{target:{value:'رسالة غير مرسلة'}});
+ await act(async()=>mock.connect.mock.calls[0][4]());
+ expect(screen.getByRole('status').textContent).toContain('التحقق من صلاحية الدخول');expect(screen.queryByText('Student')).toBeNull();
+ expect(screen.queryByText('إزالة المشارك')).toBeNull();expect((screen.getByRole('button',{name:'تشغيل الميكروفون'}) as HTMLButtonElement).disabled).toBe(true);
+ expect((screen.getByRole('textbox') as HTMLInputElement).value).toBe('رسالة غير مرسلة');view.unmount();
+});
+it('ignores a late microphone operation from the disconnected room',async()=>{
+ let finish!:()=>void;mock.microphone.mockReturnValue(new Promise<void>(r=>finish=r));
+ const view=render(<LectureRoom lecture="l" ar={false} onLeave={()=>{}}/>);await screen.findByText('Student');
+ fireEvent.click(screen.getByText('Enable microphone'));await act(async()=>mock.connect.mock.calls[0][4]());await act(async()=>finish());
+ expect(screen.queryByText('Mute microphone')).toBeNull();expect(screen.getByText('Enable microphone')).toBeTruthy();view.unmount();
+});
