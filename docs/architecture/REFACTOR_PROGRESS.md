@@ -1,3 +1,23 @@
+# Integration and live recovery checkpoint — 2026-11-23
+
+Current branch **integration/approved-work-20261123**, PR **48**. The user's current explicit instruction authorizes normal pushes and merging passing changes into main; it supersedes older local-only checkpoints below. Production Supabase migrations, writes and deployments remain prohibited without separate explicit approval. Preserve every branch and all existing work; no force pushes.
+
+Read [integration report](../approved-specifications/INTEGRATION_2026-11-23.md), [71-decision implementation audit](../approved-specifications/DECISION_AUDIT_2026-11-23.md), branch inventory and migration comparison. 66 actual remote branches before publication (origin/HEAD excluded), 13 local branch refs, eleven unpublished commits were inventoried. Account-wide Codex task/session enumeration is unavailable; do not claim other workspaces were examined.
+
+PR46 merged at **2073ff76bc71ce45e60300cb66d7ef8d209ed0b5**, and GitHub confirms PR47 indirectly merged. Main files are byte-identical to prior eb8cb73 (tree69ac83492fe459e02f6ab120f362ece78ab27faa). Local fe10ac0 reconciled historical conflicts while preserving f0121b8; d2e9c7f incorporates the new main history without changing tested application content.
+
+**e6b50c0** advances decision57: serialized room shutdown, fresh server admission on reconnect, duplicate-event suppression, bounded1/2/4-second retries, explicit manual retry, cancellation/late connection cleanup, devices off until explicit activation.14 new tests. Decision57 remains partial pending a configured real provider; no LiveKit deployment or recording claim.
+
+Verification PASS:2557 Vitest/275files,36 Python,8 guard tests, all workspace types, architecture/math/module guards, generated artifact check and Vite build.22 lecture cases and final app types rerun after strengthening the cleanup guard.390 isolated SQL tests (293 academic,39 audit,58 university);24 native local Auth/JWT/PostgREST cases;6 populated upgrade cases;38 Chromium scenarios with fixture HTTP. No disabled tests. Initial conflict-state run was superseded by clean successful reruns.
+
+**PR48 is draft, published but not yet merged at this checkpoint.** Vercel preview on e6b50c0 failed despite successful local build. Logs require Vercel access (API403, no configured token); user was asked for the error text. Do not silently bypass the unresolved preview failure for new code. PR46's content-identical history merge is separate and already verified. Check subsequent PR48 status before resuming; pushing these reports may trigger a new preview.
+
+Supabase read-only project rspdfdrmswixcmpozgzr:54 recorded migrations through logical0056,32 exact text comparisons, earlier split/missing statements carefully distinguished. Six timestamped local migrations are absent; no reapply/repair/db push. Only ai-tutor-chat, ai-tutor-index and ai-practice-generate are deployed. Local PostgreSQL16 versus production17.11 is a stated test limit. Publishing code does not establish production readiness.
+
+Decision totals remain **42 locally complete,19 partial,10 missing**. Every delivery must list decision numbers by status and distinguish published/merged/deployed.72–80 unapproved. Preserve old checkpoint history below; its publication restrictions and migration availability statements are historical.
+
+## Preserved previous checkpoints
+
 # Recovery cell style merge checkpoint — 2026-11-22
 
 Current branch **feature/approved-sheets-cell-style-merge**, based on **3745d4a**. Read-only remote main check remains **eb8cb7358b96866dcfaf7bdeb1e892881930545d**. Preserve all earlier local packages. Local development/tests only; no push, PR, merge, production SQL or deployment. No schema, authorization or dependency changes.
