@@ -401,7 +401,12 @@ try {
     );
     if (writtenRun) {
       const input=page.getByLabel(ar ? "1: إجابة مكتوبة" : "1: Written answer",{exact:true});
-      offline=true; await input.fill(writtenText);
+      offline=true;
+      await page.getByRole('button',{name:ar?'إدراج x²':'Insert x²',exact:true}).click();
+      assert.equal(await input.inputValue(),'x^2');
+      await input.locator('..').screenshot({path:`${output}/palette-${width}-${language}.png`});
+      assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2));
+      await input.fill(writtenText);
       await page.getByRole("alert").filter({hasText:ar ? "تعذر الاتصال" : "Connection or service"}).waitFor();
       assert.equal(await input.inputValue(),writtenText);
       assert.equal(await page.evaluate(key=>localStorage.getItem(key),`yhub-practice-choice:${id}:${state.id}`),null);

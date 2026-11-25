@@ -10,6 +10,7 @@ import {
   type PracticeSession,
 } from "./sessionsRepository";
 import { PracticeAssessment } from "./review/PracticeAssessment";
+import { WrittenAnswerInput } from "./WrittenAnswerInput";
 import { sessionCopy } from "./sessionCopy";
 const button = "rounded border px-3 py-2 text-sm disabled:opacity-50";
 type PendingAnswer =
@@ -289,17 +290,15 @@ export function PracticeSessionView({
                   </label>
                 ))}
                 {q.acceptsWritten && (
-                  <label className="block space-y-1">
+                  <div className="block space-y-1">
                     <span>
                       {language === "ar"
                         ? "أو اكتب الإجابة الرياضية"
                         : "Or write the mathematical answer"}
                     </span>
-                    <input
-                      aria-label={`${q.position}: ${language === "ar" ? "إجابة مكتوبة" : "Written answer"}`}
-                      dir="ltr"
-                      maxLength={400}
-                      className="w-full rounded border bg-background p-2"
+                    <WrittenAnswerInput
+                      label={`${q.position}: ${language === "ar" ? "إجابة مكتوبة" : "Written answer"}`}
+                      ar={language === "ar"}
                       value={
                         pending?.value.position === q.position
                           ? "text" in pending.value
@@ -307,14 +306,14 @@ export function PracticeSessionView({
                             : ""
                           : (q.writtenAnswer ?? "")
                       }
-                      onChange={(e) => write(q.position, e.target.value)}
+                      onChange={(value) => write(q.position, value)}
                     />
                     <span className="block text-xs">
                       {language === "ar"
                         ? "استخدم حدودًا بمعاملات صحيحة مثل 2*x+1، ولعائلة التكامل x^2+x+C. التعبيرات غير المدعومة تحتاج مراجعة ولا تُحتسب خاطئة."
                         : "Use integer monomials, e.g. 2*x+1, or x^2+x+C for an integral family. Unsupported expressions need review and are not counted as incorrect."}
                     </span>
-                  </label>
+                  </div>
                 )}
               </fieldset>
               {!session.submittedAt &&
