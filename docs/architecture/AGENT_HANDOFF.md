@@ -1,3 +1,11 @@
+# Polynomial input palette checkpoint
+
+Current branch integration/approved-work-20261123, PR48; previous verified remote38db1ac. Implementation **f89648b** advances decisions28/29 with a polynomial symbol palette in AI Practice written answers. Read [PRACTICE_POLYNOMIAL_PALETTE](../approved-specifications/PRACTICE_POLYNOMIAL_PALETTE.md). Inserts parser syntax at selection/caret, preserves unsupported typed text, explains verifier limits, refuses overflow without truncation, respects disabled fieldsets and never submits the form. No math algorithm, grading, hidden-answer, RPC, SQL or storage contract changes. Neither a general visual editor nor all-engine keyboard is complete.
+
+Verification PASS:2569 Vitest/276files,36 Python,8 module guard tests, workspace types, architecture/math/module checks, generated artifact check and Vite build.30 focused input/session cases including7 new;4 final written-answer Chromium scenarios, Arabic/English at390/1280, now exercise palette insertion and overflow-free layout before save/recovery. Arabic mobile screenshot reviewed. Initial focused run lacked local test env variables; corrected configuration and rerun passed. No disabled tests. No SQL/Auth rerun; browser network is fixture-only.
+
+Publishing and merging passing work remain authorized. PR48 stays draft until its unresolved Vercel preview failure is diagnosed and passes; no Vercel credential/log access has been supplied. Check the latest SHA/status before resuming. Production migrations/deployments remain unauthorized. PR46/47 already merged at main2073ff7. Counts remain42 locally complete,19 partial,10 missing; report all decision numbers each delivery. Older checkpoints below are historical.
+
 # Live action isolation checkpoint — 2026-11-23
 
 Current branch integration/approved-work-20261123, PR48. Previous verified remote head09ccd20; implementation commit **73f4e3e**. Read [LIVE_ACTION_ISOLATION](../approved-specifications/LIVE_ACTION_ISOLATION.md). Decision57 advances but remains partial: asynchronous actions are scoped to a connection generation, old pending work cannot lock/unlock the new room or raise stale errors, and send acknowledgments preserve edited/new-connection chat drafts. No server permission or schema changes; no new local chat storage.
