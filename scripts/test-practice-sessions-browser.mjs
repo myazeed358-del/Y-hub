@@ -410,9 +410,12 @@ try {
       await input.evaluate(el=>{el.focus();el.setSelectionRange(0,el.value.length);});
       await page.getByRole('button',{name:ar?'إدراج الحدّ':'Insert term',exact:true}).click();
       assert.equal(await input.inputValue(),'3*x^2');
+      assert.equal(await input.locator('..').locator('[data-written-syntax]').getAttribute('data-written-syntax'),'supported');
       await input.locator('..').screenshot({path:`${output}/builder-${width}-${language}.png`});
       assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2));
       await input.fill(writtenText);
+      assert.equal(await input.locator('..').locator('[data-written-syntax]').getAttribute('data-written-syntax'),width===390?'review':'supported');
+      await input.locator('..').screenshot({path:`${output}/syntax-${width}-${language}.png`});
       await page.getByRole("alert").filter({hasText:ar ? "تعذر الاتصال" : "Connection or service"}).waitFor();
       assert.equal(await input.inputValue(),writtenText);
       assert.equal(await page.evaluate(key=>localStorage.getItem(key),`yhub-practice-choice:${id}:${state.id}`),null);

@@ -22,8 +22,8 @@ it('does not submit a form when a symbol is chosen',()=>{
 });
 it('refuses overflow without truncating existing text and permits replacement at the limit',()=>{
  render(<Editor initial={'1'.repeat(400)}/>);const input=screen.getByRole('textbox',{name:'Answer'}) as HTMLInputElement;input.setSelectionRange(400,400);
- fireEvent.click(screen.getByRole('button',{name:'Insert x'}));expect(input.value.length).toBe(400);expect(screen.getByRole('status')).toBeTruthy();
- input.setSelectionRange(0,3);fireEvent.click(screen.getByRole('button',{name:'Insert x²'}));expect(input.value.startsWith('x^2')).toBe(true);expect(input.value.length).toBe(400);expect(screen.queryByRole('status')).toBeNull();
+ fireEvent.click(screen.getByRole('button',{name:'Insert x'}));expect(input.value.length).toBe(400);expect(screen.getByText('Symbol not inserted: maximum 400 characters.')).toBeTruthy();
+ input.setSelectionRange(0,3);fireEvent.click(screen.getByRole('button',{name:'Insert x²'}));expect(input.value.startsWith('x^2')).toBe(true);expect(input.value.length).toBe(400);expect(screen.queryByText('Symbol not inserted: maximum 400 characters.')).toBeNull();
 });
 it('preserves unsupported typed text and explains the review boundary',()=>{
  render(<Editor/>);const input=screen.getByRole('textbox',{name:'Answer'}) as HTMLInputElement;fireEvent.change(input,{target:{value:'sqrt(x)/2'}});
@@ -35,4 +35,16 @@ it('respects an enclosing disabled fieldset',()=>{
 it('has Arabic labels and keeps mathematical input left-to-right',()=>{
  render(<Editor ar/>);expect(screen.getByRole('group',{name:'رموز كثيرات الحدود'})).toBeTruthy();fireEvent.click(screen.getByRole('button',{name:'إدراج t²'}));
  expect((screen.getByRole('textbox',{name:'Answer'}) as HTMLInputElement).value).toBe('t^2');expect(screen.getByRole('textbox',{name:'Answer'}).getAttribute('dir')).toBe('ltr');
+});
+
+it('shows syntax advice without blocking or rewriting unsupported text',()=>{
+ render(<Editor/>);const input=screen.getByRole('textbox',{name:'Answer'}) as HTMLInputElement;
+ fireEvent.change(input,{target:{value:'(x+1)^2'}});expect(screen.getByText(/outside the current parser/)).toBeTruthy();expect(input.value).toBe('(x+1)^2');
+ fireEvent.change(input,{target:{value:'2*x+1'}});expect(screen.getByText(/this is not an answer grade/)).toBeTruthy();expect(screen.queryByText(/outside the current parser/)).toBeNull();
+ fireEvent.change(input,{target:{value:''}});expect(screen.queryByText(/this is not an answer grade/)).toBeNull();
+});
+it('connects Arabic syntax advice to the input description',()=>{
+ render(<Editor ar initial="x^9"/>);const input=screen.getByRole('textbox',{name:'Answer'});const advice=screen.getByText(/خارج نطاق المحلّل الحالي/);
+ expect(input.getAttribute('aria-describedby')?.split(' ')).toContain(advice.id);
+ expect((input as HTMLInputElement).value).toBe('x^9');
 });
