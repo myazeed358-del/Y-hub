@@ -1,4 +1,5 @@
 import {useId,useLayoutEffect,useRef,useState} from 'react';
+import {PolynomialTermBuilder} from './PolynomialTermBuilder';
 
 const symbols=[['x','x'],['t','t'],['+','+'],['−','-'],['×','*'],['x²','x^2'],['t²','t^2'],['^','^'],['+C','+C']] as const;
 
@@ -24,6 +25,7 @@ export function WrittenAnswerInput({value,onChange,label,ar}:{value:string;onCha
    {symbols.map(([display,text])=><button key={display} type="button" className="rounded border px-3 py-2 text-sm disabled:opacity-50"
     aria-label={`${ar?'إدراج':'Insert'} ${display}`} onMouseDown={e=>e.preventDefault()} onClick={()=>insert(text)}>{display}</button>)}
   </div>
+  <PolynomialTermBuilder ar={ar} onInsert={insert}/>
   <p id={`${id}-help`} className="text-xs">{ar?'هذه اللوحة لكثيرات الحدود فقط: استخدم متغير السؤال، ومعاملات صحيحة محدودة وأسّ صحيح من 0 إلى 8، و+C لعائلة التكامل. الكسور والجذور والدوال والأقواس خارج التصحيح المكتوب الحالي وتحتاج مراجعة.':'This palette is for polynomials only: use the question’s variable, bounded integer coefficients, integer powers from 0 to 8, and +C for integral families. Fractions, roots, functions and parentheses need review outside the current written verifier.'}</p>
   {tooLong&&<p id={`${id}-limit`} role="status" className="text-xs">{ar?'لم يُدرج الرمز: الحد الأقصى 400 حرف.':'Symbol not inserted: maximum 400 characters.'}</p>}
  </div>;

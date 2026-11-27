@@ -404,7 +404,13 @@ try {
       offline=true;
       await page.getByRole('button',{name:ar?'إدراج x²':'Insert x²',exact:true}).click();
       assert.equal(await input.inputValue(),'x^2');
-      await input.locator('..').screenshot({path:`${output}/palette-${width}-${language}.png`});
+      await page.getByText(ar?'بناء حدّ رياضي':'Build a polynomial term',{exact:true}).click();
+      await page.getByLabel(ar?'المعامل الصحيح':'Integer coefficient',{exact:true}).fill('3');
+      await page.getByLabel(ar?'الأسّ':'Power',{exact:true}).selectOption('2');
+      await input.evaluate(el=>{el.focus();el.setSelectionRange(0,el.value.length);});
+      await page.getByRole('button',{name:ar?'إدراج الحدّ':'Insert term',exact:true}).click();
+      assert.equal(await input.inputValue(),'3*x^2');
+      await input.locator('..').screenshot({path:`${output}/builder-${width}-${language}.png`});
       assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2));
       await input.fill(writtenText);
       await page.getByRole("alert").filter({hasText:ar ? "تعذر الاتصال" : "Connection or service"}).waitFor();
