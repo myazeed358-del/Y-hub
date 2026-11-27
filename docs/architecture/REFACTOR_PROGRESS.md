@@ -1,3 +1,11 @@
+# Written syntax feedback checkpoint
+
+Current branch integration/approved-work-20261123, PR48; previous verified remotea5a7bb8. Implementation **ca82ad2** advances29 with parser-backed advisory written syntax feedback. Read [PRACTICE_SYNTAX_FEEDBACK](../approved-specifications/PRACTICE_SYNTAX_FEEDBACK.md). Uses the existing public parseWrittenPolynomial for x/t with/without integration constant; no alternative grammar, hidden question/key/score data, eval, normalization of the user's stored text or save blocking. Syntax support does not establish correct variable/answer form or correctness for a particular question. Server grading/review remains authoritative.
+
+PASS:2606 Vitest/278files,36 Python,8 guard cases, workspace types, architecture/math/module checks, generated artifact and Vite build.67 focused cases including26 new;4 final Chromium Arabic/English390/1280 scenarios assert supported/review feedback then preserve/save/recover the same text. Arabic mobile screenshot reviewed. Existing Vite5175 served the current checkout; attempted duplicate startup was rejected and the running server reused. No disabled tests or SQL/Auth rerun. Browser network is mocked, not production proof.
+
+Publishing/merging passing work remains authorized; PR48 stays draft pending diagnosis and passing Vercel preview. Check latest head/status. Prior logs require unavailable Vercel access and user has not supplied the build error. Main last verified2073ff7; PR46/47 already merged. No production SQL/deployment or force push. Counts42 locally complete/19 partial/10 missing;28/29 remain partial for general editing and other-engine capabilities. List all decision numbers each delivery. Prior checkpoints below are historical.
+
 # Visual polynomial term builder checkpoint
 
 Current branch integration/approved-work-20261123, PR48; previous verified remote57202be. Implementation **e86ddca** advances28/29 with a visual single-term builder (bounded integer coefficient, x/t, power0–8), escaped React preview and explicit insertion into the existing selection/caret flow. Arabic/Persian digits are supported; fractions/scientific notation/out-of-range coefficients are rejected without rounding. No grading, hidden-key, math algorithm, SQL/RPC/Edge or storage change. General math editing and other-engine palettes remain partial.
