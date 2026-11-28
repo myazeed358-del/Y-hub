@@ -16,9 +16,10 @@ const actor = { person_id: id, relation: 'actor', full_name: 'Instructor', full_
 const affected = { ...actor, person_id: affectedId, relation: 'affected', full_name: 'Student', full_name_ar: 'طالب تجريبي', full_name_en: 'Test Student', user_number: '009876543' };
 const event = { id: '11111111-1111-4111-8111-111111111111', occurred_at: '2026-10-27T10:00:00Z', actor_id: id, actor_name: 'Instructor', actor_role: 'instructor', operation: 'UPDATE', actions: ['updated'], entity_type: 'courses', entity_id: '33333333-3333-4333-8333-333333333333', sensitivity: 'normal', super_admin_only: false, old_values: { is_published: true }, new_values: { is_published: false }, context: { changed_fields: ['is_published'] }, people: [actor, affected] };
 try {
-  for (const [width, language, theme, role] of [[390, 'ar', 'dark', 'admin'], [1280, 'en', 'light', 'super_admin']]) {
+  for (const [width, language, theme, role] of [[390, 'ar', 'dark', 'admin'], [390, 'ar', 'dark', 'super_admin'], [1280, 'en', 'light', 'super_admin']]) {
     const context = await browser.newContext({ viewport: { width, height: 900 } });
     const requests = [], suggestions = [], errors = [];
+    let policy = { months: 24, revision: 0 }, hold = { active: false, revision: 0 };
     await context.route('**/*', async route => {
       const url = new URL(route.request().url());
       if (url.origin === base.origin) return route.continue();
@@ -30,6 +31,16 @@ try {
         return json({ events: [event], total: 123 });
       }
       if (url.pathname === '/rest/v1/rpc/suggest_audit_people') { suggestions.push(route.request().postDataJSON()); return json([affected]); }
+      if (url.pathname === '/rest/v1/rpc/get_audit_retention_policy') return json(policy);
+      if (url.pathname === '/rest/v1/rpc/set_audit_retention_policy') {
+        const p = route.request().postDataJSON(); assert.equal(p.p_revision, policy.revision);
+        policy = { months: p.p_months, revision: policy.revision + 1 }; return json(policy);
+      }
+      if (url.pathname === '/rest/v1/rpc/get_audit_investigation_hold') return json(hold);
+      if (url.pathname === '/rest/v1/rpc/set_audit_investigation_hold') {
+        const p = route.request().postDataJSON(); assert.equal(p.p_event, event.id); assert.equal(p.p_revision, hold.revision);
+        hold = { active: p.p_active, revision: hold.revision + 1 }; return json(hold);
+      }
       if (url.pathname.startsWith('/rest/v1/')) return json([]);
       return route.abort();
     });
@@ -44,6 +55,13 @@ try {
     await title.waitFor();
     await page.getByText(ar ? 'دكتور تجريبي' : 'Test Instructor', { exact: true }).waitFor();
     assert.equal(await title.locator('xpath=ancestor::section').getAttribute('dir'), ar ? 'rtl' : 'ltr');
+    if (role === 'super_admin') {
+      await page.getByLabel(ar ? 'المدة بالأشهر' : 'Period in months', { exact: true }).fill('12');
+      const save = page.getByRole('button', { name: ar ? 'حفظ المدة' : 'Save period', exact: true });
+      assert(await save.isDisabled()); await page.getByRole('checkbox').check(); await save.click();
+      await page.getByText(ar ? 'تم الحفظ وتسجيل التغيير في سجل التدقيق.' : 'Saved and recorded in the audit log.', { exact: true }).waitFor();
+      assert.equal(policy.months, 12);
+    } else assert.equal(await page.getByRole('heading', { name: 'مدة الاحتفاظ بسجل التدقيق' }).count(), 0);
     await page.getByText(ar ? 'النتائج: 123' : 'Results: 123', { exact: true }).waitFor();
     await page.getByLabel(ar ? 'البحث عن الشخص بصفته' : 'Search people as').selectOption('affected');
     await page.getByLabel(ar ? 'اسم الشخص أو رقمه ذو التسعة أرقام' : 'Person name or nine-digit number').fill('009876543');
@@ -57,6 +75,11 @@ try {
     const dialog = page.getByRole('dialog'); await dialog.waitFor();
     await dialog.getByText(ar ? 'طالب تجريبي' : 'Test Student', { exact: true }).waitFor();
     await dialog.getByText('009876543', { exact: true }).waitFor();
+    if (role === 'super_admin') {
+      await dialog.getByRole('button', { name: ar ? 'حماية للتحقيق' : 'Hold for investigation', exact: true }).click();
+      await dialog.getByRole('button', { name: ar ? 'إنهاء حماية التحقيق' : 'Release investigation hold', exact: true }).waitFor();
+      assert.equal(hold.active, true);
+    }
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
     await page.screenshot({ path: `${output}/${width}-${language}-${role}.png`, fullPage: true });
     assert.deepEqual(errors, []);

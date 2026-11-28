@@ -86,3 +86,30 @@ class AuditPeopleHTTP(unittest.TestCase):
             self.assertEqual(self.ok('admin', '/audit_event_people'), [])
         finally:
             self.ok('super_admin', '/rpc/admin_set_user_role', {'p_user_id': uid, 'p_new_role': 'admin'})
+
+    def test_retention_owner_rpc_and_audited_hold_through_real_jwt(self):
+        policy = self.ok('super_admin', '/rpc/get_audit_retention_policy', {})
+        self.assertEqual(policy['months'], 24)
+        changed = self.ok('super_admin', '/rpc/set_audit_retention_policy', {'p_months': 36, 'p_revision': policy['revision']})
+        self.course()
+        eid = self.stack.sql('SELECT id FROM public.audit_events ORDER BY occurred_at DESC LIMIT 1')
+        held = self.ok('super_admin', '/rpc/set_audit_investigation_hold', {'p_event': eid, 'p_active': True, 'p_revision': 0})
+        self.assertEqual(held, {'active': True, 'revision': 1})
+        self.assertEqual(self.ok('super_admin', '/rpc/get_audit_investigation_hold', {'p_event': eid}), held)
+        for role in ('student','instructor','admin',None):
+            for rpc, params in [('get_audit_retention_policy', {}), ('set_audit_retention_policy', {'p_months':12,'p_revision':changed['revision']}),
+                                ('get_audit_investigation_hold', {'p_event':eid}), ('set_audit_investigation_hold', {'p_event':eid,'p_active':False,'p_revision':1})]:
+                status, _ = self.request(role, '/rpc/'+rpc, params)
+                self.assertIn(status, (401,403))
+        status, _ = self.request('super_admin', '/rpc/set_audit_retention_policy', {'p_months':12,'p_revision':policy['revision']})
+        self.assertEqual(status, 409)
+        self.ok('super_admin','/rpc/set_audit_retention_policy',{'p_months':24,'p_revision':changed['revision']})
+
+    def test_retention_same_owner_jwt_denied_after_demotion(self):
+        uid = self.accounts['super_admin'][0]
+        try:
+            self.stack.sql(f"UPDATE public.users SET role='student' WHERE id='{uid}'")
+            status, _ = self.request('super_admin', '/rpc/get_audit_retention_policy', {})
+            self.assertEqual(status,403)
+        finally:
+            self.stack.sql(f"UPDATE public.users SET role='super_admin' WHERE id='{uid}'")

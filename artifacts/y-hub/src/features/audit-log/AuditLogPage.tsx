@@ -1,3 +1,4 @@
+import { AuditRetentionControls } from './components/AuditRetentionControls';
 import { AuditPersonIdentity } from './components/AuditPersonIdentity';
 import { AuditPersonSearch } from './components/AuditPersonSearch';
 import { useState, type FormEvent } from 'react';
@@ -18,6 +19,7 @@ export default function AuditLogPage() {
 }
 
 function AuditReview() {
+  const { role } = useAuth();
   const { language } = useLanguage();
   const copy = auditCopy[language];
   const log = useAuditLog();
@@ -35,6 +37,7 @@ function AuditReview() {
       <div><h1 className="text-2xl font-bold">{copy.title}</h1><p className="mt-2 text-sm text-muted-foreground">{copy.subtitle}</p></div>
       <Button variant="outline" onClick={log.refresh} disabled={log.loading}>{copy.refresh}</Button>
     </header>
+    {role === 'super_admin' && <AuditRetentionControls />}
     <form onSubmit={submit} className="grid gap-3 rounded-xl border bg-card p-4 sm:grid-cols-2 lg:grid-cols-3">
       <label className="space-y-1 text-sm">{copy.search}<Input value={draft.search} maxLength={200} onChange={e => field('search', e.target.value)} /></label>
       <AuditPersonSearch filters={draft} onChange={setDraft} copy={copy} />
