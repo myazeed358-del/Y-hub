@@ -15,6 +15,8 @@ export const livekitProvider:LectureProvider={
   const update=()=>onUpdate();
   for(const event of [RoomEvent.ParticipantConnected,RoomEvent.ParticipantDisconnected,RoomEvent.TrackSubscribed,RoomEvent.TrackUnsubscribed,RoomEvent.LocalTrackPublished,RoomEvent.LocalTrackUnpublished,RoomEvent.TrackMuted,RoomEvent.TrackUnmuted])room.on(event,update);
   room.on(RoomEvent.Disconnected,onDisconnect);
+  // A reconnect must pass current server admission instead of reusing old access.
+  room.on(RoomEvent.Reconnecting,onDisconnect);
   room.on(RoomEvent.DataReceived,(bytes,participant)=>{
    if(!participant||bytes.length>4096)return;
    try{const data=JSON.parse(new TextDecoder().decode(bytes));if(typeof data.message==='string'&&data.message.length<=1000)onChat({id:crypto.randomUUID(),sender:participant.name||participant.identity,message:data.message});}catch{/* Ignore malformed peer data. */}

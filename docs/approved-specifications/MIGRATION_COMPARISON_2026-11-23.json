@@ -1,0 +1,369 @@
+{
+  "project": "rspdfdrmswixcmpozgzr",
+  "observed": "2026-11-23",
+  "readOnly": true,
+  "files": [
+    {
+      "file": "0001_initial_schema.sql",
+      "registered_version": "0001",
+      "registered_name": "initial_schema",
+      "comparison": "REGISTERED_SPLIT_STATEMENTS"
+    },
+    {
+      "file": "0002_quiz_module.sql",
+      "registered_version": "0002",
+      "registered_name": "quiz_module",
+      "comparison": "REGISTERED_SPLIT_STATEMENTS"
+    },
+    {
+      "file": "0003_security_and_rpcs.sql",
+      "registered_version": "0003",
+      "registered_name": "security_and_rpcs",
+      "comparison": "REGISTERED_SPLIT_STATEMENTS"
+    },
+    {
+      "file": "0004_users_security.sql",
+      "registered_version": "0004",
+      "registered_name": "users_security",
+      "comparison": "REGISTERED_SPLIT_STATEMENTS"
+    },
+    {
+      "file": "0005_security_hardening_phase5a.sql",
+      "registered_version": "0005",
+      "registered_name": "security_hardening_phase5a",
+      "comparison": "REGISTERED_SPLIT_STATEMENTS"
+    },
+    {
+      "file": "0006_enrollment.sql",
+      "registered_version": "0006",
+      "registered_name": "enrollment",
+      "comparison": "REGISTERED_SPLIT_STATEMENTS"
+    },
+    {
+      "file": "0007_storage_security.sql",
+      "registered_version": "0007",
+      "registered_name": "storage_security",
+      "comparison": "REGISTERED_SPLIT_STATEMENTS"
+    },
+    {
+      "file": "0008_profile_data_integrity.sql",
+      "registered_version": "0008",
+      "registered_name": "profile_data_integrity",
+      "comparison": "REGISTERED_SPLIT_STATEMENTS"
+    },
+    {
+      "file": "0009_restore_authenticated_profile_read.sql",
+      "registered_version": "0009",
+      "registered_name": "restore_authenticated_profile_read",
+      "comparison": "CONTENT_DIFF",
+      "review_note": "DDL matches; recorded statement omits final semicolon and newline. Do not reapply."
+    },
+    {
+      "file": "0010_student_only_study_year.sql",
+      "registered_version": "0010",
+      "registered_name": "student_only_study_year",
+      "comparison": "REGISTERED_SPLIT_STATEMENTS"
+    },
+    {
+      "file": "0011_course_syllabus.sql",
+      "registered_version": "0011",
+      "registered_name": "course_syllabus",
+      "comparison": "REGISTERED_SPLIT_STATEMENTS"
+    },
+    {
+      "file": "0012_restore_course_insert_grant.sql",
+      "registered_version": "0012",
+      "registered_name": "restore_course_insert_grant",
+      "comparison": "CONTENT_DIFF",
+      "review_note": "DDL matches; recorded statement omits final semicolon and newline. Do not reapply."
+    },
+    {
+      "file": "0013_restore_course_select_grant.sql",
+      "registered_version": "0013",
+      "registered_name": "restore_course_select_grant",
+      "comparison": "REGISTERED_SPLIT_STATEMENTS"
+    },
+    {
+      "file": "0014_restore_course_update_delete_grants.sql",
+      "registered_version": "0014",
+      "registered_name": "restore_course_update_delete_grants",
+      "comparison": "REGISTERED_SPLIT_STATEMENTS"
+    },
+    {
+      "file": "0015_ai_tutor_quota_and_material_grants.sql",
+      "registered_version": "0015",
+      "registered_name": "ai_tutor_quota_and_material_grants",
+      "comparison": "REGISTERED_SPLIT_STATEMENTS"
+    },
+    {
+      "file": "0016_ai_tutor_global_daily_quota.sql",
+      "registered_version": "0016",
+      "registered_name": "ai_tutor_global_daily_quota",
+      "comparison": "REGISTERED_SPLIT_STATEMENTS"
+    },
+    {
+      "file": "0017_course_enrollment_roster.sql",
+      "registered_version": "0017",
+      "registered_name": "course_enrollment_roster",
+      "comparison": "REGISTERED_SPLIT_STATEMENTS"
+    },
+    {
+      "file": "0018_user_numbers.sql",
+      "registered_version": "0018",
+      "registered_name": "user_numbers",
+      "comparison": "REGISTERED_SPLIT_STATEMENTS"
+    },
+    {
+      "file": "0019_course_enrollment_insert_grant.sql",
+      "registered_version": "0019",
+      "registered_name": "course_enrollment_insert_grant",
+      "comparison": "REGISTERED_SPLIT_STATEMENTS"
+    },
+    {
+      "file": "0020_section_enrollment_control.sql",
+      "registered_version": "0020",
+      "registered_name": "section_enrollment_control",
+      "comparison": "REGISTERED_SPLIT_STATEMENTS"
+    },
+    {
+      "file": "0021_roster_user_numbers.sql",
+      "registered_version": "0021",
+      "registered_name": "roster_user_numbers",
+      "comparison": "REGISTERED_SPLIT_STATEMENTS"
+    },
+    {
+      "file": "0022_central_audit_log.sql",
+      "registered_version": "0022",
+      "registered_name": "central_audit_log",
+      "comparison": "REGISTERED_NO_STATEMENTS"
+    },
+    {
+      "file": "0023_y_sheets_workbooks.sql",
+      "registered_version": "0023",
+      "registered_name": "y_sheets_workbooks",
+      "comparison": "EXACT_MATCH"
+    },
+    {
+      "file": "0024_y_sheets_safe_saves.sql",
+      "registered_version": "0024",
+      "registered_name": "y_sheets_safe_saves",
+      "comparison": "EXACT_MATCH"
+    },
+    {
+      "file": "0025_exam_attempt_integrity.sql",
+      "registered_version": "0025",
+      "registered_name": "exam_attempt_integrity",
+      "comparison": "EXACT_MATCH"
+    },
+    {
+      "file": "0026_confirm_course_deletion.sql",
+      "registered_version": "0026",
+      "registered_name": "confirm_course_deletion",
+      "comparison": "EXACT_MATCH"
+    },
+    {
+      "file": "0027_academic_course_definitions.sql",
+      "registered_version": "0027",
+      "registered_name": "academic_course_definitions",
+      "comparison": "EXACT_MATCH"
+    },
+    {
+      "file": "0028_syllabus_and_academic_permissions.sql",
+      "registered_version": "0028",
+      "registered_name": "syllabus_and_academic_permissions",
+      "comparison": "EXACT_MATCH"
+    },
+    {
+      "file": "0029_security_privileges_and_exam_access.sql",
+      "registered_version": "20261024121126",
+      "registered_name": "yhub_0029_security_privileges_and_exam_access",
+      "comparison": "EXACT_MATCH"
+    },
+    {
+      "file": "0030_exam_question_snapshots.sql",
+      "registered_version": "20261024121143",
+      "registered_name": "yhub_0030_exam_question_snapshots",
+      "comparison": "EXACT_MATCH"
+    },
+    {
+      "file": "0033_exceptional_engine_access.sql",
+      "registered_version": "20261024121152",
+      "registered_name": "yhub_0033_exceptional_engine_access",
+      "comparison": "EXACT_MATCH"
+    },
+    {
+      "file": "0034_student_quick_access.sql",
+      "registered_version": "20261024121200",
+      "registered_name": "yhub_0034_student_quick_access",
+      "comparison": "EXACT_MATCH"
+    },
+    {
+      "file": "0035_academic_attendance.sql",
+      "registered_version": "20261024121209",
+      "registered_name": "yhub_0035_academic_attendance",
+      "comparison": "EXACT_MATCH"
+    },
+    {
+      "file": "0036_online_lectures.sql",
+      "registered_version": "20261024121219",
+      "registered_name": "yhub_0036_online_lectures",
+      "comparison": "EXACT_MATCH"
+    },
+    {
+      "file": "0037_y_sheets_application_conflicts.sql",
+      "registered_version": "20261024121227",
+      "registered_name": "yhub_0037_y_sheets_application_conflicts",
+      "comparison": "EXACT_MATCH"
+    },
+    {
+      "file": "0038_ai_tutor_knowledge.sql",
+      "registered_version": "20261024191350",
+      "registered_name": "yhub_0038_ai_tutor_knowledge",
+      "comparison": "EXACT_MATCH"
+    },
+    {
+      "file": "0039_ai_tutor_arabic_search.sql",
+      "registered_version": "20261024191400",
+      "registered_name": "yhub_0039_ai_tutor_arabic_search",
+      "comparison": "EXACT_MATCH"
+    },
+    {
+      "file": "0040_attendance_session_lifecycle.sql",
+      "registered_version": "20261025141641",
+      "registered_name": "yhub_0040_attendance_session_lifecycle",
+      "comparison": "EXACT_MATCH"
+    },
+    {
+      "file": "0041_academic_management_contracts.sql",
+      "registered_version": "20261025141659",
+      "registered_name": "yhub_0041_academic_management_contracts",
+      "comparison": "EXACT_MATCH"
+    },
+    {
+      "file": "0042_attendance_reporting.sql",
+      "registered_version": "20261027090639",
+      "registered_name": "yhub_0042_attendance_reporting",
+      "comparison": "EXACT_MATCH"
+    },
+    {
+      "file": "0043_engine_grant_workflows.sql",
+      "registered_version": "20261028151600",
+      "registered_name": "yhub_0043_engine_grant_workflows",
+      "comparison": "EXACT_MATCH"
+    },
+    {
+      "file": "0044_bilingual_profile_names.sql",
+      "registered_version": "20261028151609",
+      "registered_name": "yhub_0044_bilingual_profile_names",
+      "comparison": "EXACT_MATCH"
+    },
+    {
+      "file": "0045_audit_person_search.sql",
+      "registered_version": "20261028151616",
+      "registered_name": "yhub_0045_audit_person_search",
+      "comparison": "EXACT_MATCH"
+    },
+    {
+      "file": "0046_lesson_completion.sql",
+      "registered_version": "20261101071141",
+      "registered_name": "yhub_0046_lesson_completion",
+      "comparison": "EXACT_MATCH"
+    },
+    {
+      "file": "0047_ai_practice_sources.sql",
+      "registered_version": "20261101071144",
+      "registered_name": "yhub_0047_ai_practice_sources",
+      "comparison": "EXACT_MATCH"
+    },
+    {
+      "file": "0048_ai_practice_sessions.sql",
+      "registered_version": "20261101071153",
+      "registered_name": "yhub_0048_ai_practice_sessions",
+      "comparison": "EXACT_MATCH"
+    },
+    {
+      "file": "0049_ai_practice_review.sql",
+      "registered_version": "20261101071156",
+      "registered_name": "yhub_0049_ai_practice_review",
+      "comparison": "EXACT_MATCH"
+    },
+    {
+      "file": "0050_ai_practice_math_verification.sql",
+      "registered_version": "20261101071205",
+      "registered_name": "yhub_0050_ai_practice_math_verification",
+      "comparison": "EXACT_MATCH"
+    },
+    {
+      "file": "0051_ai_practice_equivalence.sql",
+      "registered_version": "20261102194840",
+      "registered_name": "yhub_0051_ai_practice_equivalence",
+      "comparison": "EXACT_MATCH"
+    },
+    {
+      "file": "0052_ai_practice_adaptive_difficulty.sql",
+      "registered_version": "20261102194855",
+      "registered_name": "yhub_0052_ai_practice_adaptive_difficulty",
+      "comparison": "EXACT_MATCH"
+    },
+    {
+      "file": "0053_ai_practice_performance.sql",
+      "registered_version": "20261102194905",
+      "registered_name": "yhub_0053_ai_practice_performance",
+      "comparison": "EXACT_MATCH"
+    },
+    {
+      "file": "0054_ai_practice_outline_scope.sql",
+      "registered_version": "20261107141546",
+      "registered_name": "ai_practice_outline_scope",
+      "comparison": "EXACT_MATCH"
+    },
+    {
+      "file": "0055_ai_practice_topic_performance.sql",
+      "registered_version": "20261107141549",
+      "registered_name": "ai_practice_topic_performance",
+      "comparison": "EXACT_MATCH"
+    },
+    {
+      "file": "0056_practice_antiderivatives.sql",
+      "registered_version": "20261107141552",
+      "registered_name": "practice_antiderivatives",
+      "comparison": "EXACT_MATCH"
+    },
+    {
+      "file": "20261114053306_practice_written_answers.sql",
+      "registered_version": null,
+      "registered_name": null,
+      "comparison": "NOT_REGISTERED"
+    },
+    {
+      "file": "20261116141052_sheets_folders.sql",
+      "registered_version": null,
+      "registered_name": null,
+      "comparison": "NOT_REGISTERED"
+    },
+    {
+      "file": "20261116144657_sheets_sharing.sql",
+      "registered_version": null,
+      "registered_name": null,
+      "comparison": "NOT_REGISTERED"
+    },
+    {
+      "file": "20261117130556_sheets_inheritance.sql",
+      "registered_version": null,
+      "registered_name": null,
+      "comparison": "NOT_REGISTERED"
+    },
+    {
+      "file": "20261117211046_sheets_trash.sql",
+      "registered_version": null,
+      "registered_name": null,
+      "comparison": "NOT_REGISTERED"
+    },
+    {
+      "file": "20261118162757_sheets_library.sql",
+      "registered_version": null,
+      "registered_name": null,
+      "comparison": "NOT_REGISTERED"
+    }
+  ]
+}

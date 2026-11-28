@@ -1,3 +1,4 @@
+import { isAuthRetryableFetchError } from '@supabase/supabase-js';
 import { validateWorkbook } from '../io/workbookValidation';
 import { supabase } from '@/utils/supabaseClient';
 import { createDefaultWorkbook } from '../state/defaultWorkbook';
@@ -17,6 +18,7 @@ export function createSupabaseWorkbookStorage(ownerId: string,
   };
   const requireSession = async () => {
     const { data, error } = await supabase.auth.getUser();
+    if (isAuthRetryableFetchError(error)) throw new WorkbookStorageError('network', 'Unable to verify the session while offline.');
     if (error || data.user?.id !== ownerId) throw new WorkbookStorageError('session', 'Y-Sheets session is no longer authorized.');
   };
   const loadWorkbook = async (id: string): Promise<WorkbookData> => {

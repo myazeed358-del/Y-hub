@@ -50,7 +50,7 @@ function Action({ icon, label, onClick, selected = false, disabled = false }: {
 }
 
 /** File operations remain delegated to the workspace and its guarded storage adapter. */
-export const Toolbar: React.FC<{ onNewWorkbook?: () => void; chrome?: WorkspaceChromeControls }> = ({ onNewWorkbook, chrome }) => {
+export const Toolbar: React.FC<{ onNewWorkbook?: () => void; chrome?: WorkspaceChromeControls; allowNewWorkbook?: boolean; allowRenameWorkbook?: boolean }> = ({ onNewWorkbook, chrome, allowNewWorkbook = true, allowRenameWorkbook = true }) => {
   const {
     workbook, activeSheet, activeCell, selection, canEdit, canUndo, canRedo, theme,
     undo, redo, cutSelection, copySelection, pasteSelection,
@@ -103,7 +103,7 @@ export const Toolbar: React.FC<{ onNewWorkbook?: () => void; chrome?: WorkspaceC
         <div className="ys-document-identity">
           <span className="ys-document-product">Y-Sheets <span className="ys-document-by">by Y-Hub</span></span>
           <input type="text" aria-label="Workbook name" value={workbook.name} maxLength={200}
-            readOnly={!canEdit}
+            readOnly={!canEdit || !allowRenameWorkbook}
             onChange={e => dispatch({ type: 'SET_WORKBOOK_NAME', payload: e.target.value })}
             className="ys-document-name" />
         </div>
@@ -169,7 +169,7 @@ export const Toolbar: React.FC<{ onNewWorkbook?: () => void; chrome?: WorkspaceC
         {tab === 'file' && (
           <>
             <Group label="Workbooks">
-              <Action icon={<PlusCircle />} label="New workbook" onClick={handleNew} />
+              <Action icon={<PlusCircle />} label="New workbook" disabled={!allowNewWorkbook} onClick={handleNew} />
               <Action icon={<FolderOpen />} label="Import Excel or CSV" onClick={() => importExport('import')} />
               <Action icon={<Save />} label="Export workbook" onClick={() => importExport('export')} />
             </Group>

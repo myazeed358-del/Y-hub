@@ -1,0 +1,547 @@
+{
+  "remote_main": "eb8cb7358b96866dcfaf7bdeb1e892881930545d",
+  "remote_branches_before": [
+    {
+      "ref": "origin/codespace-potential-space-adventure-qv4jx66jvrx4c9qv9",
+      "sha": "6540b5273937fa8f95db7e434442c654d86c6b34",
+      "behind": 248,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/docs/light-code-comments-20261026",
+      "sha": "69c101d7e2b9ee400ac8c0470ca051053ba4e398",
+      "behind": 92,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feat/yhub-product-polish",
+      "sha": "93d8d4ad35456ac9a9f5ea131ab6dd8440eb02d6",
+      "behind": 265,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/academic-course-sections",
+      "sha": "573952f18f0de2caf771ffeef9d1c934fb321fb1",
+      "behind": 180,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/ai-tutor-rag",
+      "sha": "710957f93b5d3ebfe812867e0747a57ca1a6ed4a",
+      "behind": 106,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/approved-academic-integration",
+      "sha": "fc6d64f68d0695f21bc167ac4803f4338e948527",
+      "behind": 98,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/approved-adaptive-practice",
+      "sha": "9d5a4347a36f677bde03abc354644303b43f3887",
+      "behind": 5,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/approved-attendance-lifecycle",
+      "sha": "3c718931810ce8dbbcb4504e08001a1b967610c8",
+      "behind": 102,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/approved-attendance-reports",
+      "sha": "4456949caaf346f2b43e35c5da5e5555f308def0",
+      "behind": 94,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/approved-audit-person-search",
+      "sha": "2bd325762c4e551c53df2d4b10cbbf27ccc54b83",
+      "behind": 70,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/approved-bilingual-profiles",
+      "sha": "1f416459e70515126538e5590ceb2292782fd0b4",
+      "behind": 93,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/approved-context-breadcrumbs",
+      "sha": "a47474ad27d5f96d44dea820b590fcbea407922b",
+      "behind": 94,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/approved-course-performance",
+      "sha": "3582a81897dc946150fe38042d77a9865c03013c",
+      "behind": 4,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/approved-engine-grants",
+      "sha": "6ffa7961eac416d3efc8c9281fa2a2d8e25a8c5c",
+      "behind": 94,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/approved-learning-path",
+      "sha": "b30c0a9cc80bf5104d5cd00367e94d8feb63f232",
+      "behind": 66,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/approved-lesson-completion",
+      "sha": "221cda3e38482911d92170139330a25f77485c06",
+      "behind": 61,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/approved-practice-antiderivatives",
+      "sha": "ffc1b0be6f9d967bf206be24712f571a8329c29e",
+      "behind": 1,
+      "ahead": 2,
+      "tree_equal": true
+    },
+    {
+      "ref": "origin/feature/approved-practice-chapter-scope",
+      "sha": "1596143a027cb436186a02f0b72349fcd878f6a0",
+      "behind": 2,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/approved-practice-equivalence",
+      "sha": "b40067df32a69e3f65ffe39829cfbac0f20e09e1",
+      "behind": 39,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/approved-practice-math-verification",
+      "sha": "b8333e9596362d4d03ac9c9ad5f9dd5d2fc12a06",
+      "behind": 43,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/approved-practice-review",
+      "sha": "90484439552a37de8cc2b7e007e03a214a5468fd",
+      "behind": 47,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/approved-practice-sessions",
+      "sha": "5c07883e5b0c2a37f5b75e1166a4bf9c8b4fd84f",
+      "behind": 51,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/approved-practice-sources",
+      "sha": "dfcbc2ed54921f951ffabb9382aae88f072d6714",
+      "behind": 56,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/approved-topic-performance",
+      "sha": "2ff7f1a41fcbc9f12b2ffc88aba20cb071bc925b",
+      "behind": 1,
+      "ahead": 1,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/calculus-1-cubic-proof",
+      "sha": "b0f563cddad1acd2dafd564d068f72b32b1b9957",
+      "behind": 227,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/calculus-1-ui",
+      "sha": "07e81d9cc379e5df86b71232e266d2d70c570c2d",
+      "behind": 229,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/central-audit-log",
+      "sha": "842466582a72e13a6d9c8efa4f8308c9890ca264",
+      "behind": 205,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/course-deletion-integrity",
+      "sha": "8f32d6eb20f60a0581617e56119f760b186a63fd",
+      "behind": 192,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/course-enrollment-roster",
+      "sha": "69ad3ae5641bdb2a9d2c89119e9de7e160a8b67f",
+      "behind": 237,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/exam-attempt-integrity",
+      "sha": "e6a41004e899da4e1321cc9c10448cbfb63b4bd6",
+      "behind": 192,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/exceptional-engine-access",
+      "sha": "49b23ee813664c0c28005520e8f62373aa4902ba",
+      "behind": 154,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/fullscreen-application-shell",
+      "sha": "39dd464dc67b29ccf5b03eca5651213cd93ca13e",
+      "behind": 183,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/linear-algebra-ui",
+      "sha": "c6e3ffe01bb7fe77a13e8610ad1385fb2d9d2807",
+      "behind": 237,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/ode-display",
+      "sha": "961487f30104b86c56aecfe4e7b108e1bbe7895c",
+      "behind": 224,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/online-lectures",
+      "sha": "5ea97f0fad6ee8a2df4dfb3edd658258b8e7aa75",
+      "behind": 168,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/owner-display-name",
+      "sha": "b150fddc6cae053e9aa765ac5f3905b5d7156ffe",
+      "behind": 174,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/phase3-academic-management",
+      "sha": "caec7a29a11455b2ca2a242aa7dcde0dae865b92",
+      "behind": 173,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/phase3-exam-reliability",
+      "sha": "a9a814ef1e4b2a427d0357d18cdf79cfa83b9274",
+      "behind": 174,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/roster-yhub-numbers",
+      "sha": "40794c3ec03e4185b4df17aeaabde1dbc5fdb23c",
+      "behind": 212,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/section-enrollment-control",
+      "sha": "da0d85e2f34060d282b53234c01c015da070caac",
+      "behind": 216,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/student-quick-access",
+      "sha": "f8078c2ce445e7fe2b5c7991265d1b7279b92034",
+      "behind": 171,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/syllabus-academic-permissions",
+      "sha": "465bee330a574ed65794f181f6b13986498d7eb2",
+      "behind": 176,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/theme-hardening",
+      "sha": "c5616a6798b2b8c3b987e721ee94e937162a51dd",
+      "behind": 237,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/user-number-ids",
+      "sha": "8db8742b8a12d355c589210548a34c075c24523f",
+      "behind": 221,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/y-attendance",
+      "sha": "d5d20582dc2076316d256ce0d9500f16f016d163",
+      "behind": 167,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/y-sheets-hardening",
+      "sha": "1c0bc5cca3174ebab6d698475410c706768e90e4",
+      "behind": 194,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/y-sheets-integration",
+      "sha": "b83d2c4a142cecbaf7c52abe06636fccd3b3d185",
+      "behind": 201,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/feature/y-sheets-ui-refresh",
+      "sha": "f1165962d16b6c2f14fad19447b73ebc18d2a003",
+      "behind": 140,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/fix/course-enrollment-permissions",
+      "sha": "04497b9aad3ecba28c8bc6a52c0a4898a7fdfe6a",
+      "behind": 219,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/fix/mathjs-parser-security",
+      "sha": "ac778eec4b1671a74b3e3f49e1ce9be811a4fef3",
+      "behind": 192,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/fix/phase3-rpc-conflicts",
+      "sha": "fa9c7e3d5d8cd38f0644a207f78703f24a9f3b3c",
+      "behind": 173,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/fix/phase3-supabase-security",
+      "sha": "56e5e3303e66a759336ec9a6ad2f474ea1ee4941",
+      "behind": 174,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/fix/python-engine-recovery",
+      "sha": "5f535eeddc6189a1310e01115d0db16055adc6da",
+      "behind": 241,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/fix/responsive-course-cards",
+      "sha": "6f2b7ed6ae2301c676cc4d4abd230de450a54539",
+      "behind": 214,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/integration/approved-work-20261027",
+      "sha": "79f0bdf3ee928db0055c52e8e4be7b304cf2458d",
+      "behind": 73,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/main",
+      "sha": "eb8cb7358b96866dcfaf7bdeb1e892881930545d",
+      "behind": 0,
+      "ahead": 0,
+      "tree_equal": true
+    },
+    {
+      "ref": "origin/refactor/architecture-plug-and-play",
+      "sha": "b634813113fb50541e4e9809cd2f2cc8fb8b321c",
+      "behind": 199,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/refactor/engine-navigation-catalog",
+      "sha": "d10ecb26a4816af25bd4ab2a160e5197c658f5e5",
+      "behind": 208,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/refactor/yhub-architecture",
+      "sha": "4ef4234b7ae352f6f556967890f158f7230e483c",
+      "behind": 249,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/refactor/yhub-architecture-phase3",
+      "sha": "5150b6e26106d72bea8ef653259bba3973455a4e",
+      "behind": 239,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/refactor/yhub-full-architecture",
+      "sha": "c52b39a1cb664b8ce7a2fea503a5e422b037e664",
+      "behind": 243,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/refactor/yhub-legacy-pages",
+      "sha": "f49e152fb4333b8ea9d3f1b197705cec36dd2072",
+      "behind": 246,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/release/yhub-unified-features",
+      "sha": "47c484fe571b54c864b9c038a76572dd34d41106",
+      "behind": 232,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/test/phase3-real-integration",
+      "sha": "0ebcbdd4b6f744a18eb7eddd7f3cd0228ae07a30",
+      "behind": 168,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/test/university-integration",
+      "sha": "4c8a112c8b49aaed0d291acfa0fdb7c7110a5bb3",
+      "behind": 163,
+      "ahead": 0,
+      "tree_equal": false
+    },
+    {
+      "ref": "origin/verify/y-sheets-release-gates",
+      "sha": "4e03d485359219ccec6e075d793440bfa54acc9a",
+      "behind": 191,
+      "ahead": 0,
+      "tree_equal": false
+    }
+  ],
+  "local_branches": [
+    {
+      "ref": "feature/approved-practice-written-answers",
+      "sha": "a66d55bc0105a668888a75cb266a3172c54b5098",
+      "included_in_integration": true
+    },
+    {
+      "ref": "feature/approved-sheets-cell-style-merge",
+      "sha": "f0121b8bb3102de1e5565d50235d9ae4b43fa67f",
+      "included_in_integration": true
+    },
+    {
+      "ref": "feature/approved-sheets-conflict-details",
+      "sha": "d460f1fff808716517f4a8dd64245139cf8da994",
+      "included_in_integration": true
+    },
+    {
+      "ref": "feature/approved-sheets-folders",
+      "sha": "d8c79a431b84b4b1e7ddf0a8edddba127212a7a5",
+      "included_in_integration": true
+    },
+    {
+      "ref": "feature/approved-sheets-inheritance",
+      "sha": "9b86e52a32c9ff03c3832cc5cf973919dba8b962",
+      "included_in_integration": true
+    },
+    {
+      "ref": "feature/approved-sheets-layout-merge",
+      "sha": "3745d4a12939d0a65f58ce61145823d72c9ba890",
+      "included_in_integration": true
+    },
+    {
+      "ref": "feature/approved-sheets-library",
+      "sha": "97f325e454d14ed0f819e54d7f7f663214e2da79",
+      "included_in_integration": true
+    },
+    {
+      "ref": "feature/approved-sheets-reconnect",
+      "sha": "a48f90f036b6345b7d5c429a6d71bd6a8409d432",
+      "included_in_integration": true
+    },
+    {
+      "ref": "feature/approved-sheets-recovery-merge",
+      "sha": "96e0f1f0dd37d6295f15b509b62fb224cfb2abc8",
+      "included_in_integration": true
+    },
+    {
+      "ref": "feature/approved-sheets-sharing",
+      "sha": "dd8e539f8f4c1fcaf9d3b863ba2bc63047c02619",
+      "included_in_integration": true
+    },
+    {
+      "ref": "feature/approved-sheets-trash",
+      "sha": "9bd98325bff770f4a4eb1b9f377265495f64a690",
+      "included_in_integration": true
+    },
+    {
+      "ref": "integration/approved-work-20261123",
+      "sha": "fe10ac0f96715632f525579087c08a5dcf5d5247",
+      "included_in_integration": true
+    },
+    {
+      "ref": "main",
+      "sha": "eb8cb7358b96866dcfaf7bdeb1e892881930545d",
+      "included_in_integration": true
+    }
+  ],
+  "codex_scope": "Current conversation and accessible workspace only; no API for all historical Codex tasks",
+  "excluded_symbolic_ref": "origin/HEAD -> origin/main (not a branch)",
+  "remote_branch_count_before": 66,
+  "reconciliation": {
+    "pr46": "merged",
+    "pr47": "merged indirectly",
+    "verified_main": "2073ff76bc71ce45e60300cb66d7ef8d209ed0b5",
+    "main_tree_unchanged": "69ac83492fe459e02f6ab120f362ece78ab27faa",
+    "integration_pr": 48,
+    "tested_code_commit": "e6b50c0705602ab676820bc9c7bb00d2798bc22e",
+    "history_join_commit": "d2e9c7f7c391897e8fa1e4850a159d6aeb6ac8b6",
+    "pr48_at_checkpoint": "draft; local checks pass; Vercel preview failure unresolved"
+  }
+}

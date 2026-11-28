@@ -146,3 +146,40 @@
 .y-sheets-workspace button:focus-visible {
   outline: 2px solid var(--ys-brand); outline-offset: 2px;
 }
+
+/* Organization stays scoped to the existing workspace and its theme tokens. */
+.y-sheets-workspace .ys-directory-path,
+.y-sheets-workspace .ys-directory-tools,
+.y-sheets-workspace .ys-directory-edit,
+.y-sheets-workspace .ys-directory-actions { display:flex; flex-wrap:wrap; gap:.5rem; align-items:center; margin-block:.75rem; }
+.y-sheets-workspace .ys-directory-path { max-height:8rem; overflow:auto; }
+.y-sheets-workspace .ys-directory-path button { overflow-wrap:anywhere; }
+.y-sheets-workspace .ys-directory-actions { padding:.5rem; }
+.y-sheets-workspace .ys-directory-actions button { border:1px solid var(--ys-border); border-radius:.4rem; padding:.3rem .5rem; font-size:.8rem; }
+.y-sheets-workspace .ys-directory-actions button[aria-pressed="true"] { color:#22D3EE; border-color:#22D3EE; }
+.y-sheets-workspace .ys-directory-edit input,
+.y-sheets-workspace .ys-directory-tools select,
+.y-sheets-workspace .ys-search-row > input { color:inherit; background:transparent; border:1px solid var(--ys-border); border-radius:.4rem; padding:.5rem; min-width:0; max-width:100%; }
+.y-sheets-workspace .ys-search-row > input { flex:1; }
+.y-sheets-workspace .ys-directory-edit { border:1px solid var(--ys-border); border-radius:.5rem; padding:.75rem; }
+.y-sheets-workspace .ys-directory-edit p { flex-basis:100%; overflow-wrap:anywhere; }
+.y-sheets-workspace .ys-file-details strong { overflow-wrap:anywhere; }
+
+.y-sheets-workspace .ys-file-cards .ys-file-card { flex-direction:column; }
+.y-sheets-workspace .ys-file-list .ys-directory-actions { flex:0 1 340px; }
+@media (max-width:700px) {
+ .y-sheets-workspace .ys-file-list .ys-file-card { flex-direction:column; align-items:stretch; }
+ .y-sheets-workspace .ys-file-list .ys-directory-actions { flex:auto; }
+ .y-sheets-workspace .ys-search-row > input { flex-basis:100%; }
+}
+/* Bounded saved-cell preview, scoped to the existing library. */
+.y-sheets-workspace .ys-cell-preview { min-width:0; padding:12px; flex:1 0 100%; order:3; }
+.y-sheets-workspace .ys-cell-preview p { font-size:12px; margin:6px 0; overflow-wrap:anywhere; }
+.y-sheets-workspace .ys-cell-preview table { width:100%; table-layout:fixed; border-collapse:collapse; margin:10px 0; font-size:11px; }
+.y-sheets-workspace .ys-cell-preview th, .y-sheets-workspace .ys-cell-preview td { border:1px solid hsl(var(--border)); padding:5px; height:27px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.y-sheets-workspace .ys-cell-preview th { background:rgba(34,211,238,.08); }
+.y-sheets-workspace .ys-cell-preview th:first-child { width:28px; }
+.y-sheets-workspace .ys-file-list .ys-preview-expanded { flex-wrap:wrap; }
+
+.y-sheets-workspace .ys-recovery-conflict { max-height: min(40vh, 280px); overflow-wrap: anywhere; }
+.y-sheets-workspace .ys-recovery-conflict ul { list-style: disc; padding-inline-start: 24px; margin-block: 8px; }

@@ -10,6 +10,7 @@ export interface RecoveryRecord {
   checkpoint: SaveCheckpoint;
   updatedAt: string;
   draft?: PendingCellEdit;
+  base?: WorkbookData;
 }
 export interface RecoveryEntry {
   key: string;
@@ -33,6 +34,7 @@ export class RecoveryJournal {
     workbook: WorkbookData,
     checkpoint: SaveCheckpoint,
     draft?: PendingCellEdit,
+    base?: WorkbookData,
   ): void {
     const record: RecoveryRecord = {
       version: 1,
@@ -41,6 +43,7 @@ export class RecoveryJournal {
       checkpoint,
       updatedAt: new Date().toISOString(),
       draft,
+      base,
     };
     const encoded = JSON.stringify(record);
     this.storage.setItem(this.key(workbook.id), encoded); // Throws; never erase old data or claim durability.
@@ -58,7 +61,7 @@ export class RecoveryJournal {
     const current = this.storage.getItem(this.key(id));
     if (current) {
       const entry = this.decode(this.key(id), current);
-      this.write(entry.record.workbook, checkpoint, entry.record.draft);
+      this.write(entry.record.workbook, checkpoint, entry.record.draft, entry.record.base);
     } else if (checkpoint.intent)
       this.write(checkpoint.intent.workbook, checkpoint);
   }
@@ -112,6 +115,10 @@ export class RecoveryJournal {
     )
       throw new Error("Invalid recovery record.");
     r.workbook = validateWorkbook(r.workbook);
+    if (r.base) {
+      r.base = validateWorkbook(r.base);
+      if (r.base.id !== r.workbook.id) throw new Error("Invalid recovery base.");
+    }
     if (r.checkpoint.intent) {
       r.checkpoint.intent.workbook = validateWorkbook(
         r.checkpoint.intent.workbook,

@@ -11,6 +11,7 @@ import {
 const calls = vi.hoisted(() => ({
   read: vi.fn(),
   save: vi.fn(),
+  saveWritten: vi.fn(),
   generate: vi.fn(),
   submit: vi.fn(),
   language: "en" as "ar" | "en",
@@ -63,6 +64,7 @@ beforeEach(() => {
   calls.language = "en";
   calls.read.mockResolvedValue(structuredClone(state));
   calls.save.mockResolvedValue(3);
+  calls.saveWritten.mockResolvedValue(3);
 });
 afterEach(() => {
   cleanup();
@@ -285,3 +287,93 @@ it("loads correctly through StrictMode effect cleanup and does not accept the ab
   expect(calls.read.mock.calls[0][1].aborted).toBe(true);
   expect(calls.read.mock.calls[1][1].aborted).toBe(false);
 });
+
+const writtenState = (text: string | null = null) => ({
+  ...state,
+  questions: [
+    { ...state.questions[0], acceptsWritten: true, writtenAnswer: text },
+  ],
+});
+it("autosaves written text through the server worker without caching content locally", async () => {
+  calls.read.mockResolvedValue(writtenState());
+  await open();
+  fireEvent.change(screen.getByLabelText("1: Written answer"), {
+    target: { value: "x+x" },
+  });
+  expect(localStorage.length).toBe(0);
+  await waitFor(
+    () =>
+      expect(calls.saveWritten).toHaveBeenCalledWith(writtenState(), 1, "x+x"),
+    { timeout: 2000 },
+  );
+  expect(calls.save).not.toHaveBeenCalled();
+  expect(screen.queryByTestId("citations")).toBeNull();
+});
+it("retains failed written drafts in memory and clears them on access revocation", async () => {
+  calls.read.mockResolvedValue(writtenState());
+  calls.saveWritten.mockRejectedValue(new PracticeSessionError("unavailable"));
+  const dirty = await open();
+  fireEvent.change(screen.getByLabelText("1: Written answer"), {
+    target: { value: "2x" },
+  });
+  fireEvent.click(screen.getByText("Save answer draft"));
+  await screen.findByRole("alert");
+  expect(
+    (screen.getByLabelText("1: Written answer") as HTMLInputElement).value,
+  ).toBe("2x");
+  expect(dirty).toHaveBeenLastCalledWith(true);
+  calls.read.mockRejectedValue(new PracticeSessionError("denied"));
+  fireEvent.click(screen.getByText("Reload current session"));
+  await waitFor(() =>
+    expect(screen.queryByLabelText("1: Written answer")).toBeNull(),
+  );
+  expect(localStorage.length).toBe(0);
+  expect(dirty).toHaveBeenLastCalledWith(false);
+});
+it("confirms a saved written answer through the worker, not the choice RPC", async () => {
+  const saved = writtenState();
+  saved.questions[0].writtenAnswer = "2x";
+  calls.read.mockResolvedValue(saved);
+  await open();
+  fireEvent.click(screen.getByText("Confirm answer"));
+  await waitFor(() =>
+    expect(calls.saveWritten).toHaveBeenCalledWith(saved, 1, "2x", true),
+  );
+  expect(calls.save).not.toHaveBeenCalled();
+});
+it.each(["en", "ar"] as const)(
+  "labels an unsupported written expression as pending in %s",
+  async (language) => {
+    calls.language = language;
+    calls.read.mockResolvedValue({
+      ...state,
+      questions: [
+        {
+          ...state.questions[0],
+          answered: true,
+          writtenAnswer: "sin(x)",
+          acceptsWritten: true,
+          feedback: {
+            suggestedChoice: 0,
+            matchesSuggestion: null,
+            explanation: "\\[2x\\]",
+            citations: [],
+            verification: "polynomial-derivative-v1",
+            writtenResult: { score: null, explanation: "Needs review" },
+          },
+        },
+      ],
+    });
+    await open();
+    expect(
+      screen.getByText(
+        language === "ar"
+          ? "تحتاج مراجعة — لا تدخل في العلامة"
+          : "Needs review — excluded from the score",
+      ),
+    ).toBeTruthy();
+    expect(
+      screen.queryByText(sessionCopy[language].verifiedDifferent),
+    ).toBeNull();
+  },
+);

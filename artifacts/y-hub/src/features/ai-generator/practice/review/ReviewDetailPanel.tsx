@@ -71,7 +71,11 @@ export function ReviewDetailPanel({
   async function apply() {
     if (!data || running.current) return;
     if (
-      !["0", "1", "2", "3", "exclude"].includes(selected) ||
+      !(
+        data.question.writtenAnswer
+          ? ["0", "1", "exclude"]
+          : ["0", "1", "2", "3", "exclude"]
+      ).includes(selected) ||
       explanation.trim().length < 10
     ) {
       setError(t.invalid);
@@ -82,7 +86,11 @@ export function ReviewDetailPanel({
     setBusy(true);
     setError("");
     try {
-      await reviewRepository.resolve(
+      await (
+        data.question.writtenAnswer
+          ? reviewRepository.resolveWritten
+          : reviewRepository.resolve
+      )(
         id,
         data.review.revision,
         selected === "exclude" ? null : Number(selected),
@@ -129,8 +137,19 @@ export function ReviewDetailPanel({
             </div>
           ))}
           <p>
-            {t.student}: <bdi dir="ltr">{data.question.choice + 1}</bdi> ·{" "}
-            {data.question.verification ? t.math_verified : t.initial}:{" "}
+            {data.question.writtenAnswer
+              ? language === "ar"
+                ? "إجابة الطالب المكتوبة"
+                : "Student written answer"
+              : t.student}
+            :{" "}
+            <bdi dir="ltr">
+              {data.question.writtenAnswer ??
+                (data.question.choice === null
+                  ? "—"
+                  : data.question.choice + 1)}
+            </bdi>{" "}
+            · {data.question.verification ? t.math_verified : t.initial}:{" "}
             <bdi dir="ltr">{data.question.suggestedChoice + 1}</bdi>
           </p>
           <ChatMessageContent content={data.question.explanation} />
@@ -144,7 +163,21 @@ export function ReviewDetailPanel({
             <div className="rounded border p-3">
               <h5>{t.resolution}</h5>
               <p>
-                {data.resolution.choice === null ? (
+                {data.question.writtenAnswer ? (
+                  data.resolution.score === null ? (
+                    t.exclude
+                  ) : data.resolution.score === 1 ? (
+                    language === "ar" ? (
+                      "صحيحة"
+                    ) : (
+                      "Correct"
+                    )
+                  ) : language === "ar" ? (
+                    "غير صحيحة"
+                  ) : (
+                    "Incorrect"
+                  )
+                ) : data.resolution.choice === null ? (
                   t.exclude
                 ) : (
                   <bdi dir="ltr">{data.resolution.choice + 1}</bdi>
@@ -157,18 +190,33 @@ export function ReviewDetailPanel({
           {manage && data.review.state === "requested" && (
             <fieldset disabled={busy} className="space-y-2">
               <label className="block">
-                {t.selection}
+                {data.question.writtenAnswer
+                  ? language === "ar"
+                    ? "حكم الإجابة المكتوبة"
+                    : "Written answer decision"
+                  : t.selection}
                 <select
                   className="w-full rounded border bg-background p-2"
                   value={selected}
                   onChange={(e) => setSelected(e.target.value)}
                 >
                   <option value="">—</option>
-                  {[0, 1, 2, 3].map((i) => (
-                    <option key={i} value={i}>
-                      {i + 1}
-                    </option>
-                  ))}
+                  {data.question.writtenAnswer ? (
+                    <>
+                      <option value="1">
+                        {language === "ar" ? "صحيحة" : "Correct"}
+                      </option>
+                      <option value="0">
+                        {language === "ar" ? "غير صحيحة" : "Incorrect"}
+                      </option>
+                    </>
+                  ) : (
+                    [0, 1, 2, 3].map((i) => (
+                      <option key={i} value={i}>
+                        {i + 1}
+                      </option>
+                    ))
+                  )}
                   <option value="exclude">{t.exclude}</option>
                 </select>
               </label>

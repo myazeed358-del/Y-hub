@@ -14,6 +14,8 @@ export class WorkbookSession {
   workbook: WorkbookData;
   draft?: PendingCellEdit;
   private localDirty = false;
+  private disposed = false;
+  private base?: WorkbookData;
   readonly coordinator: WorkbookSaveCoordinator;
   constructor(
     workbook: WorkbookData,
@@ -23,17 +25,22 @@ export class WorkbookSession {
     private recovered?: RecoveryEntry,
   ) {
     this.workbook = validateWorkbook(workbook);
+    this.base = recovered ? recovered.record.base : validateWorkbook(workbook);
     this.coordinator = new WorkbookSaveCoordinator(
       (wb) => storage.saveWorkbook(wb),
       onStatus,
       700,
       (wb) => {
+        if (this.disposed) return;
         // Clear matching recovery data only after a successful save.
         journal.acknowledge(wb);
         if (
           JSON.stringify(validateWorkbook(this.workbook)) === JSON.stringify(wb)
         )
           this.localDirty = false;
+        // Only an acknowledged server save can advance the merge base.
+        this.base = validateWorkbook(wb);
+        if (this.localDirty || this.draft) this.persistLocal();
         if (this.recovered) {
           journal.removeUnchanged(this.recovered);
           this.recovered = undefined;
@@ -50,7 +57,7 @@ export class WorkbookSession {
     const checkpoint = this.storage.checkpoint?.(this.workbook.id);
     if (!checkpoint)
       throw new Error("Missing save revision. Download a recovery copy.");
-    this.journal.write(this.workbook, checkpoint, this.draft);
+    this.journal.write(this.workbook, checkpoint, this.draft, this.base);
   }
   change(workbook: WorkbookData) {
     // Keep the in-memory edit even if validation or browser storage fails.
@@ -77,6 +84,13 @@ export class WorkbookSession {
     return recoveryWorkbook(this.workbook, this.draft);
   }
 
+  get canResumeAfterReconnect() {
+    return !this.draft && this.coordinator.canRetryAfterReconnect;
+  }
+  async resumeAfterReconnect() {
+    if (this.canResumeAfterReconnect) await this.flush();
+  }
+
   async flush() {
     if (this.draft)
       throw new Error(
@@ -92,6 +106,7 @@ export class WorkbookSession {
     this.persistLocal();
   }
   dispose() {
+    this.disposed = true;
     this.coordinator.dispose();
   }
 }

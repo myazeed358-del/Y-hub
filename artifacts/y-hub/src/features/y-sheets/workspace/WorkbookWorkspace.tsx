@@ -1,24 +1,33 @@
 import { useLocation } from "wouter";
-import { ArrowLeft, FileSpreadsheet, Plus, Search, MoreHorizontal, LayoutGrid, List, RefreshCw, Clock3 } from "lucide-react";
+import { ArrowLeft, FileSpreadsheet, Plus } from "lucide-react";
 import { YSheetsBrandMark } from "../components/YSheetsBrandMark";
 import { useLanguage } from "@/i18n/LanguageContext";
 import "./workspace.css";
 import { recoveryWorkbook } from "../io/recoveryJournal";
-import { useState } from "react";
 import { useTheme } from "next-themes";
 import { YSheetsHostAdapter } from "../integration/YSheetsHostAdapter";
 import type { HostUser } from "../integration/hostContract";
 import { downloadWorkbookJSON } from "../io/localPersistence";
+import { SharedFiles } from "../sharing/SharedFiles";
+import { SharedWorkbookView } from "../sharing/SharedWorkbookView";
+import { useRef, useState } from "react";
+import { initialDirectory } from "./directoryRepository";
+import { WorkbookDirectory } from "./WorkbookDirectory";
+import { RecoveryConflictDetails } from "./RecoveryConflictDetails";
 import { useWorkbookWorkspace } from "./useWorkbookWorkspace";
 
 export function WorkbookWorkspace({ user }: { user: HostUser }) {
   const w = useWorkbookWorkspace(user.id);
+  const [sharedId, setSharedId] = useState<string | null>(null);
+  const directoryLocation = useRef(initialDirectory);
+  const directoryOwner = useRef(user.id);
+  if (directoryOwner.current !== user.id) {
+    directoryOwner.current = user.id;
+    directoryLocation.current = initialDirectory;
+  }
   const [, navigate] = useLocation();
   const { language } = useLanguage();
   const { resolvedTheme } = useTheme();
-  const [search, setSearch] = useState("");
-  const [showAllFiles, setShowAllFiles] = useState(false);
-  const [menuFileId, setMenuFileId] = useState<string | null>(null);
   const download = () => {
     const wb = w.session.current?.recoveryCopy();
     if (wb) downloadWorkbookJSON(wb);
@@ -60,6 +69,7 @@ export function WorkbookWorkspace({ user }: { user: HostUser }) {
           };
       const wb = await w.storage.createWorkbook!(name, initial);
       w.journal.acknowledge(wb);
+      directoryLocation.current = initialDirectory;
       w.activate(wb);
       await w.refresh();
     });
@@ -69,8 +79,6 @@ export function WorkbookWorkspace({ user }: { user: HostUser }) {
     navigate("/dashboard");
   });
   const showMyFiles = () => {
-    setShowAllFiles(false);
-    setMenuFileId(null);
     void w.myFiles();
   };
   const formatModified = (value: string) => {
@@ -80,6 +88,7 @@ export function WorkbookWorkspace({ user }: { user: HostUser }) {
       day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit",
     }).format(date);
   };
+  if (sharedId) return <div className="y-sheets-workspace"><SharedWorkbookView key={`${user.id}:${sharedId}`} actor={user.id} id={sharedId} onClose={() => setSharedId(null)}/></div>;
   return (
     <div className="y-sheets-workspace" data-testid="y-sheets-workspace">
       {!w.active && (
@@ -99,6 +108,7 @@ export function WorkbookWorkspace({ user }: { user: HostUser }) {
         </header>
       )}
 
+      {w.mergeConflict && <RecoveryConflictDetails conflict={w.mergeConflict} />}
       {w.error && <div role="alert" className="y-sheets-workspace-error">{w.error}</div>}
       {w.busy && <div role="status" className="ys-busy-status">Loading…</div>}
 
@@ -162,12 +172,19 @@ export function WorkbookWorkspace({ user }: { user: HostUser }) {
               <section className="ys-recovery-panel" aria-label="Local recovery">
                 <h2>Recover unsaved work</h2>
                 <p>Stored in this browser for this account. Recovery never overwrites a newer cloud revision.</p>
+                <p>{language === "ar"
+                  ? "دمج مع أحدث نسخة يتحقق من الوصول ثم يحفظ تعديلات الخلايا غير المتعارضة. عند التعارض أو تغيير بنية الورقة تبقى نسختك المحلية دون دمج."
+                  : "Merge with latest checks access, then saves non-overlapping cell edits. Overlapping edits or sheet structure changes keep your local copy without merging."}</p>
                 {w.recoveries.map(entry => (
                   <div key={entry.key} className="ys-recovery-entry">
                     <span className="ys-recovery-label" dir="auto">
                       {entry.record.workbook.name} · {formatModified(entry.record.updatedAt)}
                     </span>
                     <button type="button" disabled={w.busy} onClick={() => void w.restore(entry)}>Recover</button>
+                    {entry.record.base && <button type="button" disabled={w.busy}
+                      onClick={() => void w.mergeLatest(entry)}>
+                      {language === "ar" ? "دمج مع أحدث نسخة" : "Merge with latest"}
+                    </button>}
                     <button type="button" onClick={() => downloadWorkbookJSON(
                       recoveryWorkbook(entry.record.workbook, entry.record.draft),
                     )}>Download</button>
@@ -178,7 +195,7 @@ export function WorkbookWorkspace({ user }: { user: HostUser }) {
               </section>
             )}
 
-            {!showAllFiles && (
+            {(
               <section className="ys-start-section" aria-label="Start creating">
                 <div className="ys-section-heading">
                   <h2>{language === "ar" ? "ابدأ ملفًا جديدًا" : "Start creating"}</h2>
@@ -201,99 +218,9 @@ export function WorkbookWorkspace({ user }: { user: HostUser }) {
               </section>
             )}
 
-            <section className="ys-browser" aria-label="Workbook files">
-              <div className="ys-section-heading">
-                <div>
-                  <h2>{showAllFiles ? (language === "ar" ? "كل الملفات" : "All files") :
-                    (language === "ar" ? "الملفات الأخيرة" : "Recent files")}</h2>
-                  <p>{w.files.length} {language === "ar" ? "ملف محمّل" : "loaded workbooks"}</p>
-                </div>
-                <div className="ys-file-view-controls">
-                  <button type="button" className="ys-view-toggle" title="Card view"
-                    aria-label="Card view" aria-pressed={!showAllFiles}
-                    onClick={() => { setShowAllFiles(false); setMenuFileId(null); }}>
-                    <LayoutGrid size={17}/>
-                  </button>
-                  <button type="button" className="ys-view-toggle" title="All files list"
-                    aria-label="All files list" aria-pressed={showAllFiles}
-                    onClick={() => { setShowAllFiles(true); setMenuFileId(null); }}>
-                    <List size={17}/>
-                  </button>
-                  {!showAllFiles && (
-                    <button className="ys-view-all" type="button"
-                      onClick={() => setShowAllFiles(true)}>
-                      {language === "ar" ? "عرض الكل" : "View all"} →
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              <form className="ys-search-row" onSubmit={event => {
-                event.preventDefault();
-                setShowAllFiles(true);
-                void w.searchFiles(search);
-              }}>
-                <div className="ys-search-field">
-                  <Search size={17}/>
-                  <input type="search" aria-label="Search workbooks" value={search}
-                    onChange={event => setSearch(event.target.value)}
-                    placeholder={language === "ar" ? "ابحث عن ملف..." : "Search workbooks..."} />
-                </div>
-                <button type="submit" disabled={w.busy} className="ys-secondary-button">Search</button>
-                <button type="button" disabled={w.busy} className="ys-icon-button"
-                  onClick={() => void w.run(w.refresh)} title="Refresh files" aria-label="Refresh files">
-                  <RefreshCw size={17}/>
-                </button>
-              </form>
-
-              {w.files.length > 0 ? (
-                <div className={showAllFiles ? "ys-file-list" : "ys-file-cards"}>
-                  {(showAllFiles ? w.files : w.files.slice(0, 6)).map(file => (
-                    <article className="ys-file-card" key={file.id}>
-                      <button type="button" className="ys-file-open" disabled={w.busy}
-                        onClick={() => void w.open(file.id)}>
-                        <span className="ys-file-preview" aria-hidden="true">
-                          <FileSpreadsheet size={26}/>
-                          <span className="ys-preview-lines"><i/><i/><i/></span>
-                        </span>
-                        <span className="ys-file-details">
-                          <strong dir="auto">{file.name}</strong>
-                          <small><Clock3 size={12}/> <time dateTime={file.updatedAt}>
-                            {formatModified(file.updatedAt)}
-                          </time></small>
-                        </span>
-                      </button>
-                      <div className="ys-file-actions">
-                        <button type="button" className="ys-icon-button" disabled={w.busy}
-                          aria-label={"More options for " + file.name} title="File options"
-                          aria-expanded={menuFileId === file.id}
-                          onClick={() => setMenuFileId(menuFileId === file.id ? null : file.id)}>
-                          <MoreHorizontal size={20}/>
-                        </button>
-                        {menuFileId === file.id && (
-                          <div className="ys-file-menu">
-                            <button type="button" disabled={w.busy}
-                              onClick={() => { setMenuFileId(null); void w.rename(file.id); }}>Rename</button>
-                            <button type="button" disabled={w.busy} className="ys-delete-action"
-                              onClick={() => { setMenuFileId(null); void w.remove(file); }}>Delete</button>
-                          </div>
-                        )}
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              ) : (
-                <div className="ys-files-empty">
-                  <FileSpreadsheet size={30}/>
-                  <strong>{language === "ar" ? "ما في ملفات لعرضها" : "No workbooks found"}</strong>
-                  <p>Create a workbook, recover a local copy, or refresh your files.</p>
-                </div>
-              )}
-              {w.hasMore && showAllFiles && (
-                <button className="ys-secondary-button ys-load-more" type="button" disabled={w.busy}
-                  onClick={() => void w.more()}>Load more files</button>
-              )}
-            </section>
+            <SharedFiles key={`shared:${user.id}`} actor={user.id} onOpen={setSharedId}/>
+            <WorkbookDirectory key={user.id} owner={user.id} busy={w.busy} location={directoryLocation}
+              open={w.open} rename={w.rename} remove={w.remove} />
           </div>
         </section>
       )}

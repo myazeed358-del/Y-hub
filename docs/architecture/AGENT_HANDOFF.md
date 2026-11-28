@@ -1,3 +1,245 @@
+# Audited page export checkpoint — 2026-11-28
+
+Current branch integration/approved-work-20261123, PR48. Previous verified remote **0f35f12**; implementation **f120694**. Read [AUDIT_PAGE_EXPORT](../approved-specifications/AUDIT_PAGE_EXPORT.md). Decision69 advances with bounded Owner JSON export of1–25 selected page events. The server checks current DB role under lock, fetches authoritative redacted rows/people, rejects duplicates/missing IDs, and commits immutable issuance evidence before returning data. Export ID equals evidence ID; issuance is not proof of file storage. Existing reader scopes and append-only protections remain unchanged. No purge or production changes.
+
+Client validates response membership/format, cancels late downloads on page/loading/identity changes, suppresses double clicks, cleans object URLs and distinguishes issuance from completed download. Error messages acknowledge ambiguous committed issuance. Arabic/English filters and controls included.
+
+PASS:2633 Vitest/282 files,36 Python,8 module guard tests, all workspace types, architecture/math/module guards, generated artifact and Vite build. Complete verification script passed in one run with local runtime permission.56 audit UI/repository cases (13 new);53 isolated SQL cases (5 new);8 native local Auth/JWT/PostgREST cases (1 new), including same-token demotion and missing-ID409;3 Chromium scenarios (Arabic390 Admin/Owner, English1280 Owner) with real JSON file read-back for Owners over synthetic network. No disabled tests. Other academic/university SQL and unrelated HTTP suites were not rerun.
+
+Fresh read-only migration inventory confirms54 registered through logical0056;8 pending local migrations including20261128161149. No reapplication/repair, production write/deployment/deletion or statement-hash recheck. Local PostgreSQL16 vs production17.11 remains a limit.
+
+Counts42 locally complete/20 partial/9 missing.69 still needs protected expiry/scheduling, scoped Admin/Doctor/Student visibility and rollout. List all decision numbers per delivery. PR46/47 merged; main verified2073ff7. Publication/merging passing changes is authorized; PR48 remains draft pending its unresolved Vercel preview, so inspect the latest head/status before any merge. Other account-wide Codex sessions are unavailable. Prior checkpoints below are historical.
+
+# Audit retention controls checkpoint — 2026-11-28
+
+Current branch integration/approved-work-20261123, PR48. Previous verified remote **c6f41b2**; implementation **31f2712**. Read [AUDIT_RETENTION_CONTROLS](../approved-specifications/AUDIT_RETENTION_CONTROLS.md). Decision69 advances from missing to partial: Owner-only24-month default/12–60-month configuration, per-event investigation holds/releases, optimistic revision checks, atomic immutable audit evidence and localized controls. No deletion privilege, purge job or change to existing read scopes. Future maintenance must take the policy lock and exclude active holds; released hold FK rows still restrict deletion until explicitly handled. Remaining: expiry processing/scheduler, audited export, scoped Admin/Doctor/Student visibility and rollout.
+
+PASS:2620 Vitest/280 files,36 Python,8 module guard tests, workspace types, architecture/math/module guards, generated artifact and Vite build; final43 audit UI/repository cases;48 isolated SQL cases including9 new;7 real local Auth/JWT/PostgREST cases including2 new;3 Chromium Arabic390 Admin/Owner and English1280 Owner scenarios. Final app types rerun. The sandboxed full script hung at FastAPI TestClient after successful build; stopped only that test process and reran all36 Python tests with local runtime permission, PASS. No disabled tests. Initial SQLSTATE40001 caused PostgREST retries; fixed to PT409 and reran final SQL/HTTP suites successfully. Initial browser run found no preview server; started localhost5175 and final3 scenarios passed. Browser network fixtures do not prove production readiness.
+
+Fresh read-only Supabase migration inventory confirms54 registered through logical0056;7 local migrations pending including20261128032953. No registered migration reapplied, no production write/deployment/deletion. Historical statement hashes were not rechecked. Local fixtures PostgreSQL16; production17.11 not tested.
+
+Counts **42 locally complete,20 partial,9 missing**; list all decision numbers every delivery. PR46/47 already merged, main last verified2073ff7. Push/merge passing work remains authorized, but PR48 remains draft while its Vercel preview failure is unresolved; check the latest published head/status before proceeding. Other account-wide Codex sessions remain inaccessible. Earlier checkpoints below are historical.
+
+# Written syntax feedback checkpoint
+
+Current branch integration/approved-work-20261123, PR48; previous verified remotea5a7bb8. Implementation **ca82ad2** advances29 with parser-backed advisory written syntax feedback. Read [PRACTICE_SYNTAX_FEEDBACK](../approved-specifications/PRACTICE_SYNTAX_FEEDBACK.md). Uses the existing public parseWrittenPolynomial for x/t with/without integration constant; no alternative grammar, hidden question/key/score data, eval, normalization of the user's stored text or save blocking. Syntax support does not establish correct variable/answer form or correctness for a particular question. Server grading/review remains authoritative.
+
+PASS:2606 Vitest/278files,36 Python,8 guard cases, workspace types, architecture/math/module checks, generated artifact and Vite build.67 focused cases including26 new;4 final Chromium Arabic/English390/1280 scenarios assert supported/review feedback then preserve/save/recover the same text. Arabic mobile screenshot reviewed. Existing Vite5175 served the current checkout; attempted duplicate startup was rejected and the running server reused. No disabled tests or SQL/Auth rerun. Browser network is mocked, not production proof.
+
+Publishing/merging passing work remains authorized; PR48 stays draft pending diagnosis and passing Vercel preview. Check latest head/status. Prior logs require unavailable Vercel access and user has not supplied the build error. Main last verified2073ff7; PR46/47 already merged. No production SQL/deployment or force push. Counts42 locally complete/19 partial/10 missing;28/29 remain partial for general editing and other-engine capabilities. List all decision numbers each delivery. Prior checkpoints below are historical.
+
+# Visual polynomial term builder checkpoint
+
+Current branch integration/approved-work-20261123, PR48; previous verified remote57202be. Implementation **e86ddca** advances28/29 with a visual single-term builder (bounded integer coefficient, x/t, power0–8), escaped React preview and explicit insertion into the existing selection/caret flow. Arabic/Persian digits are supported; fractions/scientific notation/out-of-range coefficients are rejected without rounding. No grading, hidden-key, math algorithm, SQL/RPC/Edge or storage change. General math editing and other-engine palettes remain partial.
+
+Read [PRACTICE_TERM_BUILDER](../approved-specifications/PRACTICE_TERM_BUILDER.md). PASS:2580 Vitest/277files,36 Python,8 guard cases, workspace types, architecture/math/module checks, generated artifact and Vite build.41 focused cases including11 new, with actual polynomial-parser assertions.4 Chromium scenarios Arabic/English390/1280; Arabic mobile preview reviewed. Browser revealed a select/label accessible-name issue: separate htmlFor labels fixed it; focused cases and final app types rerun. Old textbox tests now select Answer by its name after adding the coefficient input. No disabled tests or SQL/Auth rerun. Browser/provider fixtures do not establish production readiness.
+
+Publication and merging passing work remain authorized, but PR48 stays draft pending diagnosis/passing Vercel preview. Check latest head; prior preview failure logs require unavailable Vercel access and user has not supplied them. Main last verified2073ff7; PR46/47 merged. No production SQL/deployment or force push. Counts42 locally complete/19 partial/10 missing; list all decision numbers in each delivery. Older checkpoints below are historical.
+
+# Polynomial input palette checkpoint
+
+Current branch integration/approved-work-20261123, PR48; previous verified remote38db1ac. Implementation **f89648b** advances decisions28/29 with a polynomial symbol palette in AI Practice written answers. Read [PRACTICE_POLYNOMIAL_PALETTE](../approved-specifications/PRACTICE_POLYNOMIAL_PALETTE.md). Inserts parser syntax at selection/caret, preserves unsupported typed text, explains verifier limits, refuses overflow without truncation, respects disabled fieldsets and never submits the form. No math algorithm, grading, hidden-answer, RPC, SQL or storage contract changes. Neither a general visual editor nor all-engine keyboard is complete.
+
+Verification PASS:2569 Vitest/276files,36 Python,8 module guard tests, workspace types, architecture/math/module checks, generated artifact check and Vite build.30 focused input/session cases including7 new;4 final written-answer Chromium scenarios, Arabic/English at390/1280, now exercise palette insertion and overflow-free layout before save/recovery. Arabic mobile screenshot reviewed. Initial focused run lacked local test env variables; corrected configuration and rerun passed. No disabled tests. No SQL/Auth rerun; browser network is fixture-only.
+
+Publishing and merging passing work remain authorized. PR48 stays draft until its unresolved Vercel preview failure is diagnosed and passes; no Vercel credential/log access has been supplied. Check the latest SHA/status before resuming. Production migrations/deployments remain unauthorized. PR46/47 already merged at main2073ff7. Counts remain42 locally complete,19 partial,10 missing; report all decision numbers each delivery. Older checkpoints below are historical.
+
+# Live action isolation checkpoint — 2026-11-23
+
+Current branch integration/approved-work-20261123, PR48. Previous verified remote head09ccd20; implementation commit **73f4e3e**. Read [LIVE_ACTION_ISOLATION](../approved-specifications/LIVE_ACTION_ISOLATION.md). Decision57 advances but remains partial: asynchronous actions are scoped to a connection generation, old pending work cannot lock/unlock the new room or raise stale errors, and send acknowledgments preserve edited/new-connection chat drafts. No server permission or schema changes; no new local chat storage.
+
+Verification PASS:27 lecture tests (5 new), full2562 Vitest/275files,36 Python,8 module guard cases, workspace types, architecture/math/module checks, generated artifact check and Vite build. No SQL/native Auth/browser rerun for this client-only behavior change; do not reuse previous batch counts as new runs. Provider is mocked, not a real LiveKit deployment.
+
+Publication/merge authorization persists. PR48 remains draft because prior Vercel previews failed and logs require unavailable access; check the latest head after publication. PR46/47 already merged; main last verified2073ff76bc71ce45e60300cb66d7ef8d209ed0b5. No production SQL/deployment or force push. Totals remain42 locally complete,19 partial,10 missing; every final delivery lists all decision numbers by status. Historical checkpoints follow.
+
+# Integration and live recovery checkpoint — 2026-11-23
+
+Current branch **integration/approved-work-20261123**, PR **48**. The user's current explicit instruction authorizes normal pushes and merging passing changes into main; it supersedes older local-only checkpoints below. Production Supabase migrations, writes and deployments remain prohibited without separate explicit approval. Preserve every branch and all existing work; no force pushes.
+
+Read [integration report](../approved-specifications/INTEGRATION_2026-11-23.md), [71-decision implementation audit](../approved-specifications/DECISION_AUDIT_2026-11-23.md), branch inventory and migration comparison. 66 actual remote branches before publication (origin/HEAD excluded), 13 local branch refs, eleven unpublished commits were inventoried. Account-wide Codex task/session enumeration is unavailable; do not claim other workspaces were examined.
+
+PR46 merged at **2073ff76bc71ce45e60300cb66d7ef8d209ed0b5**, and GitHub confirms PR47 indirectly merged. Main files are byte-identical to prior eb8cb73 (tree69ac83492fe459e02f6ab120f362ece78ab27faa). Local fe10ac0 reconciled historical conflicts while preserving f0121b8; d2e9c7f incorporates the new main history without changing tested application content.
+
+**e6b50c0** advances decision57: serialized room shutdown, fresh server admission on reconnect, duplicate-event suppression, bounded1/2/4-second retries, explicit manual retry, cancellation/late connection cleanup, devices off until explicit activation.14 new tests. Decision57 remains partial pending a configured real provider; no LiveKit deployment or recording claim.
+
+Verification PASS:2557 Vitest/275files,36 Python,8 guard tests, all workspace types, architecture/math/module guards, generated artifact check and Vite build.22 lecture cases and final app types rerun after strengthening the cleanup guard.390 isolated SQL tests (293 academic,39 audit,58 university);24 native local Auth/JWT/PostgREST cases;6 populated upgrade cases;38 Chromium scenarios with fixture HTTP. No disabled tests. Initial conflict-state run was superseded by clean successful reruns.
+
+**PR48 is draft, published but not yet merged at this checkpoint.** Vercel preview on e6b50c0 failed despite successful local build. Logs require Vercel access (API403, no configured token); user was asked for the error text. Do not silently bypass the unresolved preview failure for new code. PR46's content-identical history merge is separate and already verified. Check subsequent PR48 status before resuming; pushing these reports may trigger a new preview.
+
+Supabase read-only project rspdfdrmswixcmpozgzr:54 recorded migrations through logical0056,32 exact text comparisons, earlier split/missing statements carefully distinguished. Six timestamped local migrations are absent; no reapply/repair/db push. Only ai-tutor-chat, ai-tutor-index and ai-practice-generate are deployed. Local PostgreSQL16 versus production17.11 is a stated test limit. Publishing code does not establish production readiness.
+
+Decision totals remain **42 locally complete,19 partial,10 missing**. Every delivery must list decision numbers by status and distinguish published/merged/deployed.72–80 unapproved. Preserve old checkpoint history below; its publication restrictions and migration availability statements are historical.
+
+## Preserved previous checkpoints
+
+# Recovery cell style merge checkpoint — 2026-11-22
+
+Current branch **feature/approved-sheets-cell-style-merge**, based on **3745d4a**. Read-only remote main check remains **eb8cb7358b96866dcfaf7bdeb1e892881930545d**. Preserve all earlier local packages. Local development/tests only; no push, PR, merge, production SQL or deployment. No schema, authorization or dependency changes.
+
+Read [SHEETS_CELL_STYLE_MERGE.md](../approved-specifications/SHEETS_CELL_STYLE_MERGE.md) and PROGRESS.66/70 remain partial. Three-way owner recovery merge now handles raw cell input and individual style properties independently. Raw edits plus formatting and different style fields can merge; competing same-field values reject atomically. Reset-to-default and explicit false stay distinct. Each border object remains atomic; whole-cell deletion versus an edit still conflicts. Multiple conflicting properties count as one cell location. Computed/error caches remain excluded and existing recalculation runs after merge.
+
+Formatting an absent cell materializes raw:'' in the actual reducer; merge treats that as unchanged empty input so a typed value can combine with the formatting. This does not permit resurrection of a deleted existing cell. Real reducer tests cover both existing and previously absent cells. Earlier whole-cell atomicity notes are historical; structure/CAS/ownership/receipt/recovery protections remain unchanged.
+
+Verification PASS: full suite2542 Vitest cases/273files, followed by final53 focused cases including one additional absent-cell case (2543 distinct cases,7 new). Final application TypeScript rerun PASS after that adjustment; workspace TypeScript, architecture/math/module guards,8 guard tests, generated artifact check, Vite build and36 Python tests PASS.8 Chromium scenarios PASS:4 explicit same-cell raw/style merge and4 reconnect regression,390/1280 Arabic/English. No final failures.
+
+One focused fixture incorrectly removed baseline bold while describing an independent edit; fixed its baseline, preserved reset semantics. The absent-cell case was added after the broad run started and the final focused group was rerun. Browser transport is mocked; no new SQL/production audit claims. Existing PDF.js/Vite warnings remain. No disabled tests.
+
+Progress remains **42 complete locally,19 partial,10 missing**. Every development delivery must list all decision numbers grouped by completion state and identify the batch's progress. No direct collaboration/server history/retention policy added.72–80 outside scope. Commit identity is obtained from Git rather than embedded in its own contents.
+
+## Preserved previous checkpoints
+
+# Recovery presentation merge checkpoint — 2026-11-22
+
+Current branch **feature/approved-sheets-layout-merge**, based on **d460f1f**. Read-only remote main check: **eb8cb7358b96866dcfaf7bdeb1e892881930545d**. Preserve all local packages; local development/tests only. No push, PR, merge, production SQL or deployment; no schema, authorization or dependency changes.
+
+Read [SHEETS_LAYOUT_MERGE.md](../approved-specifications/SHEETS_LAYOUT_MERGE.md) and PROGRESS.66/70 remain partial. Explicit owner recovery merge now combines independent sheet names, per-column widths and per-row heights alongside atomic cell edits. Same-setting competing edits or resulting case-insensitive duplicate sheet names reject the whole merge with a bilingual layout conflict. Resetting a dimension to default is a real deletion. Sheet order/identity, grid dimensions, merged ranges, validation/filter/conditional formatting and other settings still require unchanged structure.
+
+Corrected an existing merge limitation: WorkbookData.version is the reducer mutation counter, not a schema version or server CAS revision. Real edits increment it, so previous equality checks incorrectly rejected safe merges. Actual structure stays guarded; merged counter becomes max(base,local,remote)+1 with safe-integer bounds. A test uses real reducer commands with differing counters and verifies dependent formula recalculation. Storage identity checks and server CAS/receipts remain unchanged.
+
+Verification PASS:2536 Vitest cases/273files, including46 focused cases and9 added cases. Workspace TypeScript, architecture/math/module guards,8 guard cases, generated artifact drift check, Vite build and36 Python tests PASS.8 Chromium scenarios PASS:4 explicit merge with differing editor counters/names/dimensions and4 reconnect regression,390/1280 Arabic/English. No final test failures or disabled tests.
+
+Browser HTTP is mocked; no SQL/native Auth/production audit claims for unchanged server contracts. Existing PDF.js/Vite warnings remain. The previous blanket presentation/version restrictions below are historical and superseded by this batch. No direct collaboration, server history, participant retention or local expiry added.
+
+Progress remains **42 complete locally,19 partial,10 missing**. Every development delivery must list all decision numbers by complete/partial/unimplemented and identify the batch's progress.72–80 outside scope. Commit identity comes from Git rather than embedding its own hash.
+
+## Preserved previous checkpoints
+
+# Recovery conflict details checkpoint — 2026-11-21
+
+Current branch **feature/approved-sheets-conflict-details**, based on **a48f90f**. Read-only remote main check remains **eb8cb7358b96866dcfaf7bdeb1e892881930545d**. Preserve all prior local packages. Local development/tests only; no push, PR, merge, production SQL or deployment. No SQL, authorization or dependency changes.
+
+Read [SHEETS_CONFLICT_DETAILS.md](../approved-specifications/SHEETS_CONFLICT_DETAILS.md) and PROGRESS. Decisions66/70 advance but remain partial. Explicit recovery merge now reports identity, structure, rename or cell overlap separately. Cell conflicts carry total count and at most10 locations, ordered by sheet/row/column, with sheet name and A1-style address only. No raw/computed cell content in diagnostics. Atomic rejection and existing CAS/ownership/recovery behavior remain unchanged; no partial save or overwrite selection.
+
+RecoveryConflictDetails renders escaped names and bilingual messages, bounded scrolling and keyboard focus, and clears with the next operation. Structural changes still need manual review; rename conflict is reported before cell comparison. No interactive per-cell resolution or direct collaboration/server history added.
+
+Verification PASS:2527 Vitest cases/273files, including37 focused merge/workspace/report cases and8 new cases. Workspace TypeScript, architecture/math/module guards,8 guard tests, generated artifact check, Vite build and36 Python tests PASS.8 Chromium scenarios PASS:4 explicit merge/conflict report and4 reconnect regression,390/1280 Arabic/English. Arabic mobile screenshot reviewed; no overflow or executable markup. No final failures.
+
+One focused test setup originally deleted a cell instead of restoring its baseline value; corrected fixture, retained deletion conflict semantics. No disabled tests. Browser transport is mocked; no new SQL/native Auth claims for unchanged contracts. Existing PDF.js/Vite warnings remain. Every development final response must list decision numbers grouped as complete/partial/unimplemented and state which decisions this batch advanced.
+
+Progress remains **42 complete locally,19 partial,10 missing**.66/70 still partial, as is59;72–80 outside scope. Commit identity comes from Git rather than embedding its own hash.
+
+## Preserved previous checkpoints
+
+# Owner reconnect checkpoint — 2026-11-20
+
+Current branch **feature/approved-sheets-reconnect**, based on **96e0f1f**. Read-only remote main check: **eb8cb7358b96866dcfaf7bdeb1e892881930545d**. Local work/testing only; preserve prior local packages. No push, PR, merge, production SQL or deployment. No migrations or dependency changes.
+
+Read [SHEETS_RECONNECT.md](../approved-specifications/SHEETS_RECONNECT.md) and PROGRESS. This advances70 and improves the66 recovery foundation; both remain partial. An open owner session retries a classified network-failed save on browser online, with existing identity checks, pending request identity and CAS. Duplicate events do not parallelize saves. Permission/invalid/conflict/unknown errors, unfinished cell drafts and disposed editors never auto-retry. online is only a retry hint; failures remain visible, and manual retry remains available if another operation is active. No automatic conflict merge or recipient retention is introduced.
+
+Owner storage recognizes the installed SDK isAuthRetryableFetchError for auth transport failures without treating rejected identity as network. Only confirmed server acknowledgment advances the session merge base; newer pending edits/drafts are journaled with that base. Failed saves never advance it. A disposed session ignores a late acknowledgment so it cannot rewrite another editor's journal. This supersedes the previous checkpoint's fixed session-base limitation, preserving historical documentation below.
+
+Verification PASS:2519 Vitest cases/272files,52 focused cases included (8 new), workspace TypeScript, architecture/math/module guards,8 guard cases, generated artifact check, Vite build and36 Python tests.5 real isolated local Auth/JWT/PostgREST cases PASS.8 Chromium scenarios PASS:4 reconnect and4 existing explicit merge,390/1280 Arabic/English. No final failures or disabled tests.
+
+Current Supabase changelog/getUser documentation and installed SDK error classifier reviewed. Browser uses fixture HTTP; native Auth testing uses isolated local services, not production. A duplicate Vite startup found5175 occupied; browser tests reused the existing local server for this checkout. Existing PDF.js/Vite warnings remain. No new SQL/advisor/production claims.
+
+Progress remains **42 complete locally,19 partial,10 missing**. EVERY development delivery must list decision numbers grouped as complete/partial/unimplemented, and identify this batch's progress.70 still lacks local expiry/recipient retention/broader reconnect merge;66 lacks direct collaboration and server history;59 still partial.72–80 are outside scope. Commit identity is established through Git rather than embedded in its own contents.
+
+## Preserved previous checkpoints
+
+# Owner recovery merge checkpoint — 2026-11-20
+
+Current branch **feature/approved-sheets-recovery-merge**, based on **97f325e**. Read-only remote main check remains **eb8cb7358b96866dcfaf7bdeb1e892881930545d**. Preserve all previous local packages; local development/tests only, no push, PR, merge, production SQL or deployment. No SQL or dependency changes in this batch.
+
+Read [SHEETS_RECOVERY_MERGE.md](../approved-specifications/SHEETS_RECOVERY_MERGE.md) and PROGRESS. This advances decisions66/70 without completing either. New owner recovery records carry a validated original base; old records remain recoverable without inventing one. Explicit Merge with latest reads current ownership/revision through a separate existing storage adapter, merges non-overlapping atomic cell changes, recalculates through the existing reducer and saves with existing CAS. Any overlap/structural change leaves the original untouched. A save race retains original and merged recovery; old records are removed only after acknowledgment and unchanged-record comparison. No shared-recipient retention rights or collaborative editing are added.
+
+Structural changes are deliberately unsupported; atomic cells include formatting/deletion. Derived computed/error caches are ignored. Workbook rename merges only when unambiguous; local active-sheet selection is retained. Original session base is conservative across repeated saves. Extra local storage may hit quota; existing failure handling blocks unsafe saving. Retention duration, broader reconnect automation, participant retention authorization and server version history remain pending.
+
+Verification:2511 Vitest/272files,12 added cases, workspace TypeScript, architecture/math/module checks,8 guard cases, generated artifact check and Vite build PASS.36 Python tests PASS after rerun outside sandbox (local TestClient stalled inside it).5 real local Auth/JWT/PostgREST tests PASS.4 Chromium merge scenarios PASS (390/1280, Arabic dark/English light); mobile Arabic screenshot reviewed. 4 additional owner-file/editor Chromium regression scenarios PASS (8 browser scenarios total). Browser HTTP uses fixtures; native Auth tests are real local services. Initial deletion fixture corrected to actually remove a cell; browser fixture origin corrected to match its synthetic auth key. No tests disabled. Earlier auto-review usage limit temporarily blocked a browser invocation, resolved after environment resume. Existing PDF.js/Vite warnings remain. No new Supabase advisor run required for unchanged SQL; prior baseline warnings remain historical, not a current hosted audit.
+
+Progress remains **42 complete locally,19 partial,10 missing**. User explicitly requests that EVERY development delivery list the numbers of completed, partially implemented and unimplemented decisions, plus which decisions this batch advanced. Preserve this reporting requirement.72–80 remain outside authorization. Commit identity is established through Git, not embedded in its own contents.
+
+## Preserved previous checkpoints
+
+# Y-Sheets library checkpoint — 2026-11-18
+
+Current branch **feature/approved-sheets-library** starts from local trash checkpoint **9bd9832**, preserving all earlier local packages. Read-only remote main check: **eb8cb7358b96866dcfaf7bdeb1e892881930545d**. Local development, migrations and tests only; no push, PR, merge, production SQL or deployment. Historical instructions below do not override this scope.
+
+Read [SHEETS_LIBRARY.md](../approved-specifications/SHEETS_LIBRARY.md) and PROGRESS. Decision30 adds on-demand real saved-cell previews and private manual categories for files/folders, completing the existing Grid/List, name search, sorting, pins, favorites and folders. Preserve the approved cyan identity, editor, math algorithms, routes and prior ownership/sharing behavior.
+
+Additive migration **20261118162757_sheets_library.sql** provides private forced-RLS categories and owner-only RPCs with fixed search_path. Category CAS is independent of content/location/access revisions. Labels survive private trash, restoration increments their revision, and purge/expiry removes them. Mandatory audit excludes label/cell text; failure rolls back changes. Old browse RPC remains unchanged; new browse applies category filtering before pagination. Populated upgrade must preserve existing files, folders, grants, receipts, trash snapshots and history.
+
+Preview RPC returns only24 saved raw cells A1:D6 from the active sheet, each truncated to160 codepoints; formulas are displayed as entered, never computed or executed. Requires active owner identity and exact content revision; shared recipients and other administrators cannot use it. UI fetches only on request, keeps data in memory, clears on offline/list refresh and ignores late responses after owner/file/unmount changes. It is a bounded preview, not a rendered workbook or all-sheet export.
+
+Verification PASS:2499 Vitest tests/271files (19 focused directory/library cases included),293 academic SQL/RLS cases (13 library cases included),1 populated library upgrade,39 audit cases,24 native local GoTrue/JWT/PostgREST cases,36 Python tests, workspace TypeScript, architecture/math/module guards,8 guard cases, generated artifact drift and Vite build. Chromium:12 scenarios (4 library +4 trash +4 owner-file/editor). Browser network uses fixtures; SQL/native Auth are real local services. No final test failures; no production or load validation.
+
+Supabase CLI2.89.0 security advisors completed on isolated TLS PostgreSQL16. Two baseline WARNs remain: mutable search_path for0010 enforce_student_only_study_year and uuid-ossp in public from test bootstrap. No new library objects flagged; this is not a warning-free or hosted audit. Existing PDF.js/Vite warnings remain. Initial typecheck caught an unsupported Testing Library query option in a new test; corrected and full verification restarted, no disabled tests. Arabic mobile preview screenshot inspected.
+
+Progress: **42 complete locally,19 partial,10 missing**.59/70 retention/offline merge and66 collaboration/history remain incomplete;72–80 outside authorization. Separate launch needs ordered migrations, Staging and scale validation, plus the previously documented trash maintenance scheduler. Preserve prior local work. Commit identity is established through Git rather than embedded in its own contents.
+
+## Preserved previous checkpoints
+
+# Y-Sheets private trash checkpoint — 2026-11-17
+
+Current branch **feature/approved-sheets-trash** starts from local inheritance checkpoint **9b86e52**, following direct sharing **dd8e539**, folders **d8c79a4** and written answers **a66d55b**. These packages remain unpushed/unmerged. Read-only remote main check still found **eb8cb7358b96866dcfaf7bdeb1e892881930545d**. Local development/migrations/tests only; no push, PR, merge, production SQL or deployment. Historical permissions below do not supersede this checkpoint.
+
+Read [SHEETS_TRASH.md](../approved-specifications/SHEETS_TRASH.md) and PROGRESS. Decisions47/55/63 implement owner-private30-day trash for files/subtrees, metadata-only trash paging, explicit restore/purge confirmations, preserved identifiers/internal tree, and restoration at private root with all former grants revoked. Manual grant review/re-enable uses the existing sharing panels. Moving a restored item into shared folders retains the prior inheritance warning. Shared recipients lose server access when deletion commits; UI revalidation remains bounded polling/focus/save, not instant push.
+
+Additive local migration **20261117211046_sheets_trash.sql** introduces private forced-RLS trash_entries/lifecycle. Active rows are removed into a private snapshot under owner-tree and sorted file locks. Restoration increments content/organization/access revisions; fences reject old owner receipts, pending saves and reused deleted folder IDs. Old delete RPC now delegates to trash. Purge erases archived payload/name while retaining only identity/lifecycle/audit metadata. Existing files/grants/receipts/history are unchanged on upgrade. Mandatory audit excludes file/folder names and content; failure rolls back domain changes. No math/editor/route/theme/dependency changes.
+
+Expiry is checked on restore; owner listing also purges expired archives. Service-only maintenance handles200expired entries with SKIP LOCKED. The migration schedules it every5minutes if pg_cron is already installed, otherwise emits NOTICE. **Before a separately authorized launch, enable/verify pg_cron scheduling or configure a trusted service scheduler and monitor backlog.** Tests exercise actual expiry/purge logic, not a live cron daemon or production. Physical purge may lag until maintenance; restore is denied at deadline. Snapshot/tree size and scale remain unbenchmarked. Owner local recovery remains under existing ownership; old writes to restored originals are fenced.59/70 remain partial,30 needs preview/classification,66 broader collaboration/history;72–80 unapproved.
+
+Verification:2490 Vitest/270files,19focused UI cases included,20distinct native local Auth/JWT/PostgREST (16previous cases plus4trash cases rerun after Docker setup failure),12Chromium scenarios (4trash+4inheritance+4owner editor). Final PASS:280 academic SQL/RLS, final16 trash SQL rerun after partial indexes (included in the280),1 populated trash upgrade,39 audit tests,36 Python, workspace TypeScript, architecture/math/module guards,8 guard tests, artifact drift and Vite build. No final test failures. Delivery documentation finalized after environment resume on2026-11-18; retained test evidence verified without unnecessary reruns. Arabic mobile screenshot reviewed. Browser matcher corrected to the actual Arabic wording; existing editor harness required its Playwright module environment variable. Docker ran out of space before trash Auth setup; only documented orphan anonymous volumes from this batch and the prior inheritance tests were removed. Test cleanup now removes disposable volumes with rm -fv;4Auth trash cases passed afterwards. No disabled tests.
+
+Supabase security advisors completed on an isolated TLS-enabled PostgreSQL16 fixture using CLI2.89.0 and minimal temporary config. Two baseline warnings remain: mutable search_path on0010 enforce_student_only_study_year, and uuid-ossp in public from the test bootstrap. No new trash objects were flagged; do not claim a warning-free or hosted audit. Earlier advisor connection failure is superseded for this local fixture. Browser network is mocked; local SQL/native Auth are real. Existing PDF.js/Vite warnings remain.
+
+Progress: **41 complete locally,20 partial,10 missing**. Preserve all previous local packages. Commit hash is established through Git, not embedded in its own contents.
+
+## Preserved previous checkpoints
+
+# Y-Sheets folder inheritance checkpoint — 2026-11-17
+
+Current branch **feature/approved-sheets-inheritance** starts from local direct-sharing checkpoint **dd8e539**, following folders **d8c79a4** and written answers **a66d55b**. All remain unpushed/unmerged. Read-only remote main check still found **eb8cb7358b96866dcfaf7bdeb1e892881930545d**. This continuation authorizes local development, migrations and testing only; no push, PR, merge, production SQL or deployment. Earlier historical scope does not supersede this checkpoint.
+
+Read [SHEETS_INHERITANCE.md](../approved-specifications/SHEETS_INHERITANCE.md) and PROGRESS. Decisions51/54/62 now provide independent folder view/edit grants, inherited access for current/future descendants, atomic file/subtree moves, revocation preserving independent grants, warning confirmation, and owner-only source-folder explanations. Edit wins among valid sources; revoking one source does not deny another. Direct file grants remain independently managed. Existing host/editor/storage APIs, content CAS, math algorithms and routes are preserved.
+
+Additive local migration **20261117130556_sheets_inheritance.sql** adds private folder_shares and derived effective_shares, with forced RLS and no direct client/service grants. Triggers recompute access atomically with the source mutation and mandatory audit. Shared read/save and direct grant mutation take the owner-tree lock before the file lock, preventing saves waiting on committed revocation/moves from bypassing changed access. Effective revisions/tombstones invalidate old sessions and replayed receipts, including move-out/move-back. Existing direct grants retain their initial session revision during upgrade; no implicit folder grants, content rewrite or audit/history changes.
+
+Shared sessions still use memory only, close on failed access verification, and cannot export/recover locally. UI revalidation remains15seconds/focus/visibility plus every save, not instant push; already delivered bytes cannot be reclaimed. A source change invalidates the old session even if another independent grant still gives access; reopening uses current permission. Whole-owner-tree recomputation/locking needs production scale measurement before a separately authorized launch.59/70 remain partial for broader retention/offline merge; trash47/55/63 and broader library30 remain next work;72–80 unapproved.
+
+Verification:2481 Vitest/269files,25 focused UI cases included,14 focused inheritance SQL cases,16 native local GoTrue/JWT/PostgREST,36 Python,12 Chromium scenarios (4inheritance+4direct sharing+4folders), workspace TypeScript, architecture/math/module guards,8 guard cases, artifact drift and Vite build PASS. Full academic SQL:263 PASS, followed by final14 inheritance cases after migration-lock hardening (one additional catalog case;264 distinct). Populated inheritance upgrade:1 PASS; audit:39 PASS. The upgrade freezes direct grants before the initial derived snapshot; the refresh helper also takes the tree lock defensively. No final test failures. Arabic mobile screenshot inspected. First focused UI invocation needed test environment variables and waiting for initial panel load; fixed, no disabled tests. Local DB/Auth are real, browser HTTP uses fixtures. Supabase CLI advisors could not connect to the non-TLS isolated DB even with sslmode override; explicit catalog ACL/RLS/search_path and adversarial role/concurrency tests pass, but do not claim advisors passed. Existing PDF.js/Vite warnings remain.
+
+Progress: **38 complete locally,20 partial,13 missing**. No hosted deployment/load validation. Commit hash is established through Git, not embedded in its own contents. Preserve all prior local packages.
+
+## Preserved previous checkpoints
+
+# Y-Sheets direct sharing checkpoint — 2026-11-17
+
+Current branch **feature/approved-sheets-sharing** starts from local folders checkpoint **d8c79a4**, which follows written answers **a66d55b**. These packages remain unpushed/unmerged. Read-only remote main verification found **eb8cb7358b96866dcfaf7bdeb1e892881930545d**. User authorized local development and tests; no push, PR, merge, production SQL or deployment in this continuation. Historical scope below does not supersede this checkpoint.
+
+Read [SHEETS_SHARING.md](../approved-specifications/SHEETS_SHARING.md) and PROGRESS. Decision50 now supports owner-confirmed direct file sharing by exact nine-digit account number, view/edit grants, revocation, and a current-recipient file list. Owner/Admin roles cannot bypass personal ownership. Shared editing uses the existing YSheetsHostAdapter and the original workbook CAS revision; no silent rebase, ownership transfer, reshare, rename, move or delete for recipients. New additive local migration **20261116144657_sheets_sharing.sql** provides RPC-only private tables, current-session checks, grant revision CAS, serialized save/revoke/delete and audited grant metadata without file names/content. Old receipts cannot bypass a revoked or changed grant.
+
+Shared sessions keep pending edits only in memory, exclude RecoveryJournal/localStorage/downloads and system clipboard writes, and close when access cannot be verified. Access is checked at every save, every15seconds, focus and visibility. Server denial is serialized immediately; UI is polling/event-based and cannot reclaim already delivered bytes. Conflict retains in-memory edits without automatic retry/rebase; navigation asks to discard them. Decision59 is partial. Folder inheritance51/54/62, trash47/55/63, broader retention and offline merge remain unfinished.72–80 remain unapproved.
+
+Final verification PASS:2477 Vitest/269files plus final12-sharing rerun (one additional case;2478 distinct),250 academic SQL/RLS (15sharing),13 native local Auth/JWT/PostgREST,39 audit tests,1 populated sharing upgrade,36 Python and12 Chromium scenarios (4sharing+4folders+4owner editor). Architecture/math/module guards,8 guard cases, workspace types, artifact drift and Vite build passed. Browser caught and fixed a committed-draft save-status bug; regression added. SQL test audit-column names corrected. No disabled tests or final failures. Local DB/Auth are real; browser HTTP is fixture-based. Arabic mobile screenshot inspected. No hosted deployment, load or cost verification. See report for limitations and commands.
+
+Progress: **35 complete locally,20 partial,16 missing**. Keep both earlier local packages; do not repeat them. The new commit hash is established through Git, not embedded in its own contents.
+
+## Preserved previous checkpoints
+
+# Y-Sheets folder organization checkpoint — 2026-11-16
+
+User requested continued development of the approved decisions. Current branch **feature/approved-sheets-folders** starts from local written-answer checkpoint **a66d55b**; both packages are unpushed/unmerged. Main is unchanged at **eb8cb7358b96866dcfaf7bdeb1e892881930545d**. No push/PR/merge/production SQL/deployment is authorized for this continuation. Historical instructions below do not change that scope.
+
+Read [SHEETS_FOLDERS.md](../approved-specifications/SHEETS_FOLDERS.md) and PROGRESS. Decision43 implements nested owner-private folders, cycle-safe moves, rename, global literal name search, favorites, pins, sort and paging. Existing YSheetsHostAdapter/editor/save/recovery remain. Organization metadata has separate CAS revisions; moving/flagging never rewrites workbook content or save receipts. Old files remain at root without a backfill. Names/content are excluded or redacted from mandatory audit events. The browser retains creation identity after lost acknowledgements, handles stale revisions explicitly, refreshes on focus and clears protected metadata on denied access.
+
+Additive local migration **20261116141052_sheets_folders.sql**, two owner-scoped RPCs and RPC-only RLS tables. Owner tree advisory lock plus composite parent ownership prevents concurrent cycles/cross-account moves; no arbitrary depth cap. No third-party provider/dependency or new editor. New workbooks start at root. Folder deletion is intentionally unavailable until47; existing file deletion retains its explicit permanent-delete confirmation.
+
+Final PASS:2463 Vitest/268files plus final10-directory rerun (2 additional cases;2465 distinct),235 SQL/RLS,9 native local Auth/JWT/PostgREST,39 audit tests,1 populated upgrade preserving files/receipts/audit,36 Python,8 Chromium scenarios. Workspace TypeScript, architecture/math/module guards,8 guard tests, artifact drift and Vite build passed. Fixed test matcher/types and audit schema inventory; no disabled tests or final failures. Exact evidence is recorded in the linked report. Local SQL/Auth are real; browser network is fixture-based. No hosted deployment/load verification. Progress after this group: **34 complete locally,20 partial,17 missing**.30 remains partial for real content previews/classification,68 for broader events;50/51/54/62 sharing and47/55/63 trash remain next dependency groups.72–80 remain unapproved. Preserve both local packages and do not repeat their implementation.
+
+## Preserved previous checkpoints
+
+# Written polynomial answers checkpoint — 2026-11-15
+
+Current branch: **feature/approved-practice-written-answers**, based on merged main **eb8cb7358b96866dcfaf7bdeb1e892881930545d** (PR45). The user authorized this first local code/migration/test batch after the attachment's initial read-only review. **No push, PR creation, merge, production SQL or deployment is authorized by this batch.** Old push/deploy instructions and unmerged-branch statuses below are historical, not current authorization. Preserve this checkout and changes.
+
+Read [PRACTICE_WRITTEN_ANSWERS.md](../approved-specifications/PRACTICE_WRITTEN_ANSWERS.md) and PROGRESS. Written integer-polynomial answers now supplement existing verified derivative/antiderivative multiple-choice questions. Bounded text adapter uses the existing engine; unsupported answers remain pending and excluded from scoring. Server-only grading, delayed feedback, CAS, current role/section/source/engine checks, and assigned human review are retained. Written text stays in page memory until acknowledged server save; no raw answer in localStorage/audit. No new math algorithm, general free-form grading, LLM cost or replacement editor.
+
+New additive migration **20261114053306_practice_written_answers.sql** and Edge **ai-practice-answer**, plus updated **ai-practice-recheck**, are local-only. Existing history/results/plans are preserved. Read-only production inventory in this session found54 actual ledger entries through0056 (0031/0032 gaps intentional) and only ai-tutor-chat, ai-tutor-index, ai-practice-generate deployed on rspdfdrmswixcmpozgzr. Prior UNKNOWN ledger/prerequisite statuses below are superseded. Missing deployed recheck and lecture-access remain deployment gaps, not fixed by local tests.
+
+Final verification:2454 Vitest/267files plus final18-worker rerun (one new case;2455 distinct),220 academic SQL/RLS,136 distinct local native Auth/JWT/PostgREST cases plus final5-written rerun,39 audit SQL,1 populated written upgrade,36 Python and12 Chromium cases. Workspace TypeScript, architecture/math/module guards, artifact drift and Vite build passed. Python HTTP needed socket-capable execution and local uvicorn setup; final36 passed. No final failures. Detailed evidence and limits are recorded in the linked report. Browser responses are fixtures; local PostgreSQL, native Auth/JWT/PostgREST and math artifact are real. Hosted Edge/provider/staging, load and cost validation remain unproven. Progress stays33complete locally/20partial/18missing:18/21 expanded but partial;17/15 unchanged;72–80 unapproved. Review the recorded local evidence before any separately authorized launch, and do not repeat prior feature packages.
+
+## Preserved previous checkpoints
+
 # Bounded antiderivative verification checkpoint — 2026-11-03
 
 User asked to continue implementing approved decisions1–71. Started clean on verified **feature/approved-topic-performance 2ff7f1a41fcbc9f12b2ffc88aba20cb071bc925b**; main remains **9327493e96d6c8b697fc155de057aa7321224393**. Current group is **feature/approved-practice-antiderivatives**, stacked on that unmerged prerequisite0055. Do not reset, discard, recreate worktrees or automatically merge this new package. Final SHA is established through Git/ls-remote, not self-reference.

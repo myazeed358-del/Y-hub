@@ -1,9 +1,12 @@
+import { useAuth } from '@/contexts/AuthContext';
+import { AuditRetentionControls } from './AuditRetentionControls';
 import { AuditPersonIdentity } from './AuditPersonIdentity';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@workspace/y-hub-ds/components/ui/dialog';
 import type { AuditEvent } from '../domain/auditLog';
 import type { AuditCopy } from '../domain/copy';
 
 export function AuditEventDetails({ event, copy, onClose }: { event: AuditEvent | null; copy: AuditCopy; onClose: () => void }) {
+  const { role } = useAuth();
   const value = (data: unknown) => data === undefined ? copy.absent : data === '[REDACTED]' ? copy.redacted : typeof data === 'string' ? data : JSON.stringify(data);
   return <Dialog open={Boolean(event)} onOpenChange={open => { if (!open) onClose(); }}>
     <DialogContent className="max-h-[85dvh] overflow-y-auto sm:max-w-3xl">
@@ -17,6 +20,7 @@ export function AuditEventDetails({ event, copy, onClose }: { event: AuditEvent 
           <h3 className="text-sm font-semibold">{person.relation === 'actor' ? copy.who : copy.affected}</h3>
           <AuditPersonIdentity person={person} copy={copy} />
         </div>)}
+        {role === 'super_admin' && <AuditRetentionControls key={event.id} eventId={event.id} />}
         <h3 className="font-semibold">{copy.changes}</h3>
         <div className="overflow-x-auto"><table className="w-full text-sm">
           <thead><tr>{[copy.field, copy.before, copy.after].map(label => <th key={label} className="border-b p-2 text-start">{label}</th>)}</tr></thead>

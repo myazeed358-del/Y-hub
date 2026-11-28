@@ -10,8 +10,11 @@ import {
   type PracticeSession,
 } from "./sessionsRepository";
 import { PracticeAssessment } from "./review/PracticeAssessment";
+import { WrittenAnswerInput } from "./WrittenAnswerInput";
 import { sessionCopy } from "./sessionCopy";
 const button = "rounded border px-3 py-2 text-sm disabled:opacity-50";
+type PendingAnswer =
+  PendingChoice | { position: number; text: string; revision: number };
 export function PracticeSessionView({
   id,
   onDirty,
@@ -28,7 +31,7 @@ export function PracticeSessionView({
     [error, setError] = useState("");
   const [storageFailed, setStorageFailed] = useState(false);
   const [pending, setPending] = useState<{
-    value: PendingChoice;
+    value: PendingAnswer;
     auto: boolean;
   } | null>(null);
   const alive = useRef(true),
@@ -126,22 +129,26 @@ export function PracticeSessionView({
   const persist = (explicit: boolean) => {
     if (!session || !pending) return;
     const value = pending.value;
+    const version = {
+      ...session,
+      revision: explicit ? session.revision : value.revision,
+    };
     setPending({ value, auto: false });
     void action(
       () =>
-        sessionsRepository.save(
-          {
-            ...session,
-            revision: explicit ? session.revision : value.revision,
-          },
-          value.position,
-          value.choice,
-        ),
+        "text" in value
+          ? sessionsRepository.saveWritten(version, value.position, value.text)
+          : sessionsRepository.save(version, value.position, value.choice),
       true,
     );
   };
   useEffect(() => {
-    if (!pending?.auto || busy) return;
+    if (
+      !pending?.auto ||
+      busy ||
+      ("text" in pending.value && !pending.value.text.trim())
+    )
+      return;
     const timer = setTimeout(() => persist(false), 750);
     return () => clearTimeout(timer);
   }, [pending, busy]);
@@ -150,6 +157,17 @@ export function PracticeSessionView({
     const value = { position, choice, revision: session.revision };
     setStorageFailed(!recovery.current.write(value));
     setPending({ value, auto: true });
+    setError("");
+  }
+  function write(position: number, text: string) {
+    if (!session) return;
+    // Written content stays in memory until the authenticated server save succeeds.
+    // Do not expand the existing localStorage choice-only recovery contract.
+    recovery.current.clear();
+    setPending({
+      value: { position, text, revision: session.revision },
+      auto: true,
+    });
     setError("");
   }
   return (
@@ -171,11 +189,20 @@ export function PracticeSessionView({
           <p>{pending.auto ? t.dirty : t.review}</p>
           <button
             className={button}
-            disabled={busy}
+            disabled={
+              busy || ("text" in pending.value && !pending.value.text.trim())
+            }
             onClick={() => persist(true)}
           >
             {t.save}
           </button>
+          {"text" in pending.value && (
+            <p>
+              {language === "ar"
+                ? "الإجابة المكتوبة غير المحفوظة موجودة في هذه الصفحة فقط؛ أبقها مفتوحة حتى ينجح الحفظ."
+                : "Unsaved written text stays only on this page; keep it open until saving succeeds."}
+            </p>
+          )}
           <button
             className={button}
             disabled={busy}
@@ -227,7 +254,10 @@ export function PracticeSessionView({
                     ? "الخيار المحفوظ على الخادم"
                     : "Server-saved choice"}
                   :{" "}
-                  <bdi dir="ltr">{q.choice === null ? "—" : q.choice + 1}</bdi>
+                  <bdi dir="ltr">
+                    {q.writtenAnswer ??
+                      (q.choice === null ? "—" : q.choice + 1)}
+                  </bdi>
                 </p>
               )}
               <fieldset
@@ -247,7 +277,9 @@ export function PracticeSessionView({
                       aria-label={`${q.position}: ${i + 1}`}
                       checked={
                         (pending?.value.position === q.position
-                          ? pending.value.choice
+                          ? "choice" in pending.value
+                            ? pending.value.choice
+                            : null
                           : q.choice) === i
                       }
                       onChange={() => choose(q.position, i)}
@@ -257,21 +289,58 @@ export function PracticeSessionView({
                     </div>
                   </label>
                 ))}
+                {q.acceptsWritten && (
+                  <div className="block space-y-1">
+                    <span>
+                      {language === "ar"
+                        ? "أو اكتب الإجابة الرياضية"
+                        : "Or write the mathematical answer"}
+                    </span>
+                    <WrittenAnswerInput
+                      label={`${q.position}: ${language === "ar" ? "إجابة مكتوبة" : "Written answer"}`}
+                      ar={language === "ar"}
+                      value={
+                        pending?.value.position === q.position
+                          ? "text" in pending.value
+                            ? pending.value.text
+                            : ""
+                          : (q.writtenAnswer ?? "")
+                      }
+                      onChange={(value) => write(q.position, value)}
+                    />
+                    <span className="block text-xs">
+                      {language === "ar"
+                        ? "استخدم حدودًا بمعاملات صحيحة مثل 2*x+1، ولعائلة التكامل x^2+x+C. التعبيرات غير المدعومة تحتاج مراجعة ولا تُحتسب خاطئة."
+                        : "Use integer monomials, e.g. 2*x+1, or x^2+x+C for an integral family. Unsupported expressions need review and are not counted as incorrect."}
+                    </span>
+                  </div>
+                )}
               </fieldset>
               {!session.submittedAt &&
                 !q.answered &&
                 session.mode === "practice" && (
                   <button
                     className={button}
-                    disabled={busy || !!pending || q.choice === null}
+                    disabled={
+                      busy ||
+                      !!pending ||
+                      (q.choice === null && !q.writtenAnswer)
+                    }
                     onClick={() =>
                       void action(() =>
-                        sessionsRepository.save(
-                          session,
-                          q.position,
-                          q.choice!,
-                          true,
-                        ),
+                        q.writtenAnswer
+                          ? sessionsRepository.saveWritten(
+                              session,
+                              q.position,
+                              q.writtenAnswer,
+                              true,
+                            )
+                          : sessionsRepository.save(
+                              session,
+                              q.position,
+                              q.choice!,
+                              true,
+                            ),
                       )
                     }
                   >
@@ -281,16 +350,29 @@ export function PracticeSessionView({
               {q.feedback && (
                 <div className="rounded bg-muted p-3 min-w-0">
                   <p>
-                    {q.feedback.matchesSuggestion === null
-                      ? t.unanswered
-                      : q.feedback.matchesSuggestion
-                        ? q.feedback.verification
+                    {q.feedback.writtenResult
+                      ? q.feedback.writtenResult.score === null
+                        ? language === "ar"
+                          ? "تحتاج مراجعة — لا تدخل في العلامة"
+                          : "Needs review — excluded from the score"
+                        : q.feedback.writtenResult.score === 1
                           ? t.verifiedMatch
-                          : t.match
-                        : q.feedback.verification
-                          ? t.verifiedDifferent
-                          : t.different}
+                          : t.verifiedDifferent
+                      : q.feedback.matchesSuggestion === null
+                        ? t.unanswered
+                        : q.feedback.matchesSuggestion
+                          ? q.feedback.verification
+                            ? t.verifiedMatch
+                            : t.match
+                          : q.feedback.verification
+                            ? t.verifiedDifferent
+                            : t.different}
                   </p>
+                  {q.feedback.writtenResult && (
+                    <ChatMessageContent
+                      content={q.feedback.writtenResult.explanation}
+                    />
+                  )}
                   <p>
                     {q.feedback.verification ? t.verified : t.suggestion}:{" "}
                     <bdi dir="ltr">{q.feedback.suggestedChoice + 1}</bdi>

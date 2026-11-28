@@ -30,6 +30,8 @@ export const sessionSchema = z.object({
         prompt: z.string().max(3000),
         options: z.array(z.string().max(1000)).length(4),
         choice: choice.nullable(),
+        writtenAnswer: z.string().max(400).nullable().optional(),
+        acceptsWritten: z.boolean().optional(),
         answered: z.boolean(),
         generation: z
           .object({
@@ -48,6 +50,13 @@ export const sessionSchema = z.object({
           .object({
             suggestedChoice: choice,
             matchesSuggestion: z.boolean().nullable(),
+            writtenResult: z
+              .object({
+                score: z.number().int().min(0).max(1).nullable(),
+                explanation: z.string().max(4000),
+              })
+              .nullable()
+              .optional(),
             explanation: z.string().max(6000),
             citations: z.array(practiceCitationSchema).min(1).max(6),
             verification: z
@@ -117,6 +126,38 @@ function check(error: { code?: string } | null) {
     );
 }
 export const sessionsRepository = {
+  async saveWritten(
+    session: PracticeSession,
+    position: number,
+    text: string,
+    answer = false,
+  ) {
+    const { data, error } = await supabase.functions.invoke(
+      "ai-practice-answer",
+      {
+        body: {
+          sessionId: session.id,
+          position,
+          revision: session.revision,
+          text,
+          answer,
+        },
+      },
+    );
+    if (error) {
+      const status = (error as { context?: { status?: number } }).context
+        ?.status;
+      throw new PracticeSessionError(
+        status === 401 || status === 403
+          ? "denied"
+          : status === 409
+            ? "conflict"
+            : "unavailable",
+      );
+    }
+    return z.object({ revision: z.number().int().positive() }).parse(data)
+      .revision;
+  },
   async create(
     id: string,
     courseId: string,

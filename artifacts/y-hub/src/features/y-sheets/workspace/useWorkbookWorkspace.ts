@@ -1,5 +1,6 @@
 import { useNavigationGuard } from "@/shared/navigation/guardedLocation";
 import { useLanguage } from "@/i18n/LanguageContext";
+import { mergeRecovery, RecoveryMergeConflict } from "../io/mergeRecovery";
 import { workbookReducer } from "../state/workbookReducer";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createSupabaseWorkbookStorage } from "../integration/supabaseWorkbookStorage";
@@ -50,13 +51,16 @@ export function useWorkbookWorkspace(ownerId: string) {
   const [active, setActive] = useState<WorkbookData | null>(null);
   const [status, setStatus] = useState<SaveStatus>("saved");
   const [error, setError] = useState("");
+  const [mergeConflict, setMergeConflict] = useState<RecoveryMergeConflict | null>(null);
   const [busy, setBusy] = useState(false);
   const session = useRef<WorkbookSession | null>(null);
   const alive = useRef(true);
   const operation = useRef(false);
   const report = useCallback((err: unknown) => {
-    if (alive.current)
-      setError(err instanceof Error ? err.message : String(err));
+    if (alive.current) {
+      if (err instanceof RecoveryMergeConflict) { setMergeConflict(err); setError(""); }
+      else { setMergeConflict(null); setError(err instanceof Error ? err.message : String(err)); }
+    }
   }, []);
   const refreshLocal = useCallback(() => {
     const result = journal.list();
@@ -117,6 +121,7 @@ export function useWorkbookWorkspace(ownerId: string) {
     operation.current = true;
     setBusy(true);
     setError("");
+    setMergeConflict(null);
     try {
       await action();
     } catch (e) {
@@ -133,6 +138,15 @@ export function useWorkbookWorkspace(ownerId: string) {
       }
     }
   };
+  useEffect(() => {
+    const online = () => {
+      const current = session.current;
+      if (current?.canResumeAfterReconnect && !operation.current)
+        void run(() => current.resumeAfterReconnect());
+    };
+    window.addEventListener("online", online);
+    return () => window.removeEventListener("online", online);
+  });
   const activate = (wb: WorkbookData, recovery?: RecoveryEntry) => {
     if (!alive.current) return;
     session.current?.dispose();
@@ -178,6 +192,24 @@ export function useWorkbookWorkspace(ownerId: string) {
         payload: recoveryWorkbook(workbook, draft),
       });
       activate(wb, entry);
+    });
+  const mergeLatest = (entry: RecoveryEntry) =>
+    run(async () => {
+      await leave();
+      if (!entry.record.base) throw new Error("This older recovery has no merge base. Use Recover or Download.");
+      // A fresh adapter reads current ownership/revision without replacing an
+      // unresolved receipt in the active adapter. No mutation before merge succeeds.
+      const reader = createSupabaseWorkbookStorage(ownerId);
+      const latest = await reader.loadWorkbook(entry.record.workbook.id);
+      if (!alive.current) return;
+      const merged = mergeRecovery(entry.record.base,
+        recoveryWorkbook(entry.record.workbook, entry.record.draft), latest);
+      const checkpoint = reader.checkpoint!(latest.id)!;
+      journal.archiveCurrent(latest.id, entry);
+      storage.restoreCheckpoint!(latest.id, checkpoint);
+      const adopted = { ...entry, record: { ...entry.record, base: latest, checkpoint } };
+      const wb = workbookReducer(merged, { type: "SET_WORKBOOK", payload: merged });
+      activate(wb, adopted); // Save still uses CAS; a new remote edit cannot be overwritten.
     });
   const myFiles = () =>
     run(async () => {
@@ -238,7 +270,7 @@ export function useWorkbookWorkspace(ownerId: string) {
         );
       if (
         !window.confirm(
-          `Delete "${file.name}" permanently? This cannot be undone.`,
+          language === "ar" ? `نقل "${file.name}" إلى السلة لمدة 30 يومًا؟ يتوقف الوصول المشترك فورًا.` : `Move "${file.name}" to trash for 30 days? Shared access stops immediately.`,
         )
       )
         return;
@@ -298,6 +330,7 @@ export function useWorkbookWorkspace(ownerId: string) {
     active,
     status,
     error,
+    mergeConflict,
     busy,
     session,
     run,
@@ -306,6 +339,7 @@ export function useWorkbookWorkspace(ownerId: string) {
     refresh,
     open,
     restore,
+    mergeLatest,
     myFiles,
     keepAndLeave,
     change,

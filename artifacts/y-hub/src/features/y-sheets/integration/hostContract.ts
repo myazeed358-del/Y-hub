@@ -62,6 +62,8 @@ export interface YSheetsIntegrationProps {
   initialWorkbook?: WorkbookData;
   storageAdapter?: HostStorageAdapter;
   onRequestNewWorkbook?: () => void;
+  allowNewWorkbook?: boolean;
+  allowRenameWorkbook?: boolean;
   onSave?: (workbook: WorkbookData) => Promise<void>;
   onDraftChange?: (draft: PendingCellEdit | null) => void;
   onChange?: (workbook: WorkbookData) => void;

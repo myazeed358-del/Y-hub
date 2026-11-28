@@ -14,6 +14,7 @@ export class WorkbookSaveCoordinator {
   private timer: ReturnType<typeof setTimeout> | null = null;
   private blocked = false;
   private disposed = false;
+  private networkFailure = false;
   private currentStatus: SaveStatus = 'saved';
 
   constructor(
@@ -25,6 +26,11 @@ export class WorkbookSaveCoordinator {
 
   get status(): SaveStatus {
     return this.currentStatus;
+  }
+
+  get canRetryAfterReconnect(): boolean {
+    return !this.disposed && !this.blocked && !this.running && this.pending !== null &&
+      this.currentStatus === 'error' && this.networkFailure;
   }
 
   get hasUnsavedChanges(): boolean {
@@ -87,6 +93,7 @@ export class WorkbookSaveCoordinator {
     while (this.pending !== null && !this.disposed) {
       const snapshot = this.pending;
       this.pending = null;
+      this.networkFailure = false;
       this.setStatus('saving');
 
       try {
@@ -94,9 +101,10 @@ export class WorkbookSaveCoordinator {
         this.onSaved(snapshot);
       } catch (error) {
         // Preserve newer edits rather than replacing them.
-        this.pending ??= snapshot;
+        if (!this.disposed) this.pending ??= snapshot;
 
         const conflict = isConflict(error);
+        this.networkFailure = error instanceof WorkbookStorageError && error.kind === 'network';
 
         if (conflict) this.blocked = true;
 
@@ -110,6 +118,7 @@ export class WorkbookSaveCoordinator {
 
   dispose(): void {
     this.disposed = true;
+    this.pending = null;
     this.clearTimer();
   }
 

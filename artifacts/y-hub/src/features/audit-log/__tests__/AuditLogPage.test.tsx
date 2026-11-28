@@ -8,6 +8,7 @@ const state = vi.hoisted(() => ({ language: 'en' as 'en' | 'ar', role: 'super_ad
 vi.mock('@/i18n/LanguageContext', () => ({ useLanguage: () => state }));
 vi.mock('../services/auditLogRepository', () => ({ listAuditEvents: vi.fn(), suggestAuditPeople: vi.fn().mockResolvedValue([]) }));
 vi.mock('@/contexts/AuthContext', () => ({ useAuth: () => ({ user: { id: state.id }, role: state.role }) }));
+vi.mock('../components/AuditRetentionControls', () => ({ AuditRetentionControls: () => <aside>Retention controls</aside> }));
 const list = vi.mocked(listAuditEvents);
 beforeEach(() => { state.language = 'en'; state.role = 'super_admin'; state.id = 'reviewer'; list.mockReset(); list.mockResolvedValue({ events: [event], next: null, total: 1 }); });
 afterEach(cleanup);
@@ -111,3 +112,14 @@ it('clears Owner details and aborts requests when the viewer role changes', asyn
  await waitFor(()=>expect(list).toHaveBeenLastCalledWith(expect.objectContaining({entity:'ai_practice_performance_weights'}),null,expect.any(AbortSignal)));
  expect(screen.getByRole('option',{name:language==='ar'?'أوزان أداء التدريب':'Practice performance weights'})).toBeTruthy();
  });
+
+it('only exposes retention controls to the owner', async () => {
+  state.role = 'admin';
+  render(<AuditLogPage />);
+  await screen.findByText('Test Instructor');
+  expect(screen.queryByText('Retention controls')).toBeNull();
+  expect(screen.queryByRole('button', { name: 'Export current page (JSON)' })).toBeNull();
+  fireEvent.click(screen.getByRole('button', { name: 'Details' }));
+  expect(screen.queryByText('Retention controls')).toBeNull();
+  expect(screen.queryByRole('button', { name: 'Export current page (JSON)' })).toBeNull();
+});
