@@ -22,7 +22,7 @@
 | S | `src/features/y-sheets/workspace` و`sharing` و`trash`؛ SQL20261116141052/20261116144657/20261117130556/20261117211046/20261118162757 | `supabase/tests/academic/test_sheets_*.py`؛ `supabase/tests/integration/test_sheets_*.py`؛ اختبارات Sheets والمتصفح |
 | R | `src/features/y-sheets/io/recoveryJournal.ts` و`mergeRecovery.ts`؛ `integration/workbookSession.ts` | `src/features/y-sheets/test/recoveryJournal.test.ts`، `mergeRecovery.test.ts`، `workspace.test.tsx`؛ متصفح recovery-merge/reconnect |
 | V | `src/features/online-lectures`؛ `supabase/functions/lecture-access/handler.ts`؛ SQL0036 | `supabase/tests/university/test_lectures.py`؛ اختبارات handler؛ `online-lectures/__tests__`، ومنها14 حالة جديدة في هذه الدفعة |
-| D | `src/features/audit-log`؛ SQL0022/0045/20261128032953؛ التقاط التدقيق في ترحيلات الميزات | `supabase/tests/audit/test_audit.py` و`test_person_search.py` و`test_retention.py`؛ HTTP `test_audit_people.py`؛ اختبارات واجهة audit-log |
+| D | `src/features/audit-log`؛ SQL0022/0045/20261128032953/20261128161149؛ التقاط التدقيق في ترحيلات الميزات | `supabase/tests/audit/test_audit.py` و`test_person_search.py` و`test_retention.py` و`test_export.py`؛ HTTP `test_audit_people.py`؛ اختبارات واجهة audit-log |
 
 ## القرار مقابل السلوك الموجود
 
@@ -98,7 +98,7 @@
 | 66 | جزئي | R،S | CAS ودمج صريح مستقل للقيم والتنسيق والأبعاد؛ لا تحرير تعاوني مباشر أو سجل إصدارات خادمي للاستعادة. |
 | 67 | غير منفذ | V | لا نقل مضيف حي ولا استمرارية تسجيل ومهلة فشل5دقائق. |
 | 68 | جزئي | D،S،V | تدقيق أكاديمي وحضور ومنح وتنظيم ومشاركة وسلة دون محتوى خام؛ أحداث التسجيل وبقية الأمن غير مكتملة. |
-| 69 | جزئي | D | إعداد المالك24شهرًا افتراضيًا ضمن12–60، وحجز/رفع حماية التحقيق، مع CAS وتدقيق ذري وصلاحيات فعلية واختبارات SQL/JWT/واجهة. بقي الحذف الدوري المحمي والتصدير المدقق ونطاقات الدكتور والطالب/الأدمن؛ [التفاصيل](AUDIT_RETENTION_CONTROLS.md). |
+| 69 | جزئي | D | إعداد المالك24شهرًا افتراضيًا ضمن12–60، وحجز/رفع حماية التحقيق، مع CAS وتدقيق ذري وصلاحيات فعلية واختبارات SQL/JWT/واجهة. أضيف [تصدير JSON مدقق للمالك](AUDIT_PAGE_EXPORT.md) حتى25سجلًا؛ بقي الحذف الدوري المحمي ونطاقات الدكتور والطالب/الأدمن؛ [التفاصيل](AUDIT_RETENTION_CONTROLS.md). |
 | 70 | جزئي | R،S | استعادة مالك مع أساس معروف ودمج محافظ وإعادة محاولة الشبكة؛ لا انتهاء محلي أو احتفاظ مشروط للمشاركين، ولا دمج تعاوني عام. |
 | 71 | جزئي | V | adaptiveStream/dynacast مفعّلان في SDK؛ لا قياس حمل حقيقي ولا بديل خارجي مكتمل، وحضور QR لا يثبت حضور المكالمة. |
 

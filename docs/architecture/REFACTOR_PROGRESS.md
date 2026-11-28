@@ -1,3 +1,15 @@
+# Audited page export checkpoint — 2026-11-28
+
+Current branch integration/approved-work-20261123, PR48. Previous verified remote **0f35f12**; implementation **f120694**. Read [AUDIT_PAGE_EXPORT](../approved-specifications/AUDIT_PAGE_EXPORT.md). Decision69 advances with bounded Owner JSON export of1–25 selected page events. The server checks current DB role under lock, fetches authoritative redacted rows/people, rejects duplicates/missing IDs, and commits immutable issuance evidence before returning data. Export ID equals evidence ID; issuance is not proof of file storage. Existing reader scopes and append-only protections remain unchanged. No purge or production changes.
+
+Client validates response membership/format, cancels late downloads on page/loading/identity changes, suppresses double clicks, cleans object URLs and distinguishes issuance from completed download. Error messages acknowledge ambiguous committed issuance. Arabic/English filters and controls included.
+
+PASS:2633 Vitest/282 files,36 Python,8 module guard tests, all workspace types, architecture/math/module guards, generated artifact and Vite build. Complete verification script passed in one run with local runtime permission.56 audit UI/repository cases (13 new);53 isolated SQL cases (5 new);8 native local Auth/JWT/PostgREST cases (1 new), including same-token demotion and missing-ID409;3 Chromium scenarios (Arabic390 Admin/Owner, English1280 Owner) with real JSON file read-back for Owners over synthetic network. No disabled tests. Other academic/university SQL and unrelated HTTP suites were not rerun.
+
+Fresh read-only migration inventory confirms54 registered through logical0056;8 pending local migrations including20261128161149. No reapplication/repair, production write/deployment/deletion or statement-hash recheck. Local PostgreSQL16 vs production17.11 remains a limit.
+
+Counts42 locally complete/20 partial/9 missing.69 still needs protected expiry/scheduling, scoped Admin/Doctor/Student visibility and rollout. List all decision numbers per delivery. PR46/47 merged; main verified2073ff7. Publication/merging passing changes is authorized; PR48 remains draft pending its unresolved Vercel preview, so inspect the latest head/status before any merge. Other account-wide Codex sessions are unavailable. Prior checkpoints below are historical.
+
 # Audit retention controls checkpoint — 2026-11-28
 
 Current branch integration/approved-work-20261123, PR48. Previous verified remote **c6f41b2**; implementation **31f2712**. Read [AUDIT_RETENTION_CONTROLS](../approved-specifications/AUDIT_RETENTION_CONTROLS.md). Decision69 advances from missing to partial: Owner-only24-month default/12–60-month configuration, per-event investigation holds/releases, optimistic revision checks, atomic immutable audit evidence and localized controls. No deletion privilege, purge job or change to existing read scopes. Future maintenance must take the policy lock and exclude active holds; released hold FK rows still restrict deletion until explicitly handled. Remaining: expiry processing/scheduler, audited export, scoped Admin/Doctor/Student visibility and rollout.
