@@ -118,6 +118,8 @@ it('only exposes retention controls to the owner', async () => {
   render(<AuditLogPage />);
   await screen.findByText('Test Instructor');
   expect(screen.queryByText('Retention controls')).toBeNull();
+  expect(screen.queryByRole('button', { name: 'Export current page (JSON)' })).toBeNull();
   fireEvent.click(screen.getByRole('button', { name: 'Details' }));
   expect(screen.queryByText('Retention controls')).toBeNull();
+  expect(screen.queryByRole('button', { name: 'Export current page (JSON)' })).toBeNull();
 });

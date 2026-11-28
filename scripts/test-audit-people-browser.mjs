@@ -1,6 +1,6 @@
 // Real React, route guards and CSS; HTTP fixtures are NOT live Supabase evidence.
 import assert from 'node:assert/strict';
-import { mkdir } from 'node:fs/promises';
+import { mkdir, readFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 const { chromium } = await import(process.env.YHUB_PLAYWRIGHT_MODULE ? pathToFileURL(process.env.YHUB_PLAYWRIGHT_MODULE).href : 'playwright-core');
 const base = new URL(process.env.YHUB_BROWSER_BASE_URL || 'http://127.0.0.1:5175');
@@ -31,6 +31,11 @@ try {
         return json({ events: [event], total: 123 });
       }
       if (url.pathname === '/rest/v1/rpc/suggest_audit_people') { suggestions.push(route.request().postDataJSON()); return json([affected]); }
+      if (url.pathname === '/rest/v1/rpc/export_audit_page') {
+        assert.equal(role, 'super_admin');
+        assert.deepEqual(route.request().postDataJSON(), { p_event_ids: [event.id] });
+        return json({ format_version: 1, export_id: '99999999-9999-4999-8999-999999999999', issued_at: '2026-11-28T12:00:00Z', scope: 'selected_page', events: [event] });
+      }
       if (url.pathname === '/rest/v1/rpc/get_audit_retention_policy') return json(policy);
       if (url.pathname === '/rest/v1/rpc/set_audit_retention_policy') {
         const p = route.request().postDataJSON(); assert.equal(p.p_revision, policy.revision);
@@ -71,6 +76,15 @@ try {
     await page.waitForFunction(() => !document.querySelector('[aria-busy="true"]'));
     assert.equal(requests.at(-1).p_actor, affectedId); assert.equal(requests.at(-1).p_person_scope, 'affected'); assert.equal(requests.at(-1).p_limit, 26);
     assert.equal(await page.getByText('009876543', { exact: true }).getAttribute('dir'), 'ltr');
+    if (role === 'super_admin') {
+      const downloadPromise = page.waitForEvent('download');
+      await page.getByRole('button', { name: ar ? 'تصدير الصفحة الحالية (JSON)' : 'Export current page (JSON)', exact: true }).click();
+      const download = await downloadPromise;
+      assert.equal(download.suggestedFilename(), 'y-hub-audit-99999999-9999-4999-8999-999999999999.json');
+      const data = JSON.parse(await readFile(await download.path(), 'utf8'));
+      assert.equal(data.scope, 'selected_page'); assert.deepEqual(data.events.map(row => row.id), [event.id]);
+      await page.getByText(ar ? 'صدر التصدير وبدأ طلب التنزيل. تحقق من تنزيلات المتصفح.' : 'Export issued and download requested. Check your browser downloads.', { exact: true }).waitFor();
+    } else assert.equal(await page.getByRole('button', { name: 'تصدير الصفحة الحالية (JSON)' }).count(), 0);
     await page.getByRole('button', { name: ar ? 'التفاصيل' : 'Details', exact: true }).click();
     const dialog = page.getByRole('dialog'); await dialog.waitFor();
     await dialog.getByText(ar ? 'طالب تجريبي' : 'Test Student', { exact: true }).waitFor();

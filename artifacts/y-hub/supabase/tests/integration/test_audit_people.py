@@ -113,3 +113,24 @@ class AuditPeopleHTTP(unittest.TestCase):
             self.assertEqual(status,403)
         finally:
             self.stack.sql(f"UPDATE public.users SET role='super_admin' WHERE id='{uid}'")
+
+    def test_audited_export_current_owner_and_role_withdrawal(self):
+        self.course()
+        eid = self.stack.sql('SELECT id FROM public.audit_events ORDER BY occurred_at DESC LIMIT 1')
+        params = {'p_event_ids': [eid]}
+        result = self.ok('super_admin', '/rpc/export_audit_page', params)
+        self.assertEqual([row['id'] for row in result['events']], [eid])
+        evidence = self.ok('super_admin', '/audit_events?id=eq.'+result['export_id'])
+        self.assertEqual(evidence[0]['actions'], ['audit_export_issued'])
+        for role in ('student','instructor','admin',None):
+            status, _ = self.request(role,'/rpc/export_audit_page',params)
+            self.assertIn(status,(401,403))
+        uid = self.accounts['super_admin'][0]
+        try:
+            self.stack.sql(f"UPDATE public.users SET role='student' WHERE id='{uid}'")
+            status, _ = self.request('super_admin','/rpc/export_audit_page',params)
+            self.assertEqual(status,403)
+        finally:
+            self.stack.sql(f"UPDATE public.users SET role='super_admin' WHERE id='{uid}'")
+        status, _ = self.request('super_admin','/rpc/export_audit_page',{'p_event_ids':['99999999-9999-4999-8999-999999999999']})
+        self.assertEqual(status,409)
