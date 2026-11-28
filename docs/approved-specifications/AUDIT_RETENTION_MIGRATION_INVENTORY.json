@@ -1,0 +1,223 @@
+{
+  "project": "rspdfdrmswixcmpozgzr",
+  "observed_date": "2026-11-28",
+  "read_only": true,
+  "migrations": [
+    {
+      "version": "0001",
+      "name": "initial_schema"
+    },
+    {
+      "version": "0002",
+      "name": "quiz_module"
+    },
+    {
+      "version": "0003",
+      "name": "security_and_rpcs"
+    },
+    {
+      "version": "0004",
+      "name": "users_security"
+    },
+    {
+      "version": "0005",
+      "name": "security_hardening_phase5a"
+    },
+    {
+      "version": "0006",
+      "name": "enrollment"
+    },
+    {
+      "version": "0007",
+      "name": "storage_security"
+    },
+    {
+      "version": "0008",
+      "name": "profile_data_integrity"
+    },
+    {
+      "version": "0009",
+      "name": "restore_authenticated_profile_read"
+    },
+    {
+      "version": "0010",
+      "name": "student_only_study_year"
+    },
+    {
+      "version": "0011",
+      "name": "course_syllabus"
+    },
+    {
+      "version": "0012",
+      "name": "restore_course_insert_grant"
+    },
+    {
+      "version": "0013",
+      "name": "restore_course_select_grant"
+    },
+    {
+      "version": "0014",
+      "name": "restore_course_update_delete_grants"
+    },
+    {
+      "version": "0015",
+      "name": "ai_tutor_quota_and_material_grants"
+    },
+    {
+      "version": "0016",
+      "name": "ai_tutor_global_daily_quota"
+    },
+    {
+      "version": "0017",
+      "name": "course_enrollment_roster"
+    },
+    {
+      "version": "0018",
+      "name": "user_numbers"
+    },
+    {
+      "version": "0019",
+      "name": "course_enrollment_insert_grant"
+    },
+    {
+      "version": "0020",
+      "name": "section_enrollment_control"
+    },
+    {
+      "version": "0021",
+      "name": "roster_user_numbers"
+    },
+    {
+      "version": "0022",
+      "name": "central_audit_log"
+    },
+    {
+      "version": "0023",
+      "name": "y_sheets_workbooks"
+    },
+    {
+      "version": "0024",
+      "name": "y_sheets_safe_saves"
+    },
+    {
+      "version": "0025",
+      "name": "exam_attempt_integrity"
+    },
+    {
+      "version": "0026",
+      "name": "confirm_course_deletion"
+    },
+    {
+      "version": "0027",
+      "name": "academic_course_definitions"
+    },
+    {
+      "version": "0028",
+      "name": "syllabus_and_academic_permissions"
+    },
+    {
+      "version": "20261024121126",
+      "name": "yhub_0029_security_privileges_and_exam_access"
+    },
+    {
+      "version": "20261024121143",
+      "name": "yhub_0030_exam_question_snapshots"
+    },
+    {
+      "version": "20261024121152",
+      "name": "yhub_0033_exceptional_engine_access"
+    },
+    {
+      "version": "20261024121200",
+      "name": "yhub_0034_student_quick_access"
+    },
+    {
+      "version": "20261024121209",
+      "name": "yhub_0035_academic_attendance"
+    },
+    {
+      "version": "20261024121219",
+      "name": "yhub_0036_online_lectures"
+    },
+    {
+      "version": "20261024121227",
+      "name": "yhub_0037_y_sheets_application_conflicts"
+    },
+    {
+      "version": "20261024191350",
+      "name": "yhub_0038_ai_tutor_knowledge"
+    },
+    {
+      "version": "20261024191400",
+      "name": "yhub_0039_ai_tutor_arabic_search"
+    },
+    {
+      "version": "20261025141641",
+      "name": "yhub_0040_attendance_session_lifecycle"
+    },
+    {
+      "version": "20261025141659",
+      "name": "yhub_0041_academic_management_contracts"
+    },
+    {
+      "version": "20261027090639",
+      "name": "yhub_0042_attendance_reporting"
+    },
+    {
+      "version": "20261028151600",
+      "name": "yhub_0043_engine_grant_workflows"
+    },
+    {
+      "version": "20261028151609",
+      "name": "yhub_0044_bilingual_profile_names"
+    },
+    {
+      "version": "20261028151616",
+      "name": "yhub_0045_audit_person_search"
+    },
+    {
+      "version": "20261101071141",
+      "name": "yhub_0046_lesson_completion"
+    },
+    {
+      "version": "20261101071144",
+      "name": "yhub_0047_ai_practice_sources"
+    },
+    {
+      "version": "20261101071153",
+      "name": "yhub_0048_ai_practice_sessions"
+    },
+    {
+      "version": "20261101071156",
+      "name": "yhub_0049_ai_practice_review"
+    },
+    {
+      "version": "20261101071205",
+      "name": "yhub_0050_ai_practice_math_verification"
+    },
+    {
+      "version": "20261102194840",
+      "name": "yhub_0051_ai_practice_equivalence"
+    },
+    {
+      "version": "20261102194855",
+      "name": "yhub_0052_ai_practice_adaptive_difficulty"
+    },
+    {
+      "version": "20261102194905",
+      "name": "yhub_0053_ai_practice_performance"
+    },
+    {
+      "version": "20261107141546",
+      "name": "ai_practice_outline_scope"
+    },
+    {
+      "version": "20261107141549",
+      "name": "ai_practice_topic_performance"
+    },
+    {
+      "version": "20261107141552",
+      "name": "practice_antiderivatives"
+    }
+  ]
+}
